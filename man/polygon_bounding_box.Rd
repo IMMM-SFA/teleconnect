@@ -2,7 +2,8 @@
 % Please edit documentation in R/analysis.R
 \name{polygon_bounding_box}
 \alias{polygon_bounding_box}
-\title{Create a spatial polygon bounding box sf object}
+\title{Analysis tools for teleconnect
+Create a spatial polygon bounding box sf object}
 \usage{
 polygon_bounding_box(x_min, x_max, y_min, y_max, my_crs)
 }
