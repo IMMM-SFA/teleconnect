@@ -1,9 +1,9 @@
 #' Analysis tools for teleconnect
 
-library(dplyr)
-library(sf)
-library(tools)
-library(lwgeom)
+#ibrary(dplyr)
+#library(sf)
+#library(tools)
+#library(lwgeom)
 
 
 #' Create a spatial polygon bounding box sf object
@@ -18,6 +18,7 @@ library(lwgeom)
 #' @param my_crs An integer for the EPSG number of the desired output coordinate
 #' reference system.
 #' @return A bounding box polygon as an sf object
+#' @importFrom sf st_polygon st_sfc
 #' @author Chris R. Vernon (chris.vernon@pnnl.gov)
 #' @export
 polygon_bounding_box <- function(x_min, x_max, y_min, y_max, my_crs) {
@@ -28,8 +29,8 @@ polygon_bounding_box <- function(x_min, x_max, y_min, y_max, my_crs) {
                    x_min, y_min,
                    x_min, y_max), byrow = TRUE, ncol = 2) %>%
     list() %>%
-    sf::st_polygon() %>%
-    sf::st_sfc(., crs = my_crs)
+    st_polygon() %>%
+    st_sfc(., crs = my_crs)
 
   return(bbox)
 }
@@ -48,6 +49,8 @@ polygon_bounding_box <- function(x_min, x_max, y_min, y_max, my_crs) {
 #' @param lower_left_xy numeric of length 2. lower left corner corrdinates (x, y) of the grid
 #' @param to_crs integer. The EPSG number of the desired output coordinate
 #' reference system. The default is NULL; which will inherit the CRS of the input ref_obj.
+#' @importFrom sf st_crs st_make_grid st_sf st_transform st_area
+#' @importFrom raster projection
 #' @return A simple features (sf) spatial data frame object.
 #' @author Chris R. Vernon (chris.vernon@pnnl.gov)
 #' @export
@@ -55,23 +58,23 @@ build_fishnet <- function(ref_obj, resolution, lower_left_xy, to_crs = NULL) {
 
   # get the CRS of the input reference spatial data
   if (class(ref_obj)[1] == "RasterBrick") {
-    native_crs <- sf::st_crs(raster::projection(ref_obj))
+    native_crs <- st_crs(projection(ref_obj))
   }
   else {
-    native_crs <- sf::st_crs(ref_obj)
+    native_crs <- st_crs(ref_obj)
   }
 
   # create grid and give it a fn_key from 1..n and transform to target CRS
-  fn <- sf::st_make_grid(ref_obj, cellsize = c(resolution, resolution), crs = native_crs, offset = lower_left_xy, what = 'polygons') %>%
-    sf::st_sf('geometry' = ., data.frame('fn_key' = 1:length(.)))
+  fn <- st_make_grid(ref_obj, cellsize = c(resolution, resolution), crs = native_crs, offset = lower_left_xy, what = 'polygons') %>%
+    st_sf('geometry' = ., data.frame('fn_key' = 1:length(.)))
 
   # transform if desired
   if (!is.null(to_crs)) {
-    fn <- sf::st_transform(fn, crs = to_crs)
+    fn <- st_transform(fn, crs = to_crs)
   }
 
   # add grid area field
-  fn$grid_area <- sf::st_area(fn$geometry)
+  fn$grid_area <- st_area(fn$geometry)
 
   return(fn)
 }
