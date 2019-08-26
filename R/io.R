@@ -1,9 +1,5 @@
 # Input/Output IO tools for rgis
 
-#library(sf)
-#library(raster)
-#library(fasterize)
-#library(rgdal)
 
 #' Create an sf object from a shapefile
 #'
@@ -108,6 +104,7 @@ get_cities <- function(){
 #'
 #' Read the UCS database
 #' @param data_dir root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")
+#' @param ucs_file_path path of UCS xlsx file within data_dir
 #' @param method tool used to convert to spatial data; either 'sp' or 'sf'
 #' @importFrom readxl read_xlsx
 #' @importFrom sf st_as_sf st_transform
@@ -115,9 +112,11 @@ get_cities <- function(){
 #' @importFrom dplyr select
 #' @author Sean Turner (sean.turner@pnnl.gov)
 #' @export
-get_ucs_power_plants <- function(data_dir, method = "sp"){
+get_ucs_power_plants <- function(data_dir,
+                                 ucs_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
+                                 method = "sp"){
   read_xlsx(paste0(data_dir,
-                   "water/UCS-EW3-Energy-Water-Database.xlsx"),
+                   ucs_file_path),
             sheet = "MAIN DATA", skip = 4) %>%
     select(cooling = `Requires cooling?`,
            cooling_tech = `Cooling Technology`,

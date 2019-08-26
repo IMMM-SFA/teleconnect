@@ -4,10 +4,14 @@
 \alias{count_watershed_teleconnections}
 \title{count_watershed_teleconnections}
 \usage{
-count_watershed_teleconnections(data_dir, cities = NULL)
+count_watershed_teleconnections(data_dir,
+  watersheds_file_path = "water/CWM_v2_2/World_Watershed8.shp",
+  cities = NULL)
 }
 \arguments{
 \item{data_dir}{root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")}
+
+\item{watersheds_file_path}{path of watersheds shapefile within data_dir}
 
 \item{cities}{a vector of cities to be included in the count. If omitted, all cities will be included.}
 }

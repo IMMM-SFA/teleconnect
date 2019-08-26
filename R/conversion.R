@@ -1,11 +1,5 @@
 # Conversion tools for teleconnect
 
-#library(fasterize)
-#library(raster)
-#library(spex)
-#library(sf)
-#library(ncdf4)
-
 
 #' Create a raster from a polygon sf object
 #'

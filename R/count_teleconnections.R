@@ -1,13 +1,17 @@
 #' count_watershed_teleconnections
 #'
 #' @param data_dir root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")
+#' @param watersheds_file_path path of watersheds shapefile within data_dir
 #' @param cities a vector of cities to be included in the count. If omitted, all cities will be included.
 #' @details counts teleconnections assoicated with water supply catchments associated with each city
 #' @importFrom purrr map_dfr
 #' @importFrom dplyr filter
+#' @importFrom tibble tibble
 #' @export
 #'
-count_watershed_teleconnections <- function(data_dir, cities = NULL){
+count_watershed_teleconnections <- function(data_dir,
+                                            watersheds_file_path = "water/CWM_v2_2/World_Watershed8.shp",
+                                            cities = NULL){
 
   all_cities <- get_cities()[["city_state"]]
 
@@ -26,7 +30,7 @@ count_watershed_teleconnections <- function(data_dir, cities = NULL){
     city_watershed_mapping
 
   # read shapefiles for watersheds
-  import_shapefile(paste0(data_dir, "water/CWM_v2_2/World_Watershed8.shp"),
+  import_shapefile(paste0(data_dir, watersheds_file_path),
                    method = "rgdal") %>%
     # subset for desired watersheds
     subset(DVSN_ID %in% city_watershed_mapping$DVSN_ID) ->

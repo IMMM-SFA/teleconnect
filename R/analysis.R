@@ -1,10 +1,5 @@
 #' Analysis tools for teleconnect
 
-#ibrary(dplyr)
-#library(sf)
-#library(tools)
-#library(lwgeom)
-
 
 #' Create a spatial polygon bounding box sf object
 #'
