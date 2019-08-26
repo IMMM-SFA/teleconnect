@@ -1,11 +1,5 @@
 # Conversion tools for teleconnect
 
-library(fasterize)
-library(raster)
-library(spex)
-library(sf)
-library(ncdf4)
-
 
 #' Create a raster from a polygon sf object
 #'
@@ -28,12 +22,13 @@ library(ncdf4)
 #' x. Default is NA.
 #' @param by character. The name of a column in sf by which to aggregate layers. If set,
 #' fasterize will return a RasterBrick with as many layers as unique values of the by column
+#' @importFrom fasterize fasterize
 #' @author Chris R. Vernon (chris.vernon@pnnl.gov)
 #' @return raster object
 #' @export
 polygon_to_raster <- function(sf, raster, field = NULL, fun, background = NA_real_, by = NULL) {
 
-  return(fasterize::fasterize(sf, raster, field, fun, background, by))
+  return(fasterize(sf, raster, field, fun, background, by))
 }
 
 
@@ -43,11 +38,12 @@ polygon_to_raster <- function(sf, raster, field = NULL, fun, background = NA_rea
 #'
 #' @param raster A raster, stack, or brick object
 #' @param na.rm boolean. If TRUE will polygonize only non-NA cells. Defualt is FALSE.
+#' @importFrom spex qm_rasterToPolygons
 #' @author Chris R. Vernon (chris.vernon@pnnl.gov)
 #' @export
 raster_to_polygon <- function(raster, na.rm = FALSE) {
 
-  return(spex::qm_rasterToPolygons(raster, na.rm))
+  return(qm_rasterToPolygons(raster, na.rm))
 }
 
 
@@ -62,6 +58,7 @@ raster_to_polygon <- function(raster, na.rm = FALSE) {
 #' @param start_year int
 #' @param through_year int
 #' @param nmonths int
+#' @importFrom ncdf4 nc_open ncvar_get nc_close
 #' @author Chris Vernon (chris.vernon@pnnl.gov)
 #' @export
 ncdf_to_csv <- function(ncdf_file, out_csv, nc_var_name, resolution = 0.5, start_year = NULL, through_year = NULL, nmonths = NULL) {
