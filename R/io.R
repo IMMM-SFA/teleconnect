@@ -1,4 +1,4 @@
-# Input/Output IO tools for rgis
+# Input/Output IO tools for teleconnect
 
 
 #' Create an sf object from a shapefile
@@ -134,4 +134,36 @@ get_ucs_power_plants <- function(data_dir,
                                                     proj4string = CRS(proj4_string)))
 }
 
+#' Get raster value count from polygon input areas
+#'
+#' Get the count of raster values represented in the input raster dataset
+#' when restricted to the input watershed polygons for a target city.
+#'
+#' @param raster_file character. A full path to the input raster file with file name and extension
+#' @param polygon_shpfile character. A full path to the input polygon shapefile with file name and extension
+#' @param city_name character. The target city name in the input polygon shapefile.
+#' @return count of unique raster values in target polygons
+#' @importFrom sf st_crs st_transform
+#' @importFrom raster crop projection mask unique
+#' @author Chris R. Vernon (chris.vernon@pnnl.gov)
+#' @export
+get_raster_nvals <- function(raster_file, polygon_shpfile, city_name) {
 
+  r <- import_raster(raster_file)
+
+  # get the coordinate system of the input raster
+  r_crs <- st_crs(projection(r))
+
+  # read in shapefile and transform projection to the raster CRS
+  polys <- import_shapefile(polygon_shpfile) %>%
+    subset(City_Name == city_name) %>%
+    st_transform(crs = r_crs)
+
+  # calculate the number of unique land classes from the input raster that are in the target polygons
+  n_lcs <- crop(r, polys) %>%
+    mask(polys) %>%
+    unique() %>%
+    length()
+
+  return(n_lcs)
+}
