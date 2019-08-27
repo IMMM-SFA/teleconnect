@@ -1,0 +1,48 @@
+---
+title: "supported-datasets"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{supported-datasets}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(teleconnect)
+```
+
+## The following are datasets that are supported by the `teleconnect` package:
+
+| Sector | Dataset | Source | Reference | Usage | Year |
+| -- | -- | -- | -- | -- | -- |
+| Land | National Land Cover Database 2016 - Landcover & Imperviousness (NLCD2016) | https://s3-us-west-2.amazonaws.com/mrlc/NLCD_2016_Land_Cover_L48_20190424.zip |Yang et al. 2018 | Land classes per city zone | 2016 |
+| Land | USDA Cropland Data Layer 2016 | ftp://ftp.nass.usda.gov/download/res/2016_30m_cdls.zip | USDA National Agricultural Statistics Service Cropland Data Layer 2016 | Land classes per city zone | 2016 |
+| Water | CLM v4.5 base layer | Received and archived by Chris from Min Chen on 2019 August 16. | Oleson et al. 2013 | Irrigated crops per city zone | 2000 |
+| Water | Estimated Use of Water in the United States County-Level Data for 2015 | https://www.sciencebase.gov/catalog/item/get/5af3311be4b0da30c1b245d8 | Dieter et al. 2018. | County level water use for public supply, domestic, irrigation, thermoelectric power, industrial, mining, livestock, and aquaculture | 2015 |
+| Water | Existing Hydropower Assests Plant Dataset FY2019 | https://hydrosource.ornl.gov/sites/default/files/inline-files/EHA_Public_PlantFY2019_GIS_0.zip | Johnson et al. 2019 | Existing hydropower dams | 2019 |
+| Water | Global Reservoir and Dams Database | http://sedac.ciesin.columbia.edu/pfs/grand.html | Lehner et al. 2011 | Hydropower dam and reservoir locations | 2011 |
+| Energy | The UCS EW3 Energy-Water Database V1.3 | https://www.ucsusa.org/ | NA | Water and energy data for US power plants | 2012 |
+| Water | City Water Map (version 2.2) | https://knb.ecoinformatics.org/view/doi:10.5063/F1J67DWR | McDonald et al. 2016 | fill | 2016 |
+| Water | National Hydrography Dataset (NHDPlusV2) | ftp://ftp.horizon-systems.com/NHDplus/NHDPlusV21/ | Need Reference | NA | 2014 |
+
+ 
+
+## References
+
+* Dieter, C.A., Linsey, K.S., Caldwell, R.R., Harris, M.A., Ivahnenko, T.I., Lovelace, J.K., Maupin, M.A., and Barber, N.L., 2018, Estimated use of water in the United States county-level data for 2015 (ver. 2.0, June 2018): U.S. Geological Survey data release, https://doi.org/10.5066/F7TB15V5.
+* Johnson, M.M., S.-C. Kao, N.M. Samu, and R. Uria-Martinez, Existing Hydropower Assets, 2019. HydroSource. Oak Ridge National Laboratory, Oak Ridge, TN. DOI: 10.21951/EHA_FY2019/1508076
+* Lehner, B., Reidy Liermann, C., Revenga, C., Vˆrˆsmarty, C., Fekete, B., Crouzet, P., Dˆll, P., Endejan, M., Frenken, K., Magome, J., Nilsson, C., Robertson, J., Rˆdel, R., Sindorf, N., Wisser, D. (2011): High-resolution mapping of the worldís reservoirs and dams for sustainable river-flow management. Frontiers in Ecology and the Environment.
+* Oleson, K., and Coauthors, 2013: Technical description of version 4.5 of the Community Land Model (CLM). NCAR Technical Note NCAR/TN-503+STR, 420 pp, doi:10.5065/D6RR1W7M.
+* McDonald RI, Weber KF, Padowski J, Boucher T, Shemie D. 2016. Estimating watershed degradation over the last century and its impact on water-treatment costs for the world's large cities. Proceedings of the National Academy of Sciences 113: 9117-9122.
+* Mekonnen, M.M. & Hoekstra, A.Y. (2011a) The green, blue and grey water footprint of crops and derived crop products, Hydrology and Earth System Sciences, 15(5): 1577-1600.
+* Mekonnen, M.M. & Hoekstra, A.Y. (2011b) National water footprint accounts: the green, blue and grey water footprint of production and consumption, Value of Water Research Report Series No.50, UNESCO-IHE, Delft, the Netherlands.
+* USDA National Agricultural Statistics Service Cropland Data Layer. 2016. Published crop-specific data layer [Online]. Available at http://nassgeodata.gmu.edu/CropScape/ (accessed 01Aug2019). USDA-NASS, Washington, DC.
+* Yang, L.,  Jin, S.,  Danielson, P., Homer, C., Gass, L., Case, A., Costello, C., Dewitz, J., Fry, J., Funk, M., Grannemann, B., Rigge, M. and G. Xian. 2018.  A New Generation of the United States National Land Cover Database: Requirements, Research Priorities, Design, and Implementation Strategies, p. 108–123.
+
