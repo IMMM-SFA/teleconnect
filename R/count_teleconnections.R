@@ -2,6 +2,8 @@
 #'
 #' @param data_dir root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")
 #' @param watersheds_file_path path of watersheds shapefile within data_dir
+#' @param landcover_file_path path of NLCD landcover data file
+#' @param powerplants_file_path path of power plants data file
 #' @param cities a vector of cities to be included in the count. If omitted, all cities will be included.
 #' @details counts teleconnections assoicated with water supply catchments associated with each city
 #' @importFrom purrr map_dfr
@@ -11,6 +13,8 @@
 #'
 count_watershed_teleconnections <- function(data_dir,
                                             watersheds_file_path = "water/CWM_v2_2/World_Watershed8.shp",
+                                            landcover_file_path = "land/NLCD_2016_Land_Cover_L48_20190424/NLCD_2016_Land_Cover_L48_20190424.img",
+                                            powerplants_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
                                             cities = NULL){
 
   all_cities <- get_cities()[["city_state"]]
@@ -39,7 +43,11 @@ count_watershed_teleconnections <- function(data_dir,
     watersheds
 
   # read ucs plant data
-  get_ucs_power_plants(data_dir) -> power_plants_USA
+  get_ucs_power_plants(paste0(data_dir, powerplants_file_path)) -> power_plants_USA
+
+  # read landcover raster for US
+  import_raster(paste0(data_dir, landcover_file_path)) ->
+    landcover_USA
 
   # map through all cities, computing teleconnections
   cities %>%
@@ -71,6 +79,11 @@ count_watershed_teleconnections <- function(data_dir,
         nrow() ->
         tc_n_thermalplants
 
+      # TELECONNECTION - NUMBER OF LAND USE CLASSES
+      get_raster_val_classes(landcover_USA, watersheds_city) %>%
+        length() ->
+        tc_n_landclasses
+
       done(city)
 
       # output
@@ -78,7 +91,8 @@ count_watershed_teleconnections <- function(data_dir,
         tibble(city = !! city,
                n_watersheds = tc_n_watersheds,
                n_hydro = tc_n_hydroplants,
-               n_thermal = tc_n_watersheds)
+               n_thermal = tc_n_watersheds,
+               n_landclasses = tc_n_landclasses)
       )
     })
 }
