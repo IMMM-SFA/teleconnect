@@ -4,14 +4,10 @@
 \alias{get_ucs_power_plants}
 \title{get_ucs_power_plants}
 \usage{
-get_ucs_power_plants(data_dir,
-  ucs_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
-  method = "sp")
+get_ucs_power_plants(ucs_file_path, method = "sp")
 }
 \arguments{
-\item{data_dir}{root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")}
-
-\item{ucs_file_path}{path of UCS xlsx file within data_dir}
+\item{ucs_file_path}{full path of UCS xlsx file within data_dir}
 
 \item{method}{tool used to convert to spatial data; either 'sp' or 'sf'}
 }

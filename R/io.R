@@ -26,7 +26,7 @@ import_shapefile <- function(shp_path, quiet = TRUE, method = "sf") {
 #'
 #' @param raster_path character. A full path to the input raster file with file name and extension
 #' @return raster object
-#' @importFrom fasterize fasterize
+#' @importFrom raster raster
 #' @author Chris R. Vernon (chris.vernon@pnnl.gov)
 #' @export
 import_raster <- function(raster_path) {
@@ -103,8 +103,7 @@ get_cities <- function(){
 #' get_ucs_power_plants
 #'
 #' Read the UCS database
-#' @param data_dir root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")
-#' @param ucs_file_path path of UCS xlsx file within data_dir
+#' @param ucs_file_path full path of UCS xlsx file within data_dir
 #' @param method tool used to convert to spatial data; either 'sp' or 'sf'
 #' @importFrom readxl read_xlsx
 #' @importFrom sf st_as_sf st_transform
@@ -112,11 +111,9 @@ get_cities <- function(){
 #' @importFrom dplyr select
 #' @author Sean Turner (sean.turner@pnnl.gov)
 #' @export
-get_ucs_power_plants <- function(data_dir,
-                                 ucs_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
+get_ucs_power_plants <- function(ucs_file_path,
                                  method = "sp"){
-  read_xlsx(paste0(data_dir,
-                   ucs_file_path),
+  read_xlsx(ucs_file_path,
             sheet = "MAIN DATA", skip = 4) %>%
     select(cooling = `Requires cooling?`,
            cooling_tech = `Cooling Technology`,
@@ -139,31 +136,29 @@ get_ucs_power_plants <- function(data_dir,
 #' Get the count of raster values represented in the input raster dataset
 #' when restricted to the input watershed polygons for a target city.
 #'
-#' @param raster_file character. A full path to the input raster file with file name and extension
-#' @param polygon_shpfile character. A full path to the input polygon shapefile with file name and extension
-#' @param city_name character. The target city name in the input polygon shapefile.
+#' @param raster_object character. An object of class RasterLayer.
+#' @param polygon character. A polygon to define spatial boundary of raster value counts (e.g. a given city's watersheds)
 #' @return count of unique raster values in target polygons
 #' @importFrom sf st_crs st_transform
 #' @importFrom raster crop projection mask unique
 #' @author Chris R. Vernon (chris.vernon@pnnl.gov)
 #' @export
-get_raster_nvals <- function(raster_file, polygon_shpfile, city_name) {
+get_raster_val_classes <- function(raster_object, polygon) {
 
-  r <- import_raster(raster_file)
+  # transform polygon to sf object if not already
+  if(class(polygon)[[1]] != "sf") polygon <- st_as_sf(polygon)
 
   # get the coordinate system of the input raster
-  r_crs <- st_crs(projection(r))
+  r_crs <- st_crs(projection(raster_object))
 
   # read in shapefile and transform projection to the raster CRS
-  polys <- import_shapefile(polygon_shpfile) %>%
-    subset(City_Name == city_name) %>%
+  polys <- polygon %>%
     st_transform(crs = r_crs)
 
   # calculate the number of unique land classes from the input raster that are in the target polygons
-  n_lcs <- crop(r, polys) %>%
+  n_lcs <- crop(raster_object, polys) %>%
     mask(polys) %>%
-    unique() %>%
-    length()
+    unique()
 
   return(n_lcs)
 }
