@@ -89,8 +89,8 @@ import_points_from_csv <- function(f, pts_lat_field, pts_lon_field, pts_crs = 43
 #' @import vroom
 #' @author Sean Turner (sean.turner@pnnl.gov)
 get_cities <- function(){
-  vroom(paste0(system.file("extdata/", package = "teleconnect"),
-               "city_to_intake_mapping.csv"),
+  vroom(paste0(system.file("extdata", package = "teleconnect"),
+               "/city_to_intake_mapping.csv"),
         col_types = cols(city = col_character(),
                          state = col_character(),
                          city_uid = col_integer(),
