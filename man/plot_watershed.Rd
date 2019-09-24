@@ -18,7 +18,11 @@ plot_watershed(data_dir,
 
 \item{landcover_file_path}{path of NLCD landcover data file}
 
+\item{crop_file_path}{path of CDL img file}
+
 \item{powerplants_file_path}{path of power plants data file}
+
+\item{conus_file_path}{path of CONUS state boundaries shape file}
 
 \item{city}{character. City to be analysed in the format "City | STATE" (e.g., "Phoenix | AZ")}
 }

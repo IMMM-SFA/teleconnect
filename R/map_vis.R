@@ -4,6 +4,8 @@
 #' @param watersheds_file_path path of watersheds shapefile within data_dir
 #' @param landcover_file_path path of NLCD landcover data file
 #' @param powerplants_file_path path of power plants data file
+#' @param crop_file_path path of CDL img file
+#' @param conus_file_path path of CONUS state boundaries shape file
 #' @param city character. City to be analysed in the format "City | STATE" (e.g., "Phoenix | AZ")
 #' @details plots the watersheds and relevant features for a chosen city
 #' @import tmap
