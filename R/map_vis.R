@@ -1,5 +1,6 @@
 #' plot_watershed
 #'
+#' @details plots the watersheds and relevant features for a chosen city
 #' @param data_dir root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")
 #' @param watersheds_file_path path of watersheds shapefile within data_dir
 #' @param landcover_file_path path of NLCD landcover data file
@@ -7,7 +8,6 @@
 #' @param crop_file_path path of CDL img file
 #' @param conus_file_path path of CONUS state boundaries shape file
 #' @param city character. City to be analysed in the format "City | STATE" (e.g., "Phoenix | AZ")
-#' @details plots the watersheds and relevant features for a chosen city
 #' @import tmap
 #' @importFrom tmaptools aggregate_map
 #' @importFrom dplyr filter mutate if_else right_join
@@ -41,11 +41,6 @@ plot_watershed <- function(data_dir,
     # subset for desired watersheds
     subset(DVSN_ID %in% city_watershed_mapping$DVSN_ID) ->
     watersheds_city
-
-  import_shapefile("../spatial data/water/CWM_v2_2/City_Centroid.shp",
-                   method = "rgdal") %>%
-    subset(grepl("USA", ISOURBID)) %>%
-    subset(NAME == city)
 
   # get state shape
   import_shapefile(paste0(data_dir, conus_file_path),
@@ -141,8 +136,7 @@ plot_watershed <- function(data_dir,
   watersheds_city_trans <- st_as_sf(watersheds_city) %>% st_transform(crs = r_crs)
   state_shape_trans <- st_as_sf(state_shape) %>% st_transform(crs = r_crs)
 
-  #power_plants_city_trans <- st_as_sf(power_plants_city) %>% st_transform(crs = r_crs)
-
+  # create extents to define bounding boxes of maps
   watersheds_city_trans %>% extent() -> ws_extent
   state_shape_trans %>% extent() -> state_extent
   extent_y_diff <- (ws_extent@ymax - ws_extent@ymin) * 0.05
@@ -162,17 +156,18 @@ plot_watershed <- function(data_dir,
     max(ws_extent@ymax, state_extent@ymax)
   ) -> state_ws_extent
 
-  # plot NCLD raster
 
+  # create map visuals
   tmap_options(max.categories = 132)
-
   tmap_arrange(
+    # 1. map of state with watersheds defined
     tm_shape(state_shape_trans, bbox = state_ws_extent) +
       tm_borders() + tm_fill(col = "white") +
       tm_shape(watersheds_city_trans) +
       tm_fill(col = "lightgrey") + tm_borders("black") +
       tm_layout(title = paste0("Water supply catchments \n", city),
                 frame = FALSE),
+    # 2. NLCD raster map
     tm_shape(landcover_city_watersheds_agg, bbox = map_extent) +
       tm_raster(style = "cat",
                 palette = land_palette,
@@ -182,6 +177,7 @@ plot_watershed <- function(data_dir,
                   legend.bg.color = "white",
                   legend.bg.alpha = 0.5,
                   legend.width = -0.32),
+    # 3. Power plant map
     tm_shape(watersheds_city_trans, bbox = map_extent) +
       tm_borders() + tm_fill("lightgrey") +
       tm_shape(power_plants_USA) +
@@ -191,6 +187,8 @@ plot_watershed <- function(data_dir,
                 legend.bg.color = "white",
                 legend.bg.alpha = 0.5,
                 legend.width = -0.32),
+
+    # 4. cropcover raster map
     tm_shape(cropcover_city_watersheds_agg, bbox = map_extent) +
       tm_raster(palette = crop_palette,
                 legend.show = F) +
