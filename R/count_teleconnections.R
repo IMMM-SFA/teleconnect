@@ -30,8 +30,7 @@ count_watershed_teleconnections <- function(data_dir,
   }
 
   get_cities() %>%
-    subset(city_state %in% cities) %>%
-    subset(key_watershed == TRUE) ->
+    subset(city_state %in% cities) ->
     city_watershed_mapping
 
   # read shapefiles for watersheds
@@ -61,39 +60,53 @@ count_watershed_teleconnections <- function(data_dir,
         subset(DVSN_ID %in% city_intake_ids) ->
         watersheds_city
 
-      # TELECONNECTION - NUMBER OF WATERSHEDS
-      tc_n_watersheds <- length(city_intake_ids)
-      # NOTE: CURRENTLY COUNTS NESTED WATERSHEDS; ADDITIONAL...
-      # ... ALGORITHM NEEDED TO AVOID DOUBLE COUNTING
+      # catch cases with only groundwater points (i.e., no watershed polygons)
+      if(nrow(watersheds_city) == 0){
+        done(city)
+        return(
+          tibble(city = !! city,
+                 n_watersheds = 0,
+                 n_hydro = 0,
+                 n_thermal = 0,
+                 n_landclasses = 0)
+        )
+      }else{
 
-      # subset power plants for target city watersheds
-      power_plants_USA[watersheds_city, ] -> power_plants_city
+        # TELECONNECTION - NUMBER OF WATERSHEDS
+        tc_n_watersheds <- length(city_intake_ids)
+        # NOTE: CURRENTLY COUNTS NESTED WATERSHEDS; ADDITIONAL...
+        # ... ALGORITHM NEEDED TO AVOID DOUBLE COUNTING
 
-      # TELECONNECTION - NUMBER OF HYDRO PLANTS
-      power_plants_city %>%
-        subset(`Power Plant Type` == "Hydropower") %>%
-        nrow() ->
-        tc_n_hydroplants
+        # subset power plants for target city watersheds
+        power_plants_USA[watersheds_city, ] -> power_plants_city
 
-      # TELECONNECTION - NUMBER OF THERMAL PLANTS
-      power_plants_city %>% subset(cooling == "Yes") %>%
-        nrow() ->
-        tc_n_thermalplants
+        # TELECONNECTION - NUMBER OF HYDRO PLANTS
+        power_plants_city %>%
+          subset(`Power Plant Type` == "Hydropower") %>%
+          nrow() ->
+          tc_n_hydroplants
 
-      # TELECONNECTION - NUMBER OF LAND USE CLASSES
-      get_raster_val_classes(landcover_USA, watersheds_city) %>%
-        length() ->
-        tc_n_landclasses
+        # TELECONNECTION - NUMBER OF THERMAL PLANTS
+        power_plants_city %>% subset(cooling == "Yes") %>%
+          nrow() ->
+          tc_n_thermalplants
 
-      done(city)
+        # TELECONNECTION - NUMBER OF LAND USE CLASSES
+        get_raster_val_classes(landcover_USA, watersheds_city) %>%
+          length() ->
+          tc_n_landclasses
 
-      # output
-      return(
-        tibble(city = !! city,
-               n_watersheds = tc_n_watersheds,
-               n_hydro = tc_n_hydroplants,
-               n_thermal = tc_n_thermalplants,
-               n_landclasses = tc_n_landclasses)
-      )
+        done(city)
+
+        # output
+        return(
+          tibble(city = !! city,
+                 n_watersheds = tc_n_watersheds,
+                 n_hydro = tc_n_hydroplants,
+                 n_thermal = tc_n_thermalplants,
+                 n_landclasses = tc_n_landclasses)
+        )
+      }
+
     })
 }
