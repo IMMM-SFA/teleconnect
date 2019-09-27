@@ -14,6 +14,9 @@ mask_raster_to_polygon(raster_object, polygon)
 \description{
 Mask raster to polygon
 }
+\details{
+masks a raster file against a chosen polygon.
+}
 \author{
 Sean Turner (sean.turner@pnnl.gov)
 }
