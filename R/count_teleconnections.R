@@ -30,7 +30,8 @@ count_watershed_teleconnections <- function(data_dir,
   }
 
   get_cities() %>%
-    subset(city_state %in% cities) ->
+    subset(city_state %in% cities) %>%
+    subset(key_watershed == TRUE) ->
     city_watershed_mapping
 
   # read shapefiles for watersheds
