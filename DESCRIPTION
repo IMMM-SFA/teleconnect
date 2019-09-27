@@ -26,7 +26,9 @@ Imports:
     spex,
     crayon,
     clisymbols,
-    tibble
+    tibble,
+    tmap,
+    tmaptools
 Suggests: 
     testthat (>= 2.1.0),
     knitr,

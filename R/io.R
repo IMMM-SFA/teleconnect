@@ -162,3 +162,31 @@ get_raster_val_classes <- function(raster_object, polygon) {
 
   return(n_lcs)
 }
+
+#' Mask raster to polygon
+#'
+#' @details masks a raster file against a chosen polygon.
+#' @param raster_object character. An object of class RasterLayer.
+#' @param polygon character. A polygon to define spatial boundary of raster value counts (e.g. a given city's watersheds)
+#' @importFrom sf st_crs st_transform st_as_sf
+#' @importFrom raster crop projection mask unique
+#' @author Sean Turner (sean.turner@pnnl.gov)
+#' @export
+mask_raster_to_polygon <- function(raster_object, polygon) {
+
+  # transform polygon to sf object if not already
+  if(class(polygon)[[1]] != "sf") polygon <- st_as_sf(polygon)
+
+  # get the coordinate system of the input raster
+  r_crs <- st_crs(projection(raster_object))
+
+  # read in shapefile and transform projection to the raster CRS
+  polys <- polygon %>%
+    st_transform(crs = r_crs)
+
+  # crop and mask
+  n_lcs <- crop(raster_object, polys) %>%
+    mask(polys)
+
+  return(n_lcs)
+}

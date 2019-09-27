@@ -91,7 +91,7 @@ count_watershed_teleconnections <- function(data_dir,
         tibble(city = !! city,
                n_watersheds = tc_n_watersheds,
                n_hydro = tc_n_hydroplants,
-               n_thermal = tc_n_watersheds,
+               n_thermal = tc_n_thermalplants,
                n_landclasses = tc_n_landclasses)
       )
     })
