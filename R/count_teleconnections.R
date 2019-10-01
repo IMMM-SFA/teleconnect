@@ -15,6 +15,7 @@ count_watershed_teleconnections <- function(data_dir,
                                             watersheds_file_path = "water/CWM_v2_2/World_Watershed8.shp",
                                             landcover_file_path = "land/NLCD_2016_Land_Cover_L48_20190424/NLCD_2016_Land_Cover_L48_20190424.img",
                                             powerplants_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
+                                            crop_file_path = "land/2016_30m_cdls/2016_30m_cdls.img",
                                             cities = NULL){
 
   all_cities <- get_cities()[["city_state"]]
@@ -50,6 +51,10 @@ count_watershed_teleconnections <- function(data_dir,
   import_raster(paste0(data_dir, landcover_file_path)) ->
     landcover_USA
 
+  # read croptype raster for US
+  import_raster(paste0(data_dir, crop_file_path)) ->
+    cropcover_USA
+
   # map through all cities, computing teleconnections
   cities %>%
     map_dfr(function(city){
@@ -69,7 +74,8 @@ count_watershed_teleconnections <- function(data_dir,
                  n_watersheds = 0,
                  n_hydro = 0,
                  n_thermal = 0,
-                 n_landclasses = 0)
+                 n_landclasses = 0,
+                 n_cropcover = 0)
         )
       }else{
 
@@ -96,6 +102,10 @@ count_watershed_teleconnections <- function(data_dir,
         get_raster_val_classes(landcover_USA, watersheds_city) %>%
           length() ->
           tc_n_landclasses
+        # TELECONNECTION - NUMBER OF CROP TYPES
+        get_raster_val_classes(cropcover_USA, watersheds_city) %>%
+          length() ->
+          tc_n_cropcover
 
         done(city)
 
@@ -105,7 +115,8 @@ count_watershed_teleconnections <- function(data_dir,
                  n_watersheds = tc_n_watersheds,
                  n_hydro = tc_n_hydroplants,
                  n_thermal = tc_n_thermalplants,
-                 n_landclasses = tc_n_landclasses)
+                 n_landclasses = tc_n_landclasses,
+                 n_cropcover = tc_n_cropcover)
         )
       }
 
