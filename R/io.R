@@ -100,6 +100,35 @@ get_cities <- function(){
   )
 }
 
+#' get_crop_mapping
+#'
+#' Read internal data file that specifies the GCAM classification for certain crop types.
+#' @import vroom
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
+get_crop_mapping <- function(){
+  vroom(paste0(system.file("extdata", package = "teleconnect"),
+               "/FAO_ag_items_PRODSTAT.csv"),
+        col_types = cols(item = col_character(),
+                         GTAP_crop = col_character(),
+                         GCAM_commodity = col_character(),
+                         CROSIT_crop = col_character(),
+                         CROSIT_cropID = col_double(),
+                         IFA2002_crop = col_character(),
+                         IFA_commodity = col_character(),
+                         MIRCA_crop_name = col_character(),
+                         MIRCA_crop = col_character(),
+                         MIRCA_Crop24and26 = col_character(),
+                         MH_crop = col_character(),
+                         MH2011_crop = col_character(),
+                         MH2014_proxy = col_character(),
+                         GTAP_use = col_character(),
+                         LPJmL_crop = col_character(),
+                         GEPIC_crop = col_character(),
+                         Pegasus_crop = col_character(),
+                         C3avg_include = col_double())
+  )
+}
+
 #' get_ucs_power_plants
 #'
 #' Read the UCS database
