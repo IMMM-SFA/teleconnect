@@ -2,18 +2,17 @@
 #'
 #' @param data_dir root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")
 #' @param watersheds_file_path path of watersheds shapefile within data_dir
-#' @param landcover_file_path path of NLCD landcover data file
 #' @param powerplants_file_path path of power plants data file
+#' @param crop_file_path path of crop cover raster
 #' @param cities a vector of cities to be included in the count. If omitted, all cities will be included.
 #' @details counts teleconnections assoicated with water supply catchments associated with each city
 #' @importFrom purrr map_dfr
-#' @importFrom dplyr filter
+#' @importFrom dplyr filter group_indices left_join
 #' @importFrom tibble tibble
 #' @export
 #'
 count_watershed_teleconnections <- function(data_dir,
                                             watersheds_file_path = "water/CWM_v2_2/World_Watershed8.shp",
-                                            landcover_file_path = "land/NLCD_2016_Land_Cover_L48_20190424/NLCD_2016_Land_Cover_L48_20190424.img",
                                             powerplants_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
                                             crop_file_path = "land/2016_30m_cdls/2016_30m_cdls.img",
                                             cities = NULL){
@@ -47,13 +46,12 @@ count_watershed_teleconnections <- function(data_dir,
   # read ucs plant data
   get_ucs_power_plants(paste0(data_dir, powerplants_file_path)) -> power_plants_USA
 
-  # read landcover raster for US
-  import_raster(paste0(data_dir, landcover_file_path)) ->
-    landcover_USA
-
   # read croptype raster for US
   import_raster(paste0(data_dir, crop_file_path)) ->
     cropcover_USA
+
+  # read reclassified crop table
+  reclassify_raster(crop_cover_levels = levels(cropcover_USA)[[1]]) -> crop_reclass_table
 
   # map through all cities, computing teleconnections
   cities %>%
@@ -98,14 +96,33 @@ count_watershed_teleconnections <- function(data_dir,
           nrow() ->
           tc_n_thermalplants
 
-        # TELECONNECTION - NUMBER OF LAND USE CLASSES
-        get_raster_val_classes(landcover_USA, watersheds_city) %>%
-          length() ->
-          tc_n_landclasses
-        # TELECONNECTION - NUMBER OF CROP TYPES
-        get_raster_val_classes(cropcover_USA, watersheds_city) %>%
-          length() ->
-          tc_n_cropcover
+        # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
+
+        # get raster values of crops within the watershed.
+        get_raster_val_classes(cropcover_USA, watersheds_city) -> cropcover_ids
+
+            # filter reclass table by IDs that match raster IDs.
+            crop_reclass_table %>%
+              filter(CDL_ID %in% cropcover_ids) ->
+              crop_and_landcover_types
+
+            # filter out where "is_crop" is true and only count crop types.
+            crop_and_landcover_types %>%
+              filter(is_crop == TRUE)%>%
+              .[["GCAM_ID"]] %>% unique() %>%
+              length() -> tc_n_cropcover
+
+            # filter out where "is crop" is false and count land classes, adding 1 class to account for agriculture.
+            crop_and_landcover_types %>%
+              filter(is_crop == FALSE) %>%
+              .[["CDL_Class"]] %>% unique() %>%
+              length() -> number_landclasses_ex_ag
+
+            if (tc_n_cropcover > 0){
+              tc_n_landclasses = number_landclasses_ex_ag + 1
+            }else{
+              tc_n_landclasses = number_landclasses_ex_ag
+            }
 
         done(city)
 

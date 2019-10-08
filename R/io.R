@@ -100,6 +100,36 @@ get_cities <- function(){
   )
 }
 
+#' get_crop_mapping
+#'
+#' Read internal data file that specifies the GCAM classification for certain crop types.
+#' @import vroom
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
+#' @export
+get_crop_mapping <- function(){
+  vroom(paste0(system.file("extdata", package = "teleconnect"),
+               "/FAO_ag_items_PRODSTAT.csv"),
+        col_types = cols(item = col_character(),
+                         GTAP_crop = col_character(),
+                         GCAM_commodity = col_character(),
+                         CROSIT_crop = col_character(),
+                         CROSIT_cropID = col_double(),
+                         IFA2002_crop = col_character(),
+                         IFA_commodity = col_character(),
+                         MIRCA_crop_name = col_character(),
+                         MIRCA_crop = col_character(),
+                         MIRCA_Crop24and26 = col_character(),
+                         MH_crop = col_character(),
+                         MH2011_crop = col_character(),
+                         MH2014_proxy = col_character(),
+                         GTAP_use = col_character(),
+                         LPJmL_crop = col_character(),
+                         GEPIC_crop = col_character(),
+                         Pegasus_crop = col_character(),
+                         C3avg_include = col_double())
+  )
+}
+
 #' get_ucs_power_plants
 #'
 #' Read the UCS database
@@ -189,4 +219,63 @@ mask_raster_to_polygon <- function(raster_object, polygon) {
     mask(polys)
 
   return(n_lcs)
+}
+
+#' reclassify_raster
+#' @param crop_cover_levels levels of the crop cover raster file.
+#' @details Read internal data file that specifies the GCAM classification for certain crop types. Reclassify CDL based on GCAM.
+#' @import dplyr group_indices left_join filter rename
+#' @importFrom car recode
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
+#' @export
+reclassify_raster <- function(crop_cover_levels){
+  # Load in the GCAM classes CSV.
+  gcam_csv <- get_crop_mapping()
+
+  # Extract only the GCAM Class column
+  gcam_csv %>%
+    dplyr::select(GCAM_commodity) %>%
+    filter(!is.na(GCAM_commodity)) %>%
+    mutate(GCAM_ID = dplyr::group_indices(., GCAM_commodity)) %>%
+    unique() ->
+    gcam_classes
+
+  # Obtain the attribute table for the raster.
+  crop_cover_levels %>%
+    filter(Class_Names != "") %>%
+    dplyr::select(ID, CDL_Class = Class_Names) %>%
+    mutate(CDL_Class = as.character(CDL_Class))->
+    cdl_classes
+
+  # Assign the GCAM IDs to matching CDL Class.
+        # All Double Crops are under MiscCrop
+        # CDL crops were assigned to where they fit best if there was no overlap with GCAM classes.
+        # Fallow/Idle Cropland assigned to MiscCrop because it was not present in GCAM classes.
+        # Any crop that was potentially used for oil is assigned to OilCrop. Example: Camelina
+        # Cantelopes is not present in GCAM classes and is counted as MiscCrop because Watermelon is MiscCrop. Both are melons.
+        # Any grain that was not wheat was assigned to OtherGrain
+        # 1 = Corn; 2 = FiberCrop; 3 = FodderGrass; 4 = FodderHerb; 5 = MiscCrop; 6 = OilCrop;
+        # 7 = OtherGrain; 8 = PalmFruit; 9 = Rice; 10 = Root_Tuber; 11 = SugarCrop; 12 = Wheat
+  cdl_classes$GCAM_ID <- car::recode(cdl_classes$ID, "c(1,12,13) = 1;
+                                                      c(2,32,36) = 2;
+                                                      c(59,60) = 3;
+                                                      c(37,58,224) = 4; c(10,11,14,42,44,47,48,49,50,51,52,53,54,55,56,57,61,66,67,68,69,70,71,72,74,75,
+                                                      76,77,204,206,207,208,209,210,212,213,214,215,216,217,218,219,220,221,222,223,227,229,230,231,232,233,
+                                                      234,235,236,237,238,239,240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,225,226) = 5;
+                                                      c(5,6,26,31,33,34,35,38,211) = 6;
+                                                      c(4,21,25,27,28,29,39,205) = 7;
+                                                      3 = 9;
+                                                      c(43,46) = 10;
+                                                      c(41,45) = 11;
+                                                      c(22,23,24,30) = 12;
+                                                      c(82,121,122,123,124,63,64,65,81,83,87,88,92,
+                                                      111,112,131,141,142,143,152,176,190,195,0) = NA", as.factor = FALSE)
+
+  # Join tables by GCAM_ID and add column to seperate crops and land classes. Rename columns for simplicity.
+  reclass_table <- dplyr::left_join(cdl_classes, gcam_classes, by = "GCAM_ID") %>%
+    mutate(is_crop = if_else(is.na(GCAM_commodity), FALSE, TRUE))
+
+  reclass_table_df <- dplyr::rename(reclass_table, CDL_ID = ID,
+                                            GCAM_Class = GCAM_commodity)
+
 }
