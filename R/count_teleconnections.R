@@ -4,17 +4,20 @@
 #' @param watersheds_file_path path of watersheds shapefile within data_dir
 #' @param powerplants_file_path path of power plants data file
 #' @param crop_file_path path of crop cover raster
+#' @param dams_file_path path of National Inventory of Dams "NID" point file
 #' @param cities a vector of cities to be included in the count. If omitted, all cities will be included.
 #' @details counts teleconnections assoicated with water supply catchments associated with each city
 #' @importFrom purrr map_dfr
 #' @importFrom dplyr filter group_indices left_join
 #' @importFrom tibble tibble
+#' @importFrom sf as_Spatial
 #' @export
 #'
 count_watershed_teleconnections <- function(data_dir,
                                             watersheds_file_path = "water/CWM_v2_2/World_Watershed8.shp",
                                             powerplants_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
                                             crop_file_path = "land/2016_30m_cdls/2016_30m_cdls.img",
+                                            dams_file_path = "water/nabd_fish_barriers_2012/nabd_fish_barriers_2012.shp",
                                             cities = NULL){
 
   all_cities <- get_cities()[["city_state"]]
@@ -53,6 +56,11 @@ count_watershed_teleconnections <- function(data_dir,
   # read reclassified crop table
   reclassify_raster(crop_cover_levels = levels(cropcover_USA)[[1]]) -> crop_reclass_table
 
+  # read NID point file and select only Flood Control Dams (C = Flood Control)
+  import_shapefile(paste0(data_dir, dams_file_path)) %>%
+    subset(grepl("C", Purposes)) %>%
+    sf::as_Spatial()-> flood_control_dams
+
   # map through all cities, computing teleconnections
   cities %>%
     map_dfr(function(city){
@@ -73,7 +81,8 @@ count_watershed_teleconnections <- function(data_dir,
                  n_hydro = 0,
                  n_thermal = 0,
                  n_landclasses = 0,
-                 n_cropcover = 0)
+                 n_cropcover = 0,
+                 n_floodcontroldams = 0)
         )
       }else{
 
@@ -123,6 +132,9 @@ count_watershed_teleconnections <- function(data_dir,
             }else{
               tc_n_landclasses = number_landclasses_ex_ag
             }
+        # TELECONNECTION - NUMBER OF FLOOD CONTROL DAMS WITHIN WATERSHED.
+        flood_control_dams[watersheds_city, ] %>%
+          length() -> tc_fcdam
 
         done(city)
 
@@ -133,7 +145,8 @@ count_watershed_teleconnections <- function(data_dir,
                  n_hydro = tc_n_hydroplants,
                  n_thermal = tc_n_thermalplants,
                  n_landclasses = tc_n_landclasses,
-                 n_cropcover = tc_n_cropcover)
+                 n_cropcover = tc_n_cropcover,
+                 n_floodcontroldams = tc_fcdam)
         )
       }
 
