@@ -11,7 +11,6 @@
 #' @importFrom dplyr filter group_indices left_join
 #' @importFrom tibble tibble
 #' @importFrom sf as_Spatial
-#' @importFrom sp over
 #' @export
 #'
 count_watershed_teleconnections <- function(data_dir,
@@ -59,7 +58,8 @@ count_watershed_teleconnections <- function(data_dir,
 
   # read NID point file and select only Flood Control Dams (C = Flood Control)
   import_shapefile(paste0(data_dir, dams_file_path)) %>%
-    subset(Purposes == "C") -> flood_control_dams
+    subset(grepl("C", Purposes)) %>%
+    sf::as_Spatial()-> flood_control_dams
 
   # map through all cities, computing teleconnections
   cities %>%
@@ -82,7 +82,7 @@ count_watershed_teleconnections <- function(data_dir,
                  n_thermal = 0,
                  n_landclasses = 0,
                  n_cropcover = 0,
-                 n_floodcontrol_dams = 0)
+                 n_floodcontroldams = 0)
         )
       }else{
 
@@ -133,10 +133,8 @@ count_watershed_teleconnections <- function(data_dir,
               tc_n_landclasses = number_landclasses_ex_ag
             }
         # TELECONNECTION - NUMBER OF FLOOD CONTROL DAMS WITHIN WATERSHED.
-        flood_control_sp <- sf::as_Spatial(flood_control_dams)
-
-        flood_control_sp[complete.cases(sp::over(flood_control_sp, watersheds_city)),] %>%
-          length() -> tc_fc_dam
+        flood_control_dams[watersheds_city, ] %>%
+          length() -> tc_fcdam
 
         done(city)
 
@@ -148,7 +146,7 @@ count_watershed_teleconnections <- function(data_dir,
                  n_thermal = tc_n_thermalplants,
                  n_landclasses = tc_n_landclasses,
                  n_cropcover = tc_n_cropcover,
-                 n_floodcontrol_dams = tc_fc_dam)
+                 n_floodcontroldams = tc_fcdam)
         )
       }
 
