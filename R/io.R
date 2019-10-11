@@ -139,18 +139,30 @@ get_crop_mapping <- function(){
 #' @importFrom sf st_as_sf st_transform
 #' @importFrom sp CRS SpatialPointsDataFrame
 #' @importFrom dplyr select
+#' @import vroom
 #' @author Sean Turner (sean.turner@pnnl.gov)
 #' @export
 get_ucs_power_plants <- function(ucs_file_path,
                                  method = "sp"){
+
+  vroom(paste0(system.file("extdata", package = "teleconnect"),
+               "/utility_ba_data.csv"),
+        col_types = cols(Utility_ID = col_double(),
+                         Utility_Name = col_character(),
+                         Plant_Code = col_double(),
+                         Balancing_Authority = col_character()),
+        skip = 1) -> utility_ba_data
+
   read_xlsx(ucs_file_path,
             sheet = "MAIN DATA", skip = 4) %>%
     select(cooling = `Requires cooling?`,
            cooling_tech = `Cooling Technology`,
+           Plant_Code = `Plant Code`,
            `Power Plant Type` = Fuel,
            `Nameplate Capacity (MW)`,
-           lat = Latitude, lon = Longitude) ->
-    ucs_plants
+           lat = Latitude, lon = Longitude) -> ucs
+
+  merge(ucs, utility_ba_data, by = "Plant_Code") -> ucs_plants
 
   if (method == "sf") return(st_as_sf(ucs_plants,
                                       coords = c("lon", "lat"),
@@ -159,6 +171,7 @@ get_ucs_power_plants <- function(ucs_file_path,
   if (method == "sp") return(SpatialPointsDataFrame(data = ucs_plants,
                                                     coords = ucs_plants[c("lon", "lat")],
                                                     proj4string = CRS(proj4_string)))
+
 }
 
 #' Get raster value count from polygon input areas
@@ -229,6 +242,7 @@ mask_raster_to_polygon <- function(raster_object, polygon) {
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
 #' @export
 reclassify_raster <- function(crop_cover_levels){
+
   # Load in the GCAM classes CSV.
   gcam_csv <- get_crop_mapping()
 
