@@ -82,7 +82,9 @@ count_watershed_teleconnections <- function(data_dir,
                  n_thermal = 0,
                  n_landclasses = 0,
                  n_cropcover = 0,
-                 n_floodcontroldams = 0)
+                 n_floodcontroldams = 0,
+                 n_utilities = 0,
+                 n_balancauth = 0)
         )
       }else{
 
@@ -104,6 +106,21 @@ count_watershed_teleconnections <- function(data_dir,
         power_plants_city %>% subset(cooling == "Yes") %>%
           nrow() ->
           tc_n_thermalplants
+
+        # TELECONNECTION - NUMBER OF UTILITIES
+        power_plants_city %>%
+          .[["UTILITY_ID"]] %>% unique() %>%
+          length() -> tc_n_utility
+
+        # TELECONNECTION - NUMBER OF BALANCING AUTHORITIES
+        power_plants_city %>%
+          .[["CNTRL_AREA"]] -> tc_ba_na
+        sum(is.na(tc_ba_na)) -> n_missing_ba
+        message(paste0("For ", city,", ", n_missing_ba, " plants are not assigned a Balancing Authority"))
+
+        power_plants_city %>%
+          .[["CNTRL_AREA"]] %>% unique() -> tc_ba
+        sum(!is.na(tc_ba)) -> tc_n_ba
 
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
 
@@ -146,7 +163,9 @@ count_watershed_teleconnections <- function(data_dir,
                  n_thermal = tc_n_thermalplants,
                  n_landclasses = tc_n_landclasses,
                  n_cropcover = tc_n_cropcover,
-                 n_floodcontroldams = tc_fcdam)
+                 n_floodcontroldams = tc_fcdam,
+                 n_utilities = tc_n_utility,
+                 n_balancauth = tc_n_ba)
         )
       }
 

@@ -138,19 +138,56 @@ get_crop_mapping <- function(){
 #' @importFrom readxl read_xlsx
 #' @importFrom sf st_as_sf st_transform
 #' @importFrom sp CRS SpatialPointsDataFrame
-#' @importFrom dplyr select
+#' @importFrom dplyr select left_join bind_rows
+#' @importFrom stringr str_to_title
+#' @import vroom
 #' @author Sean Turner (sean.turner@pnnl.gov)
 #' @export
 get_ucs_power_plants <- function(ucs_file_path,
                                  method = "sp"){
+
+  vroom(paste0(system.file("extdata", package = "teleconnect"),
+               "/EIA_Plant_2010.csv"),
+        col_select = c('UTILITY_ID',
+                         'PLANT_CODE'),
+        col_types = cols(UTILITY_ID = col_integer(),
+                         PLANT_CODE = col_integer()),
+        delim = ",") -> utility_data_2010
+  vroom(paste0(system.file("extdata", package = "teleconnect"),
+               "/EIA_Plant_2015.csv"),
+        col_select = c('Plant Code',
+                       'BA_NAME'),
+        col_types = cols(`Plant Code` = col_integer(),
+                         BA_NAME = col_character()),
+        skip = 1, delim = ",") %>% unique() -> utility_data_2015
+  vroom(paste0(system.file("extdata", package = "teleconnect"),
+               "/Electric_Retail_Service_Territories.csv"),
+        col_select = c('UTILITY_ID',
+                       'CNTRL_AREA'),
+        col_types = cols(UTILITY_ID = col_integer(),
+                         CNTRL_AREA = col_character()),
+        delim = ",") -> ba_data
+
   read_xlsx(ucs_file_path,
             sheet = "MAIN DATA", skip = 4) %>%
     select(cooling = `Requires cooling?`,
            cooling_tech = `Cooling Technology`,
+           PLANT_CODE = `Plant Code`,
            `Power Plant Type` = Fuel,
            `Nameplate Capacity (MW)`,
-           lat = Latitude, lon = Longitude) ->
-    ucs_plants
+           lat = Latitude, lon = Longitude) -> ucs
+
+  dplyr::left_join(ucs, utility_data_2010, by = "PLANT_CODE") -> ucs_util
+  dplyr::left_join(ucs_util, ba_data, by = "UTILITY_ID") -> ucs_plants
+
+  ucs_plants %>% filter(is.na(CNTRL_AREA)) %>%
+    dplyr::left_join(utility_data_2015, by = c("PLANT_CODE" = "Plant Code")) %>%
+    mutate(CNTRL_AREA = BA_NAME) %>% select(-BA_NAME) -> ucs_plants_eia
+
+  ucs_plants %>% filter(!is.na(CNTRL_AREA)) %>%
+    dplyr::bind_rows(ucs_plants_eia) %>%
+    mutate(CNTRL_AREA = stringr::str_to_title(CNTRL_AREA))-> ucs_plants_filled
+
 
   if (method == "sf") return(st_as_sf(ucs_plants,
                                       coords = c("lon", "lat"),
@@ -229,6 +266,7 @@ mask_raster_to_polygon <- function(raster_object, polygon) {
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
 #' @export
 reclassify_raster <- function(crop_cover_levels){
+
   # Load in the GCAM classes CSV.
   gcam_csv <- get_crop_mapping()
 
