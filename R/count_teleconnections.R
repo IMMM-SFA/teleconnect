@@ -109,13 +109,18 @@ count_watershed_teleconnections <- function(data_dir,
 
         # TELECONNECTION - NUMBER OF UTILITIES
         power_plants_city %>%
-          .[["Utility_ID"]] %>% unique() %>%
+          .[["UTILITY_ID"]] %>% unique() %>%
           length() -> tc_n_utility
 
         # TELECONNECTION - NUMBER OF BALANCING AUTHORITIES
         power_plants_city %>%
-          .[["Balancing_Authority"]] %>% unique() %>%
-         length() -> tc_n_ba
+          .[["CNTRL_AREA"]] -> tc_ba_na
+        sum(is.na(tc_ba_na)) -> n_missing_ba
+        message(paste0("For ", city,", ", n_missing_ba, " plants are not assigned a Balancing Authority"))
+
+        power_plants_city %>%
+          .[["CNTRL_AREA"]] %>% unique() -> tc_ba
+        sum(!is.na(tc_ba)) -> tc_n_ba
 
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
 
