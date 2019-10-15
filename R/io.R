@@ -168,7 +168,7 @@ get_ucs_power_plants <- function(ucs_file_path,
                          CNTRL_AREA = col_character()),
         delim = ",") -> ba_data
 
-  read_xlsx("C:/data_dir/water/UCS-EW3-Energy-Water-Database.xlsx",
+  read_xlsx(ucs_file_path,
             sheet = "MAIN DATA", skip = 4) %>%
     select(cooling = `Requires cooling?`,
            cooling_tech = `Cooling Technology`,
