@@ -95,22 +95,8 @@ count_watershed_teleconnections <- function(data_dir,
         # ... ALGORITHM NEEDED TO AVOID DOUBLE COUNTING
 
         # TELECONNECTION - NUMBER OF CITIES USING SAME WATERSHEDS
-
-        # Load city data frame and join the list of city watersheds.
-        get_cities() -> city_df
-        as.data.frame(city_intake_ids) -> city_id
-        rename(city_id, DVSN_ID = city_intake_ids ) -> city_re
-        city_re$match <- city_re$DVSN_ID
-        left_join(city_df, city_re, by = "DVSN_ID") -> city_match
-
-        # Filter out rows with NA where watershed ID doesn't match other city.
-        city_match[!is.na(city_match$match), ] -> only_cities
-
-        # Count indiviual cities connected to those watersheds.
-        unique(only_cities$city_state) %>% length() -> city_ag
-
-        # Subtract 1 in order to only count additional cities.
-        city_ag - 1 -> tc_n_cities
+        get_cities() %>% filter(DVSN_ID %in% city_intake_ids, city_state != !!city) %>%
+          select(city_state) %>% unique() %>% nrow() -> tc_n_cities
 
         # subset power plants for target city watersheds
         power_plants_USA[watersheds_city, ] -> power_plants_city
