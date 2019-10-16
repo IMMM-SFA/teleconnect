@@ -133,7 +133,6 @@ count_watershed_teleconnections <- function(data_dir,
 
         tc_ba_na %>% .[!is.na(.)] %>% unique() %>% length() -> tc_n_ba
 
-
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
 
         # get raster values of crops within the watershed.
