@@ -84,7 +84,8 @@ count_watershed_teleconnections <- function(data_dir,
                  n_cropcover = 0,
                  n_floodcontroldams = 0,
                  n_utilities = 0,
-                 n_balancauth = 0)
+                 n_balancauth = 0,
+                 n_cities = 0)
         )
       }else{
 
@@ -92,6 +93,24 @@ count_watershed_teleconnections <- function(data_dir,
         tc_n_watersheds <- length(city_intake_ids)
         # NOTE: CURRENTLY COUNTS NESTED WATERSHEDS; ADDITIONAL...
         # ... ALGORITHM NEEDED TO AVOID DOUBLE COUNTING
+
+        # TELECONNECTION - NUMBER OF CITIES USING SAME WATERSHEDS
+
+        # Load city data frame and join the list of city watersheds.
+        get_cities() -> city_df
+        as.data.frame(city_intake_ids) -> city_id
+        rename(city_id, DVSN_ID = city_intake_ids ) -> city_re
+        city_re$match <- city_re$DVSN_ID
+        left_join(city_df, city_re, by = "DVSN_ID") -> city_match
+
+        # Filter out rows with NA where watershed ID doesn't match other city.
+        city_match[!is.na(city_match$match), ] -> only_cities
+
+        # Count indiviual cities connected to those watersheds.
+        unique(only_cities$city_state) %>% length() -> city_ag
+
+        # Subtract 1 in order to only count additional cities.
+        city_ag - 1 -> tc_n_cities
 
         # subset power plants for target city watersheds
         power_plants_USA[watersheds_city, ] -> power_plants_city
@@ -172,7 +191,8 @@ count_watershed_teleconnections <- function(data_dir,
                  n_cropcover = tc_n_cropcover,
                  n_floodcontroldams = tc_fcdam,
                  n_utilities = tc_n_utility,
-                 n_balancauth = tc_n_ba)
+                 n_balancauth = tc_n_ba,
+                 n_cities = tc_n_cities)
         )
       }
 
