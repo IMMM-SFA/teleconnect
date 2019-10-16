@@ -59,7 +59,7 @@ count_watershed_teleconnections <- function(data_dir,
   # read NID point file and select only Flood Control Dams (C = Flood Control)
   import_shapefile(paste0(data_dir, dams_file_path)) %>%
     subset(grepl("C", Purposes)) %>%
-    sf::as_Spatial()-> flood_control_dams
+    as_Spatial() -> flood_control_dams
 
   # map through all cities, computing teleconnections
   cities %>%
@@ -99,56 +99,63 @@ count_watershed_teleconnections <- function(data_dir,
         # TELECONNECTION - NUMBER OF HYDRO PLANTS
         power_plants_city %>%
           subset(`Power Plant Type` == "Hydropower") %>%
-          nrow() ->
+          .[["PLANT_CODE"]] %>% unique() %>%
+          length() ->
           tc_n_hydroplants
 
         # TELECONNECTION - NUMBER OF THERMAL PLANTS
         power_plants_city %>% subset(cooling == "Yes") %>%
-          nrow() ->
+          .[["PLANT_CODE"]] %>% unique() %>%
+          length() ->
           tc_n_thermalplants
 
         # TELECONNECTION - NUMBER OF UTILITIES
         power_plants_city %>%
+          subset(cooling == "Yes" | `Power Plant Type` == "Hydro") %>%
           .[["UTILITY_ID"]] %>% unique() %>%
           length() -> tc_n_utility
 
         # TELECONNECTION - NUMBER OF BALANCING AUTHORITIES
         power_plants_city %>%
+          subset(cooling == "Yes" | `Power Plant Type` == "Hydro") %>%
+          .@data %>% dplyr::select(PLANT_CODE, CNTRL_AREA) %>% unique() %>%
           .[["CNTRL_AREA"]] -> tc_ba_na
-        sum(is.na(tc_ba_na)) -> n_missing_ba
-        message(paste0("For ", city,", ", n_missing_ba, " plants are not assigned a Balancing Authority"))
 
-        power_plants_city %>%
-          .[["CNTRL_AREA"]] %>% unique() -> tc_ba
-        sum(!is.na(tc_ba)) -> tc_n_ba
+        sum(is.na(tc_ba_na)) -> n_missing_ba
+
+        if(n_missing_ba > 0) message(paste0("For ", city,", ", n_missing_ba,
+                                            " plant(s) not assigned a Balancing Authority"))
+
+        tc_ba_na %>% .[!is.na(.)] %>% unique() %>% length() -> tc_n_ba
+
 
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
 
         # get raster values of crops within the watershed.
         get_raster_val_classes(cropcover_USA, watersheds_city) -> cropcover_ids
 
-            # filter reclass table by IDs that match raster IDs.
-            crop_reclass_table %>%
-              filter(CDL_ID %in% cropcover_ids) ->
-              crop_and_landcover_types
+        # filter reclass table by IDs that match raster IDs.
+        crop_reclass_table %>%
+          filter(CDL_ID %in% cropcover_ids) ->
+          crop_and_landcover_types
 
-            # filter out where "is_crop" is true and only count crop types.
-            crop_and_landcover_types %>%
-              filter(is_crop == TRUE)%>%
-              .[["GCAM_ID"]] %>% unique() %>%
-              length() -> tc_n_cropcover
+        # filter out where "is_crop" is true and only count crop types.
+        crop_and_landcover_types %>%
+          filter(is_crop == TRUE)%>%
+          .[["GCAM_ID"]] %>% unique() %>%
+          length() -> tc_n_cropcover
 
-            # filter out where "is crop" is false and count land classes, adding 1 class to account for agriculture.
-            crop_and_landcover_types %>%
-              filter(is_crop == FALSE) %>%
-              .[["CDL_Class"]] %>% unique() %>%
-              length() -> number_landclasses_ex_ag
+        # filter out where "is crop" is false and count land classes, adding 1 class to account for agriculture.
+        crop_and_landcover_types %>%
+          filter(is_crop == FALSE) %>%
+          .[["CDL_Class"]] %>% unique() %>%
+          length() -> number_landclasses_ex_ag
 
-            if (tc_n_cropcover > 0){
-              tc_n_landclasses = number_landclasses_ex_ag + 1
-            }else{
-              tc_n_landclasses = number_landclasses_ex_ag
-            }
+        if (tc_n_cropcover > 0){
+          tc_n_landclasses = number_landclasses_ex_ag + 1
+        }else{
+          tc_n_landclasses = number_landclasses_ex_ag
+        }
         # TELECONNECTION - NUMBER OF FLOOD CONTROL DAMS WITHIN WATERSHED.
         flood_control_dams[watersheds_city, ] %>%
           length() -> tc_fcdam

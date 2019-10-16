@@ -6,8 +6,9 @@
 \usage{
 count_watershed_teleconnections(data_dir,
   watersheds_file_path = "water/CWM_v2_2/World_Watershed8.shp",
-  landcover_file_path = "land/NLCD_2016_Land_Cover_L48_20190424/NLCD_2016_Land_Cover_L48_20190424.img",
   powerplants_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
+  crop_file_path = "land/2016_30m_cdls/2016_30m_cdls.img",
+  dams_file_path = "water/nabd_fish_barriers_2012/nabd_fish_barriers_2012.shp",
   cities = NULL)
 }
 \arguments{
@@ -15,9 +16,11 @@ count_watershed_teleconnections(data_dir,
 
 \item{watersheds_file_path}{path of watersheds shapefile within data_dir}
 
-\item{landcover_file_path}{path of NLCD landcover data file}
-
 \item{powerplants_file_path}{path of power plants data file}
+
+\item{crop_file_path}{path of crop cover raster}
+
+\item{dams_file_path}{path of National Inventory of Dams "NID" point file}
 
 \item{cities}{a vector of cities to be included in the count. If omitted, all cities will be included.}
 }

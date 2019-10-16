@@ -146,6 +146,7 @@ get_crop_mapping <- function(){
 get_ucs_power_plants <- function(ucs_file_path,
                                  method = "sp"){
 
+  # read in EIA Plant and utility data (2010)
   vroom(paste0(system.file("extdata", package = "teleconnect"),
                "/EIA_Plant_2010.csv"),
         col_select = c('UTILITY_ID',
@@ -153,6 +154,8 @@ get_ucs_power_plants <- function(ucs_file_path,
         col_types = cols(UTILITY_ID = col_integer(),
                          PLANT_CODE = col_integer()),
         delim = ",") -> utility_data_2010
+
+  # read in EIA Plant and Balancing Authorities (2015)
   vroom(paste0(system.file("extdata", package = "teleconnect"),
                "/EIA_Plant_2015.csv"),
         col_select = c('Plant Code',
@@ -160,6 +163,8 @@ get_ucs_power_plants <- function(ucs_file_path,
         col_types = cols(`Plant Code` = col_integer(),
                          BA_NAME = col_character()),
         skip = 1, delim = ",") %>% unique() -> utility_data_2015
+
+  # read in Utility ID -> Balancing Authority mapping
   vroom(paste0(system.file("extdata", package = "teleconnect"),
                "/Electric_Retail_Service_Territories.csv"),
         col_select = c('UTILITY_ID',
@@ -168,33 +173,40 @@ get_ucs_power_plants <- function(ucs_file_path,
                          CNTRL_AREA = col_character()),
         delim = ",") -> ba_data
 
+  # read UCS generator database
   read_xlsx(ucs_file_path,
             sheet = "MAIN DATA", skip = 4) %>%
     select(cooling = `Requires cooling?`,
            cooling_tech = `Cooling Technology`,
            PLANT_CODE = `Plant Code`,
            `Power Plant Type` = Fuel,
-           `Nameplate Capacity (MW)`,
-           lat = Latitude, lon = Longitude) -> ucs
+           lat = Latitude, lon = Longitude) %>%
+    # aggregate to plant level by removing generator variables (e.g., nameplate) ...
+    # and taking unique columns...
+    unique() -> ucs
 
-  dplyr::left_join(ucs, utility_data_2010, by = "PLANT_CODE") -> ucs_util
-  dplyr::left_join(ucs_util, ba_data, by = "UTILITY_ID") -> ucs_plants
+  # add utilities to UCS table...
+  left_join(ucs, utility_data_2010, by = "PLANT_CODE") -> ucs_util
+  # ... then use those utilities to map in Balancing Authorities
+  left_join(ucs_util, ba_data, by = "UTILITY_ID") -> ucs_util_and_BA_partial
 
-  ucs_plants %>% filter(is.na(CNTRL_AREA)) %>%
-    dplyr::left_join(utility_data_2015, by = c("PLANT_CODE" = "Plant Code")) %>%
-    mutate(CNTRL_AREA = BA_NAME) %>% select(-BA_NAME) -> ucs_plants_eia
+  # for matches not made above, attempt to join BA from EIA tables
+  ucs_util_and_BA_partial %>% filter(is.na(CNTRL_AREA)) %>%
+    left_join(utility_data_2015, by = c("PLANT_CODE" = "Plant Code")) %>%
+    mutate(CNTRL_AREA = BA_NAME) %>% select(-BA_NAME) -> ucs_missing_BA_from_EIA
 
-  ucs_plants %>% filter(!is.na(CNTRL_AREA)) %>%
-    dplyr::bind_rows(ucs_plants_eia) %>%
-    mutate(CNTRL_AREA = stringr::str_to_title(CNTRL_AREA))-> ucs_plants_filled
+  #combine
+  ucs_util_and_BA_partial %>% filter(!is.na(CNTRL_AREA)) %>%
+    dplyr::bind_rows(ucs_missing_BA_from_EIA) %>%
+    mutate(CNTRL_AREA = stringr::str_to_title(CNTRL_AREA)) -> ucs_with_utilities_and_BAs
 
 
-  if (method == "sf") return(st_as_sf(ucs_plants,
+  if (method == "sf") return(st_as_sf(ucs_with_utilities_and_BAs,
                                       coords = c("lon", "lat"),
                                       crs = CRS(proj4_string)))
 
-  if (method == "sp") return(SpatialPointsDataFrame(data = ucs_plants,
-                                                    coords = ucs_plants[c("lon", "lat")],
+  if (method == "sp") return(SpatialPointsDataFrame(data = ucs_with_utilities_and_BAs,
+                                                    coords = ucs_with_utilities_and_BAs[c("lon", "lat")],
                                                     proj4string = CRS(proj4_string)))
 }
 
@@ -261,7 +273,7 @@ mask_raster_to_polygon <- function(raster_object, polygon) {
 #' reclassify_raster
 #' @param crop_cover_levels levels of the crop cover raster file.
 #' @details Read internal data file that specifies the GCAM classification for certain crop types. Reclassify CDL based on GCAM.
-#' @import dplyr group_indices left_join filter rename
+#' @importFrom dplyr group_indices left_join filter rename
 #' @importFrom car recode
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
 #' @export
