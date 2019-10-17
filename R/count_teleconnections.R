@@ -84,7 +84,8 @@ count_watershed_teleconnections <- function(data_dir,
                  n_cropcover = 0,
                  n_floodcontroldams = 0,
                  n_utilities = 0,
-                 n_balancauth = 0)
+                 n_balancauth = 0,
+                 n_cities = 0)
         )
       }else{
 
@@ -92,6 +93,10 @@ count_watershed_teleconnections <- function(data_dir,
         tc_n_watersheds <- length(city_intake_ids)
         # NOTE: CURRENTLY COUNTS NESTED WATERSHEDS; ADDITIONAL...
         # ... ALGORITHM NEEDED TO AVOID DOUBLE COUNTING
+
+        # TELECONNECTION - NUMBER OF CITIES USING SAME WATERSHEDS
+        get_cities() %>% filter(DVSN_ID %in% city_intake_ids, city_state != !!city) %>%
+          select(city_state) %>% unique() %>% nrow() -> tc_n_cities
 
         # subset power plants for target city watersheds
         power_plants_USA[watersheds_city, ] -> power_plants_city
@@ -127,7 +132,6 @@ count_watershed_teleconnections <- function(data_dir,
                                             " plant(s) not assigned a Balancing Authority"))
 
         tc_ba_na %>% .[!is.na(.)] %>% unique() %>% length() -> tc_n_ba
-
 
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
 
@@ -172,7 +176,8 @@ count_watershed_teleconnections <- function(data_dir,
                  n_cropcover = tc_n_cropcover,
                  n_floodcontroldams = tc_fcdam,
                  n_utilities = tc_n_utility,
-                 n_balancauth = tc_n_ba)
+                 n_balancauth = tc_n_ba,
+                 n_cities = tc_n_cities)
         )
       }
 
