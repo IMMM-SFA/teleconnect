@@ -11,6 +11,7 @@
 #' @importFrom dplyr filter group_indices left_join
 #' @importFrom tibble tibble
 #' @importFrom sf as_Spatial
+#' @importFrom raster freq
 #' @export
 #'
 count_watershed_teleconnections <- function(data_dir,
@@ -80,9 +81,9 @@ count_watershed_teleconnections <- function(data_dir,
                  n_watersheds = 0,
                  n_hydro = 0,
                  n_thermal = 0,
-                 n_landclasses = 0,
-                 n_cropcover = 0,
                  n_floodcontroldams = 0,
+                 wtrshd_impact = NULL,
+                 n_cropcover = 0,
                  n_utilities = 0,
                  n_balancauth = 0,
                  n_cities = 0)
@@ -149,20 +150,41 @@ count_watershed_teleconnections <- function(data_dir,
           .[["GCAM_ID"]] %>% unique() %>%
           length() -> tc_n_cropcover
 
-        # filter out where "is crop" is false and count land classes, adding 1 class to account for agriculture.
-        crop_and_landcover_types %>%
-          filter(is_crop == FALSE) %>%
-          .[["CDL_Class"]] %>% unique() %>%
-          length() -> number_landclasses_ex_ag
-
-        if (tc_n_cropcover > 0){
-          tc_n_landclasses = number_landclasses_ex_ag + 1
-        }else{
-          tc_n_landclasses = number_landclasses_ex_ag
-        }
         # TELECONNECTION - NUMBER OF FLOOD CONTROL DAMS WITHIN WATERSHED.
         flood_control_dams[watersheds_city, ] %>%
           length() -> tc_fcdam
+
+        # TELECONNECTION - RANK WATERSHED BASED ON % OF DEVELOPED/CULTIVATED AREA.
+        # Get frequencies of each type of land cover within the designated watershed.
+        mask_raster_to_polygon(cropcover_USA, watersheds_city) %>%
+          raster::freq() %>%
+          as.data.frame() -> freqdf
+        # Remove NA and all categories that are not land cover/use(water/background).
+        freqdf[!is.na(freqdf$value),] %>%
+          filter(!value %in% c(0,81,83,88,111)) -> all_land
+        # New df with only crops and developement categories
+        freqdf[!is.na(freqdf$value),] %>%
+          filter(!value %in% c(0,63:65,81,83:92,111,112,131:195)) -> dev_and_crop
+        # Add cell count for all the land to get total land coverage.
+        totcells <- sum(all_land$count)
+        # Add cell count for all development and crop counts.
+        totaldevcrop <- sum(dev_and_crop$count)
+        # Find percent area for development and crops.
+        percent.area <- 100*totaldevcrop/totcells
+        # Assign to category based on percent area.
+        if(percent.area <= 1){
+          watershed_condition <- "Very Low"
+        }else if(percent.area > 1 & percent.area <= 5){
+          watershed_condition <- "Low"
+        }else if(percent.area > 5 & percent.area <= 15){
+          watershed_condition <- "Average"
+        }else if(percent.area > 15 & percent.area <= 30){
+          watershed_condition <- "High"
+        }else if(percent.area > 30){
+          watershed_condition <- "Very High"
+        }else{
+          message("No Watershed Detected.")
+        }
 
         done(city)
 
@@ -172,9 +194,9 @@ count_watershed_teleconnections <- function(data_dir,
                  n_watersheds = tc_n_watersheds,
                  n_hydro = tc_n_hydroplants,
                  n_thermal = tc_n_thermalplants,
-                 n_landclasses = tc_n_landclasses,
-                 n_cropcover = tc_n_cropcover,
                  n_floodcontroldams = tc_fcdam,
+                 wtrshd_impact = watershed_condition,
+                 n_cropcover = tc_n_cropcover,
                  n_utilities = tc_n_utility,
                  n_balancauth = tc_n_ba,
                  n_cities = tc_n_cities)
