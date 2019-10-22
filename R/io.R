@@ -237,7 +237,7 @@ get_raster_val_classes <- function(raster_object, polygon) {
   # calculate the number of unique land classes from the input raster that are in the target polygons
   n_lcs <- crop(raster_object, polys) %>%
     mask(polys) %>%
-    unique()
+    raster::getValues()
 
   return(n_lcs)
 }
