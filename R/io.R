@@ -329,3 +329,23 @@ reclassify_raster <- function(crop_cover_levels){
                                             GCAM_Class = GCAM_commodity)
 
 }
+
+#' get_land_category
+#' @details Classify watershed condition based on percent development and cultivation.
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
+#' @export
+get_land_category <- function(percent.area){
+
+  if(percent.area <= 1){
+    watershed_condtion <- "Very Low"
+  }else if(percent.area > 1 & percent.area <= 5){
+    watershed_condtion <-"Low"
+  }else if(percent.area > 5 & percent.area <= 15){
+    watershed_condtion <-"Average"
+  }else if(percent.area > 15 & percent.area <= 30){
+    watershed_condtion <-"High"
+  }else if(percent.area > 30){
+    watershed_condtion <-"Very High"
+  }
+
+}
