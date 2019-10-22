@@ -137,8 +137,9 @@ count_watershed_teleconnections <- function(data_dir,
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
 
         # get raster values of crops within the watershed.
-        get_raster_val_classes(cropcover_USA, watersheds_city) -> cropcover_ids
+        mask_raster_to_polygon(cropcover_USA, watersheds_city) -> cropcover_raster
 
+        unique(cropcover_raster) -> cropcover_ids
         # filter reclass table by IDs that match raster IDs.
         crop_reclass_table %>%
           filter(CDL_ID %in% cropcover_ids) ->
@@ -156,15 +157,15 @@ count_watershed_teleconnections <- function(data_dir,
 
         # TELECONNECTION - RANK WATERSHED BASED ON % OF DEVELOPED/CULTIVATED AREA.
         # Get frequencies of each type of land cover within the designated watershed.
-        mask_raster_to_polygon(cropcover_USA, watersheds_city) %>%
+        cropcover_raster %>%
           raster::freq() %>%
           as.data.frame() -> freqdf
         # Remove NA and all categories that are not land cover/use(water/background).
         freqdf[!is.na(freqdf$value),] %>%
-          filter(!value %in% c(0,81,83,88,111)) -> all_land
+          filter(!value %in% non_land_cdl_classes) -> all_land
         # New df with only crops and developement categories
         freqdf[!is.na(freqdf$value),] %>%
-          filter(!value %in% c(0,63:65,81,83:92,111,112,131:195)) -> dev_and_crop
+          filter(!value %in% non_devcrop_class) -> dev_and_crop
         # Add cell count for all the land to get total land coverage.
         totcells <- sum(all_land$count)
         # Add cell count for all development and crop counts.
@@ -172,19 +173,7 @@ count_watershed_teleconnections <- function(data_dir,
         # Find percent area for development and crops.
         percent.area <- 100*totaldevcrop/totcells
         # Assign to category based on percent area.
-        if(percent.area <= 1){
-          watershed_condition <- "Very Low"
-        }else if(percent.area > 1 & percent.area <= 5){
-          watershed_condition <- "Low"
-        }else if(percent.area > 5 & percent.area <= 15){
-          watershed_condition <- "Average"
-        }else if(percent.area > 15 & percent.area <= 30){
-          watershed_condition <- "High"
-        }else if(percent.area > 30){
-          watershed_condition <- "Very High"
-        }else{
-          message("No Watershed Detected.")
-        }
+        get_land_category(percent.area) -> watershed_condition
 
         done(city)
 
