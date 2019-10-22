@@ -137,7 +137,7 @@ count_watershed_teleconnections <- function(data_dir,
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
 
         # get raster values of crops within the watershed.
-        mask_raster_to_polygon(cropcover_USA, watersheds_city) -> cropcover_raster
+        get_raster_val_classes(cropcover_USA, watersheds_city) -> cropcover_raster
 
         unique(cropcover_raster) -> cropcover_ids
         # filter reclass table by IDs that match raster IDs.
@@ -158,18 +158,16 @@ count_watershed_teleconnections <- function(data_dir,
         # TELECONNECTION - RANK WATERSHED BASED ON % OF DEVELOPED/CULTIVATED AREA.
         # Get frequencies of each type of land cover within the designated watershed.
         cropcover_raster %>%
-          raster::freq() %>%
-          as.data.frame() -> freqdf
+          table() %>%
+          as.data.frame()-> freqdf
         # Remove NA and all categories that are not land cover/use(water/background).
-        freqdf[!is.na(freqdf$value),] %>%
-          filter(!value %in% non_land_cdl_classes) -> all_land
+        freqdf %>% filter(!. %in% non_land_cdl_classes) -> all_land
         # New df with only crops and developement categories
-        freqdf[!is.na(freqdf$value),] %>%
-          filter(!value %in% non_devcrop_class) -> dev_and_crop
+        freqdf %>% filter(!. %in% non_devcrop_class) -> dev_and_crop
         # Add cell count for all the land to get total land coverage.
-        totcells <- sum(all_land$count)
+        totcells <- sum(all_land$Freq)
         # Add cell count for all development and crop counts.
-        totaldevcrop <- sum(dev_and_crop$count)
+        totaldevcrop <- sum(dev_and_crop$Freq)
         # Find percent area for development and crops.
         percent.area <- 100*totaldevcrop/totcells
         # Assign to category based on percent area.
