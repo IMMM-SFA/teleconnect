@@ -11,7 +11,6 @@
 #' @importFrom dplyr filter group_indices left_join
 #' @importFrom tibble tibble
 #' @importFrom sf as_Spatial
-#' @importFrom raster freq
 #' @export
 #'
 count_watershed_teleconnections <- function(data_dir,
@@ -82,7 +81,7 @@ count_watershed_teleconnections <- function(data_dir,
                  n_hydro = 0,
                  n_thermal = 0,
                  n_floodcontroldams = 0,
-                 wtrshd_impact = NULL,
+                 wtrshd_impact = NA_character_,
                  n_cropcover = 0,
                  n_utilities = 0,
                  n_balancauth = 0,
@@ -136,8 +135,8 @@ count_watershed_teleconnections <- function(data_dir,
 
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
 
-        # get raster values of crops within the watershed.
-        get_raster_val_classes(cropcover_USA, watersheds_city) -> cropcover_raster
+        # get matrix of raster values within the watershed.
+        get_raster_val_matrix(cropcover_USA, watersheds_city) -> cropcover_raster
 
         unique(cropcover_raster) -> cropcover_ids
         # filter reclass table by IDs that match raster IDs.
@@ -155,7 +154,7 @@ count_watershed_teleconnections <- function(data_dir,
         flood_control_dams[watersheds_city, ] %>%
           length() -> tc_fcdam
 
-        # TELECONNECTION - RANK WATERSHED BASED ON % OF DEVELOPED/CULTIVATED AREA.
+        # TELECONNECTION - CLASSIFY WATERSHED BASED ON % OF DEVELOPED/CULTIVATED AREA.
         # Get frequencies of each type of land cover within the designated watershed.
         cropcover_raster %>%
           table() %>%
@@ -169,9 +168,9 @@ count_watershed_teleconnections <- function(data_dir,
         # Add cell count for all development and crop counts.
         totaldevcrop <- sum(dev_and_crop$Freq)
         # Find percent area for development and crops.
-        percent.area <- 100*totaldevcrop/totcells
+        percent_area <- 100*totaldevcrop/totcells
         # Assign to category based on percent area.
-        get_land_category(percent.area) -> watershed_condition
+        get_land_category(percent_area) -> watershed_condition
 
         done(city)
 
