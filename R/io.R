@@ -210,19 +210,19 @@ get_ucs_power_plants <- function(ucs_file_path,
                                                     proj4string = CRS(proj4_string)))
 }
 
-#' Get raster value count from polygon input areas
+#' Get raster value matrix from polygon input areas
 #'
-#' Get the count of raster values represented in the input raster dataset
+#' Get the matrix of raster values represented in the input raster dataset
 #' when restricted to the input watershed polygons for a target city.
 #'
 #' @param raster_object character. An object of class RasterLayer.
 #' @param polygon character. A polygon to define spatial boundary of raster value counts (e.g. a given city's watersheds)
-#' @return count of unique raster values in target polygons
+#' @return matrix of raster values in target polygons
 #' @importFrom sf st_crs st_transform
 #' @importFrom raster crop projection mask unique
 #' @author Chris R. Vernon (chris.vernon@pnnl.gov)
 #' @export
-get_raster_val_classes <- function(raster_object, polygon) {
+get_raster_val_matrix <- function(raster_object, polygon) {
 
   # transform polygon to sf object if not already
   if(class(polygon)[[1]] != "sf") polygon <- st_as_sf(polygon)
@@ -237,7 +237,7 @@ get_raster_val_classes <- function(raster_object, polygon) {
   # calculate the number of unique land classes from the input raster that are in the target polygons
   n_lcs <- crop(raster_object, polys) %>%
     mask(polys) %>%
-    unique()
+    raster::getValues()
 
   return(n_lcs)
 }
@@ -327,5 +327,25 @@ reclassify_raster <- function(crop_cover_levels){
 
   reclass_table_df <- dplyr::rename(reclass_table, CDL_ID = ID,
                                             GCAM_Class = GCAM_commodity)
+
+}
+
+#' get_land_category
+#' @details Classify watershed condition based on percent development and cultivation.
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
+#' @export
+get_land_category <- function(percent_area){
+
+  if(percent_area <= 1){
+    watershed_condtion <- "Very Low"
+  }else if(percent_area > 1 & percent_area <= 5){
+    watershed_condtion <-"Low"
+  }else if(percent_area > 5 & percent_area <= 15){
+    watershed_condtion <-"Average"
+  }else if(percent_area > 15 & percent_area <= 30){
+    watershed_condtion <-"High"
+  }else if(percent_area > 30){
+    watershed_condtion <-"Very High"
+  }
 
 }
