@@ -273,7 +273,7 @@ mask_raster_to_polygon <- function(raster_object, polygon) {
 #' reclassify_raster
 #' @param crop_cover_levels levels of the crop cover raster file.
 #' @details Read internal data file that specifies the GCAM classification for certain crop types. Reclassify CDL based on GCAM.
-#' @importFrom dplyr group_indices left_join filter rename
+#' @importFrom dplyr group_indices left_join filter rename case_when
 #' @importFrom car recode
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
 #' @export
@@ -297,36 +297,58 @@ reclassify_raster <- function(crop_cover_levels){
     mutate(CDL_Class = as.character(CDL_Class))->
     cdl_classes
 
-  # Assign the GCAM IDs to matching CDL Class.
-        # All Double Crops are under MiscCrop
-        # CDL crops were assigned to where they fit best if there was no overlap with GCAM classes.
-        # Fallow/Idle Cropland assigned to MiscCrop because it was not present in GCAM classes.
-        # Any crop that was potentially used for oil is assigned to OilCrop. Example: Camelina
-        # Cantelopes is not present in GCAM classes and is counted as MiscCrop because Watermelon is MiscCrop. Both are melons.
-        # Any grain that was not wheat was assigned to OtherGrain
-        # 1 = Corn; 2 = FiberCrop; 3 = FodderGrass; 4 = FodderHerb; 5 = MiscCrop; 6 = OilCrop;
-        # 7 = OtherGrain; 8 = PalmFruit; 9 = Rice; 10 = Root_Tuber; 11 = SugarCrop; 12 = Wheat
-  cdl_classes$GCAM_ID <- car::recode(cdl_classes$ID, "c(1,12,13) = 1;
-                                                      c(2,32,36) = 2;
-                                                      c(59,60) = 3;
-                                                      c(37,58,224) = 4; c(10,11,14,42,44,47,48,49,50,51,52,53,54,55,56,57,61,66,67,68,69,70,71,72,74,75,
-                                                      76,77,204,206,207,208,209,210,212,213,214,215,216,217,218,219,220,221,222,223,227,229,230,231,232,233,
-                                                      234,235,236,237,238,239,240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,225,226) = 5;
-                                                      c(5,6,26,31,33,34,35,38,211) = 6;
-                                                      c(4,21,25,27,28,29,39,205) = 7;
-                                                      3 = 9;
-                                                      c(43,46) = 10;
-                                                      c(41,45) = 11;
-                                                      c(22,23,24,30) = 12;
-                                                      c(82,121,122,123,124,63,64,65,81,83,87,88,92,
-                                                      111,112,131,141,142,143,152,176,190,195,0) = NA", as.factor = FALSE)
+  # First link uses the GCAM crop table and links the CDL table by similar crop names. 40 IDs get filled by this operation.
+  gcam_csv %>%
+    dplyr::select(item, GTAP_crop, GCAM_commodity, IFA2002_crop) %>%
+    left_join(cdl_classes, by = c("GTAP_crop" = "CDL_Class")) %>%
+    left_join(cdl_classes, by = c("IFA2002_crop" = "CDL_Class")) %>%
+    mutate(ID = case_when(
+      is.na(ID.x) & is.na(ID.y) ~ NA_integer_,
+      is.na(ID.x) & !is.na(ID.y) ~ ID.y,
+      !is.na(ID.x) & is.na(ID.y) ~ ID.x,
+      !is.na(ID.x) & !is.na(ID.y) ~ ID.x)) %>%
+    left_join(gcam_classes, by = "GCAM_commodity") %>%
+    dplyr::select(ID, GCAM_ID, item) %>%
+    left_join(cdl_classes, gcam_csv, by = "ID") -> gcam_link
 
-  # Join tables by GCAM_ID and add column to seperate crops and land classes. Rename columns for simplicity.
-  reclass_table <- dplyr::left_join(cdl_classes, gcam_classes, by = "GCAM_ID") %>%
-    mutate(is_crop = if_else(is.na(GCAM_commodity), FALSE, TRUE))
+  # This is then merged with the CDL IDs. All of the IDs that are still NA are made into a new table to do the second link.
+  crop_cover_levels %>%
+    left_join(gcam_link, by = "ID") %>%
+    left_join(gcam_classes, by = "GCAM_ID") %>%
+    dplyr::select(ID, Class_Names, GCAM_ID, CDL_Class, GCAM_commodity) -> crop_level_join
 
-  reclass_table_df <- dplyr::rename(reclass_table, CDL_ID = ID,
-                                            GCAM_Class = GCAM_commodity)
+  crop_level_join[is.na(crop_level_join$GCAM_commodity), ] -> na_crops
+
+  # This second link uses grepl to assign crops that are still NA to GCAM crops.
+  na_crops %>%
+    mutate(GCAM_Commodity = dplyr::case_when(
+      grepl("Oats", Class_Names) ~ "OtherGrain",
+      grepl("Grains", Class_Names) | grepl("Other Small Grains", Class_Names) ~ "OtherGrain",
+      Class_Names %in% c("Corn", "Sweet Corn", "Pop or Orn Corn") ~ "Corn",
+      Class_Names %in% c("Sod/Grass Seed", "Switchgrass") ~ "FodderGrass", Class_Names %in% c("Canola", "Rape Seed", "Camelina") ~ "OilCrop",
+      Class_Names %in% c("Other Hay/Non Alfalfa", "Clover/Wildflowers", "Vetch") ~ "FodderHerb", grepl("Wheat", Class_Names) ~ "Wheat",
+      grepl("Speltz", Class_Names) ~ "Wheat",grepl("Sweet Potatoes", Class_Names) ~ "Root_Tuber",
+      grepl("Sugar", Class_Names) ~ "SugarCrop", grepl("Flaxseed", Class_Names) ~ "FiberCrop", grepl("Dbl Crop", Class_Names) ~ "MiscCrop",
+      grepl("Developed", Class_Names) | grepl("Water", Class_Names) | grepl("Perennial", Class_Names) |
+        grepl("Barren", Class_Names) | grepl("Forest", Class_Names) | grepl("land", Class_Names) | grepl("Background", Class_Names) |
+        grepl("Clouds", Class_Names) | grepl("Undefined", Class_Names) | grepl("Aqua", Class_Names) ~ NA_character_, TRUE ~ "MiscCrop")) %>%
+    dplyr::select(ID, Class_Names, GCAM_Commodity) -> na_crops_class
+
+  # This joins both tables together so that every CDL crop is assigned a GCAM crop
+  left_join(crop_level_join, na_crops_class, by = "ID") -> full_crop_table
+
+  # FIlls in NA of GCAM_commodity
+  ifelse(is.na(full_crop_table$GCAM_commodity), full_crop_table$GCAM_Commodity, full_crop_table$GCAM_commodity) -> full_crop_table$GCAM_commodity
+  full_crop_table %>% dplyr::select(ID, GCAM_commodity) -> linked_crop
+
+  # Brings in GCAM Commodity and GCAM IDs. Then adds true false column for land/crop covers.
+  cdl_classes %>%
+    left_join(linked_crop, by = "ID") %>%
+    left_join(gcam_classes, by = "GCAM_commodity") %>%
+    mutate(is_crop = if_else(is.na(GCAM_ID), FALSE, TRUE)) -> gcam_cdl_link
+
+  # Rename so the column names match those within the code.
+  dplyr::rename(gcam_cdl_link, CDL_ID = ID, GCAM_Class = GCAM_commodity) -> reclass_table
 
 }
 
