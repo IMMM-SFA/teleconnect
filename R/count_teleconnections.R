@@ -5,12 +5,16 @@
 #' @param powerplants_file_path path of power plants data file
 #' @param crop_file_path path of crop cover raster
 #' @param dams_file_path path of National Inventory of Dams "NID" point file
+#' @param irrigation_file_path path of Global Irrigation Areas file.
 #' @param cities a vector of cities to be included in the count. If omitted, all cities will be included.
 #' @details counts teleconnections assoicated with water supply catchments associated with each city
 #' @importFrom purrr map_dfr
 #' @importFrom dplyr filter group_indices left_join
 #' @importFrom tibble tibble
 #' @importFrom sf as_Spatial
+#' @importFrom rgeos gIntersects
+#' @importFrom raster intersect
+#' @import sp
 #' @export
 #'
 count_watershed_teleconnections <- function(data_dir,
@@ -18,6 +22,7 @@ count_watershed_teleconnections <- function(data_dir,
                                             powerplants_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
                                             crop_file_path = "land/2016_30m_cdls/2016_30m_cdls.img",
                                             dams_file_path = "water/nabd_fish_barriers_2012/nabd_fish_barriers_2012.shp",
+                                            irrigation_file_path = "water/gmia_v5_shp/gmia_v5_aai_pct_aei.shp",
                                             cities = NULL){
 
   all_cities <- get_cities()[["city_state"]]
@@ -61,6 +66,10 @@ count_watershed_teleconnections <- function(data_dir,
     subset(grepl("C", Purposes)) %>%
     as_Spatial() -> flood_control_dams
 
+  # read irrigation area shapefile
+  import_shapefile(paste0(data_dir, irrigation_file_path)) %>%
+    as_Spatial() -> irrigation_areas
+
   # map through all cities, computing teleconnections
   cities %>%
     map_dfr(function(city){
@@ -83,6 +92,7 @@ count_watershed_teleconnections <- function(data_dir,
                  n_floodcontroldams = 0,
                  wtrshd_impact = NA_character_,
                  n_cropcover = 0,
+                 n_irrigatedcrops = 0,
                  n_utilities = 0,
                  n_balancauth = 0,
                  n_cities = 0)
@@ -172,6 +182,31 @@ count_watershed_teleconnections <- function(data_dir,
         # Assign to category based on percent area.
         get_land_category(percent_area) -> watershed_condition
 
+        # TELECONNECTION - NuMBER OF IRRIGATED CROPS WITHIN WATERSHED
+        if(gIntersects(watersheds_city, irrigation_areas) == TRUE){
+
+        # Intersect the watershed shape by the irrigation shape. All crops within that area are irrigated.
+        intersect(watersheds_city, irrigation_areas) -> irrigation_in_wtrsh
+          get_raster_val_matrix(cropcover_USA, irrigation_in_wtrsh) %>%
+            unique() -> irrigated_crop_ids
+
+        # filter reclass table by IDs that match raster IDs.
+        crop_reclass_table %>%
+          filter(CDL_ID %in% irrigated_crop_ids) ->
+          irrigated_crop_types
+
+        # filter out where "is_crop" is true and only count crop types.
+        irrigated_crop_types %>%
+          filter(is_crop == TRUE) %>%
+          .[["GCAM_ID"]] %>% unique() %>%
+          length() -> tc_n_irrigatedcrops
+
+        }else{
+
+          tc_n_irrigatedcrops = 0
+
+        }
+
         done(city)
 
         # output
@@ -183,6 +218,7 @@ count_watershed_teleconnections <- function(data_dir,
                  n_floodcontroldams = tc_fcdam,
                  wtrshd_impact = watershed_condition,
                  n_cropcover = tc_n_cropcover,
+                 n_irrigatedcrops = tc_n_irrigatedcrops,
                  n_utilities = tc_n_utility,
                  n_balancauth = tc_n_ba,
                  n_cities = tc_n_cities)
