@@ -9,6 +9,7 @@ count_watershed_teleconnections(data_dir,
   powerplants_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
   crop_file_path = "land/2016_30m_cdls/2016_30m_cdls.img",
   dams_file_path = "water/nabd_fish_barriers_2012/nabd_fish_barriers_2012.shp",
+  irrigation_file_path = "water/gmia_v5_shp/gmia_v5_aai_pct_aei.shp",
   cities = NULL)
 }
 \arguments{
@@ -21,6 +22,8 @@ count_watershed_teleconnections(data_dir,
 \item{crop_file_path}{path of crop cover raster}
 
 \item{dams_file_path}{path of National Inventory of Dams "NID" point file}
+
+\item{irrigation_file_path}{path of Global Irrigation Areas file.}
 
 \item{cities}{a vector of cities to be included in the count. If omitted, all cities will be included.}
 }
