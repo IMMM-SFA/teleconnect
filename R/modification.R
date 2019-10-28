@@ -28,7 +28,7 @@ add_area_field <- function(sf_obj, field_name) {
 #' @importFrom units set_units
 #' @importFrom smoothr fill_holes
 #' @export
-fill_holes <- function(sf_object, sqkm_threshold) {
+fill_polygon_holes <- function(sf_object, sqkm_threshold) {
 
   # set area threshold
   area_thresh <- units::set_units(sqkm_threshold, km^2)
