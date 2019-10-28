@@ -13,7 +13,6 @@
 #' @importFrom tibble tibble
 #' @importFrom sf as_Spatial
 #' @export
-#'
 count_watershed_teleconnections <- function(data_dir,
                                             watersheds_file_path = "water/CWM_v2_2/World_Watershed8.shp",
                                             powerplants_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
@@ -138,13 +137,11 @@ count_watershed_teleconnections <- function(data_dir,
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
 
         # get raster values of crops within the watershed.
-        print('here')
         if (city %in% c("New Orleans | LA", "Saint Louis | MO")) {
           get_raster_val_classes_byslice(watersheds_city, cropcover_USA, poly_slices) -> cropcover_ids
         } else {
           get_raster_val_classes(cropcover_USA, watersheds_city) -> cropcover_ids
         }
-        print('there')
 
         # filter reclass table by IDs that match raster IDs.
         crop_reclass_table %>%
