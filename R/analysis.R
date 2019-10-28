@@ -96,7 +96,7 @@ get_raster_val_classes_byslice <- function(ply, rast, n_parts) {
 
   ply <- st_as_sf(ply) %>%
     st_transform(st_crs(rast)) %>%
-    fill_polygon_holes(area_thresh = 10000)
+    fill_polygon_holes(sqkm_threshold = 10000)
 
   # create initial bounding box as coordinate pair list with proxy xmax
   coords <- init_bbox(ply)
