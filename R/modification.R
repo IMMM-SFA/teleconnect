@@ -18,3 +18,21 @@ add_area_field <- function(sf_obj, field_name) {
 
   return(sf_obj)
 }
+
+
+#' Fill holes in polygon by area threshold
+#'
+#' @param sf_object sf polygon object
+#' @param sqkm_threshold area threshold to fill holes smaller than in square kilometers
+#' @details Fill holes in polygon by area threshold in square kilometers
+#' @importFrom units set_units
+#' @importFrom smoothr fill_holes
+#' @export
+fill_holes <- function(sf_object, sqkm_threshold) {
+
+  # set area threshold
+  area_thresh <- units::set_units(sqkm_threshold, km^2)
+
+  # remove holes
+  return(fill_holes(sf_object, threshold = area_thresh))
+}
