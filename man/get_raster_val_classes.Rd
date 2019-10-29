@@ -2,7 +2,7 @@
 % Please edit documentation in R/io.R
 \name{get_raster_val_classes}
 \alias{get_raster_val_classes}
-\title{Get raster value count from polygon input areas}
+\title{Get raster frequency per class from polygon input areas}
 \usage{
 get_raster_val_classes(raster_object, polygon)
 }
@@ -12,11 +12,11 @@ get_raster_val_classes(raster_object, polygon)
 \item{polygon}{character. A polygon to define spatial boundary of raster value counts (e.g. a given city's watersheds)}
 }
 \value{
-count of unique raster values in target polygons
+matrix of raster value and frequency in target polygons
 }
 \description{
-Get the count of raster values represented in the input raster dataset
-when restricted to the input watershed polygons for a target city.
+Get the frequency per class of raster values represented in the input raster dataset
+when restricted to the input watershed polygons for a target city.  This ignores NA.
 }
 \author{
 Chris R. Vernon (chris.vernon@pnnl.gov)
