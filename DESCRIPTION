@@ -20,6 +20,7 @@ Imports:
     raster,
     readxl,
     rgdal,
+    smoothr,
     sf,
     sp,
     vroom,
