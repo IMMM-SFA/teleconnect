@@ -1,6 +1,10 @@
 #' Analysis tools for teleconnect
 
 
+#' Create an altered bounding box from an input sf polygon object
+#'
+#' @param ply An sf polygon object
+#' @return A bounding box keyed list with altered coordinates
 #' @importFrom sf st_bbox
 #' @author Chris R. Vernon (chris.vernon@pnnl.gov)
 #' @export
@@ -25,21 +29,35 @@ init_bbox <- function(ply) {
 }
 
 
+#' Create a slice of the original polygon object from a smaller bounding box
+#'
+#' @param xmin A float or integer value for the x (longitude) coordinate minimum
+#' @param xmax A float or integer value for the x (longitude) coordinate maximum
+#' @param ymin A float or integer value for the y (latitude) coordinate minimum
+#' @param ymax A float or integer value for the y (latitude) coordinate maximum
+#' @param ply An sf polygon object
+#' @return An sf polygon object
 #' @importFrom sf st_polygon st_as_sf st_set_crs st_crs st_intersection
 #' @author Chris R. Vernon (chris.vernon@pnnl.gov)
 #' @export
 poly_intersect <- function(xmin, xmax, ymin, ymax, ply) {
 
-  return(matrix(c(xmin, ymin, xmin, ymax, xmax, ymax, xmax, ymin, xmin, ymin), ncol = 2, byrow = TRUE)) %>%
-    list() %>%
-    st_polygon() %>%
-    as('Spatial') %>%
-    st_as_sf() %>%
-    st_set_crs(st_crs(ply)) %>%
-    st_intersection(ply)
+  return (matrix(c(xmin, ymin, xmin, ymax, xmax, ymax, xmax, ymin, xmin, ymin), ncol = 2, byrow = TRUE) %>%
+          list() %>%
+          st_polygon() %>%
+          as('Spatial') %>%
+          st_as_sf() %>%
+          st_set_crs(st_crs(ply)) %>%
+          st_intersection(ply))
 }
 
 
+#' Calculate the area of a slice of a polygon as numeric
+#'
+#' @param xmax A float or integer value for the x (longitude) coordinate maximum
+#' @param coords A list containing xmin, ymin, and ymax
+#' @param ply An sf polygon object
+#' @return numeric area of a polygon slice
 #' @importFrom sf st_area
 #' @author Chris R. Vernon (chris.vernon@pnnl.gov)
 #' @export
@@ -55,6 +73,14 @@ chopped_area <- function(xmax, coords, ply) {
 }
 
 
+#' Calculate the area of the intersected polygon portion
+#'
+#' @param fraction The fraction of area being processed represented from 0.0 to 1.0
+#' @param xmax A float or integer value for the x (longitude) coordinate maximum
+#' @param coords A list containing xmin, ymin, and ymax
+#' @param ply An sf polygon object
+#' @param total_area total area of the whole polygon
+#' @return the area of the polygon portion
 #' @importFrom sf st_area
 #' @author Chris R. Vernon (chris.vernon@pnnl.gov)
 #' @export
@@ -68,6 +94,12 @@ target_function <- function(fraction, xmax, coords, ply, total_area) {
 }
 
 
+#' Create next polygon slice in sequence
+#'
+#' @param ply An sf polygon object
+#' @param xmax A float or integer value for the x (longitude) coordinate maximum
+#' @param xmin A float or integer value for the x (longitude) coordinate minimum
+#' @return new polygon slice that is next in sequence
 #' @importFrom sf st_bbox
 #' @author Chris R. Vernon (chris.vernon@pnnl.gov)
 #' @export
@@ -83,10 +115,22 @@ slicer <- function(ply, xmin, xmax){
   return(r)
 }
 
+
+#' Get the landclasses intersecting a source polygon for large polygons intersecting a
+#' high-resolution raster.
+#'
+#' @param ply An sf polygon object
+#' @param rast A raster object
+#' @param n_parts integer. The number of equal area parts to split the polygon into for processing.
+#' @return new polygon slice that is next in sequence
 #' @importFrom sf st_area st_transform st_crs st_as_sf
 #' @importFrom doParallel registerDoParallel
 #' @importFrom parallel detectCores makeCluster stopCluster
 #' @import foreach
+#' @description This function is to be used on very large polygons that would not generally
+#' run well when harvesting the information contained in the source high-resolution raster.
+#' The source polygon is split into a user-defined number of equal parts and then each of
+#' those parts are used to extract the land classes from the source raster in parallel.
 #' @author Chris R. Vernon (chris.vernon@pnnl.gov)
 #' @export
 get_raster_val_classes_byslice <- function(ply, rast, n_parts) {
@@ -136,8 +180,8 @@ get_raster_val_classes_byslice <- function(ply, rast, n_parts) {
   stopCluster(cl)
 
   return(unique(c(xrd))[!is.na(unique(c(xrd)))])
-
 }
+
 
 #' Create a spatial polygon bounding box sf object
 #'

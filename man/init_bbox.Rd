@@ -2,12 +2,20 @@
 % Please edit documentation in R/analysis.R
 \name{init_bbox}
 \alias{init_bbox}
-\title{Analysis tools for teleconnect}
+\title{Analysis tools for teleconnect
+Create an altered bounding box from an input sf polygon object}
 \usage{
 init_bbox(ply)
 }
+\arguments{
+\item{ply}{An sf polygon object}
+}
+\value{
+A bounding box keyed list with altered coordinates
+}
 \description{
 Analysis tools for teleconnect
+Create an altered bounding box from an input sf polygon object
 }
 \author{
 Chris R. Vernon (chris.vernon@pnnl.gov)
