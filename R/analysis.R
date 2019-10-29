@@ -126,7 +126,7 @@ slicer <- function(ply, xmin, xmax){
 #' @importFrom sf st_area st_transform st_crs st_as_sf
 #' @importFrom doParallel registerDoParallel
 #' @importFrom parallel detectCores makeCluster stopCluster
-#' @import foreach
+#' @importFrom foreach foreach
 #' @description This function is to be used on very large polygons that would not generally
 #' run well when harvesting the information contained in the source high-resolution raster.
 #' The source polygon is split into a user-defined number of equal parts and then each of
