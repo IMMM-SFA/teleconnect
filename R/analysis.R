@@ -164,9 +164,9 @@ get_raster_val_classes_byslice <- function(ply, rast, n_parts) {
     slicer(ply, edges[1], edges[2])
   })
 
-  #setup parallel backend to use many processors
+  # setup parallel backend to use many processors
   cores <- detectCores()
-  cl <- makeCluster(cores[1]-1) #not to overload your computer
+  cl <- makeCluster(cores[1]-1)
   registerDoParallel(cl)
 
   xrd <- foreach(i = 1:length(slices),
