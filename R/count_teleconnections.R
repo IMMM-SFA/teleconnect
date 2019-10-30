@@ -146,7 +146,7 @@ count_watershed_teleconnections <- function(data_dir,
 
         # filter reclass table by IDs that match raster IDs.
         crop_reclass_table %>%
-          filter(CDL_ID %in% cropcover_ids) ->
+          filter(CDL_ID %in% cropcover_ids$Group.1) ->
           crop_and_landcover_types
 
         # filter out where "is_crop" is true and only count crop types.
