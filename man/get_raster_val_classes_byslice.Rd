@@ -5,7 +5,7 @@
 \title{Get the landclasses intersecting a source polygon for large polygons intersecting a
 high-resolution raster.}
 \usage{
-get_raster_val_classes_byslice(ply, rast, n_parts)
+get_raster_val_classes_byslice(ply, rast, n_parts, n_cores)
 }
 \arguments{
 \item{ply}{An sf polygon object}

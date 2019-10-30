@@ -9,7 +9,7 @@ count_watershed_teleconnections(data_dir,
   powerplants_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
   crop_file_path = "land/2016_30m_cdls/2016_30m_cdls.img",
   dams_file_path = "water/nabd_fish_barriers_2012/nabd_fish_barriers_2012.shp",
-  cities = NULL, poly_slices = 40)
+  cities = NULL, poly_slices = 40, n_cores = 2)
 }
 \arguments{
 \item{data_dir}{root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")}
