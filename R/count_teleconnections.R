@@ -19,7 +19,8 @@ count_watershed_teleconnections <- function(data_dir,
                                             crop_file_path = "land/2016_30m_cdls/2016_30m_cdls.img",
                                             dams_file_path = "water/nabd_fish_barriers_2012/nabd_fish_barriers_2012.shp",
                                             cities = NULL,
-                                            poly_slices=40){
+                                            poly_slices = 40,
+                                            n_cores = 2){
 
   all_cities <- get_cities()[["city_state"]]
 
@@ -81,9 +82,9 @@ count_watershed_teleconnections <- function(data_dir,
                  n_watersheds = 0,
                  n_hydro = 0,
                  n_thermal = 0,
-                 n_landclasses = 0,
-                 n_cropcover = 0,
                  n_floodcontroldams = 0,
+                 wtrshd_impact = NA_character_,
+                 n_cropcover = 0,
                  n_utilities = 0,
                  n_balancauth = 0,
                  n_cities = 0)
@@ -138,7 +139,7 @@ count_watershed_teleconnections <- function(data_dir,
 
         # get raster values of crops within the watershed.
         if (city %in% c("New Orleans | LA", "Saint Louis | MO")) {
-          get_raster_val_classes_byslice(watersheds_city, cropcover_USA, poly_slices) -> cropcover_ids
+          get_raster_val_classes_byslice(watersheds_city, cropcover_USA, poly_slices, n_cores) -> cropcover_ids
         } else {
           get_raster_val_classes(cropcover_USA, watersheds_city) -> cropcover_ids
         }
@@ -154,20 +155,23 @@ count_watershed_teleconnections <- function(data_dir,
           .[["GCAM_ID"]] %>% unique() %>%
           length() -> tc_n_cropcover
 
-        # filter out where "is crop" is false and count land classes, adding 1 class to account for agriculture.
-        crop_and_landcover_types %>%
-          filter(is_crop == FALSE) %>%
-          .[["CDL_Class"]] %>% unique() %>%
-          length() -> number_landclasses_ex_ag
-
-        if (tc_n_cropcover > 0){
-          tc_n_landclasses = number_landclasses_ex_ag + 1
-        }else{
-          tc_n_landclasses = number_landclasses_ex_ag
-        }
         # TELECONNECTION - NUMBER OF FLOOD CONTROL DAMS WITHIN WATERSHED.
         flood_control_dams[watersheds_city, ] %>%
           length() -> tc_fcdam
+
+        # TELECONNECTION - CLASSIFY WATERSHED BASED ON % OF DEVELOPED/CULTIVATED AREA.
+        # Remove NA and all categories that are not land cover/use(water/background).
+        cropcover_ids %>% filter(!Group.1 %in% non_land_cdl_classes) -> all_land
+        # New df with only crops and developement categories
+        cropcover_ids %>% filter(!Group.1 %in% non_devcrop_class) -> dev_and_crop
+        # Add cell count for all the land to get total land coverage.
+        totcells <- sum(all_land$x)
+        # Add cell count for all development and crop counts.
+        totaldevcrop <- sum(dev_and_crop$x)
+        # Find percent area for development and crops.
+        percent_area <- 100*totaldevcrop/totcells
+        # Assign to category based on percent area.
+        get_land_category(percent_area) -> watershed_condition
 
         done(city)
 
@@ -177,9 +181,9 @@ count_watershed_teleconnections <- function(data_dir,
                  n_watersheds = tc_n_watersheds,
                  n_hydro = tc_n_hydroplants,
                  n_thermal = tc_n_thermalplants,
-                 n_landclasses = tc_n_landclasses,
-                 n_cropcover = tc_n_cropcover,
                  n_floodcontroldams = tc_fcdam,
+                 wtrshd_impact = watershed_condition,
+                 n_cropcover = tc_n_cropcover,
                  n_utilities = tc_n_utility,
                  n_balancauth = tc_n_ba,
                  n_cities = tc_n_cities)
