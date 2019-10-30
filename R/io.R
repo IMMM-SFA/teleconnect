@@ -246,7 +246,6 @@ get_raster_val_classes <- function(raster_object, polygon) {
   return(n_lcs_renamed)
 }
 
-
 #' Mask raster to polygon
 #'
 #' @details masks a raster file against a chosen polygon.
