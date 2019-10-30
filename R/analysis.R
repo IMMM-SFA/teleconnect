@@ -133,7 +133,7 @@ slicer <- function(ply, xmin, xmax){
 #' those parts are used to extract the land classes from the source raster in parallel.
 #' @author Chris R. Vernon (chris.vernon@pnnl.gov)
 #' @export
-get_raster_val_classes_byslice <- function(ply, rast, n_parts) {
+get_raster_val_classes_byslice <- function(ply, rast, n_parts, n_cores) {
 
   # generate the number of slices based on equal fractions of the total
   fractions <- seq(1/n_parts, (n_parts-1)/n_parts, 1/n_parts)
@@ -165,21 +165,22 @@ get_raster_val_classes_byslice <- function(ply, rast, n_parts) {
   })
 
   # setup parallel backend to use many processors
-  cores <- detectCores()
-  cl <- makeCluster(cores[1]-1)
+  cl <- makeCluster(n_cores)
   registerDoParallel(cl)
 
-  xrd <- foreach(i = 1:length(slices),
-                 .combine=cbind,
+  xrd_unagg <- foreach(i = 1:length(slices),
+                 .combine=rbind,
                  .packages='teleconnect') %dopar% {
                    tempmat = teleconnect::get_raster_val_classes(rast, slices[[i]]) #calling a function
 
                    tempmat #Equivalent to tempmat = cbind(xrd, tempmat)
                  }
 
+  aggregate(x = xrd_unagg$x, by = list(xrd_unagg$Group.1), FUN = sum) -> xrd
+
   stopCluster(cl)
 
-  return(unique(c(xrd))[!is.na(unique(c(xrd)))])
+  return(xrd)
 }
 
 
