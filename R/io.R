@@ -218,9 +218,10 @@ get_ucs_power_plants <- function(ucs_file_path,
 #'
 #' @param raster_object character. An object of class RasterLayer.
 #' @param polygon character. A polygon to define spatial boundary of raster value counts (e.g. a given city's watersheds)
-#' @return matrix of raster value and frequency in target polygons
+#' @return table of crop types present and their frequency of occurrence
 #' @importFrom sf st_crs st_transform
 #' @importFrom raster crop projection mask unique freq
+#' @importFrom tibble as_tibble
 #' @author Chris R. Vernon (chris.vernon@pnnl.gov)
 #' @export
 get_raster_val_classes <- function(raster_object, polygon) {
@@ -239,11 +240,10 @@ get_raster_val_classes <- function(raster_object, polygon) {
   n_lcs <- crop(raster_object, polys) %>%
     mask(polys) %>%
     freq(useNA = "no") %>%
-    as.data.frame()
+    as_tibble() %>%
+    rename(Group.1 = value, x = count)
 
-    rename(n_lcs, Group.1 = value, x = count) -> n_lcs_renamed
-
-  return(n_lcs_renamed)
+  return(n_lcs)
 }
 
 #' Mask raster to polygon
