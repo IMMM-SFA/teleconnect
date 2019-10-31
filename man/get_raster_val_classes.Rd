@@ -12,7 +12,7 @@ get_raster_val_classes(raster_object, polygon)
 \item{polygon}{character. A polygon to define spatial boundary of raster value counts (e.g. a given city's watersheds)}
 }
 \value{
-matrix of raster value and frequency in target polygons
+table of crop types present and their frequency of occurrence
 }
 \description{
 Get the frequency per class of raster values represented in the input raster dataset
