@@ -37,7 +37,7 @@ init_bbox <- function(ply) {
 #' @param ymax A float or integer value for the y (latitude) coordinate maximum
 #' @param ply An sf polygon object
 #' @return An sf polygon object
-#' @importFrom sf st_polygon st_as_sf st_set_crs st_crs st_intersection
+#' @importFrom sf st_polygon st_as_sf st_set_crs st_crs st_intersection st_geometry
 #' @author Chris R. Vernon (chris.vernon@pnnl.gov)
 #' @export
 poly_intersect <- function(xmin, xmax, ymin, ymax, ply) {
@@ -48,7 +48,7 @@ poly_intersect <- function(xmin, xmax, ymin, ymax, ply) {
           as('Spatial') %>%
           st_as_sf() %>%
           st_set_crs(st_crs(ply)) %>%
-          st_intersection(ply))
+          st_intersection(st_geometry(ply)))
 }
 
 
