@@ -7,6 +7,7 @@
 #' @param dams_file_path path of National Inventory of Dams "NID" point file
 #' @param cities a vector of cities to be included in the count. If omitted, all cities will be included.
 #' @param poly_slices integer for how may parts to split the watersheds polygons into to enable faster zonal stats
+#' @param n_cores integer for the number of machine cores used to run the polygon slicing function. 2 is default for users with 16GB of RAM.
 #' @details counts teleconnections assoicated with water supply catchments associated with each city
 #' @importFrom purrr map_dfr
 #' @importFrom dplyr filter group_indices left_join
@@ -138,7 +139,7 @@ count_watershed_teleconnections <- function(data_dir,
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
 
         # get raster values of crops within the watershed.
-        if (city %in% c("New Orleans | LA", "Saint Louis | MO")) {
+        if (city %in% c("New Orleans | LA", "Saint Louis | MO", "Laredo | TX", "Saginaw | MI", "Flint | MI", "Cleveland | OH")) {
           get_raster_val_classes_byslice(watersheds_city, cropcover_USA, poly_slices, n_cores) -> cropcover_ids
         } else {
           get_raster_val_classes(cropcover_USA, watersheds_city) -> cropcover_ids
