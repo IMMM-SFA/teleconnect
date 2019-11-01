@@ -6,19 +6,22 @@
 #' @param crop_file_path path of crop cover raster
 #' @param dams_file_path path of National Inventory of Dams "NID" point file
 #' @param cities a vector of cities to be included in the count. If omitted, all cities will be included.
+#' @param poly_slices integer for how may parts to split the watersheds polygons into to enable faster zonal stats
+#' @param n_cores integer for the number of machine cores used to run the polygon slicing function. 2 is default for users with 16GB of RAM.
 #' @details counts teleconnections assoicated with water supply catchments associated with each city
 #' @importFrom purrr map_dfr
 #' @importFrom dplyr filter group_indices left_join
 #' @importFrom tibble tibble
 #' @importFrom sf as_Spatial
 #' @export
-#'
 count_watershed_teleconnections <- function(data_dir,
                                             watersheds_file_path = "water/CWM_v2_2/World_Watershed8.shp",
                                             powerplants_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
                                             crop_file_path = "land/2016_30m_cdls/2016_30m_cdls.img",
                                             dams_file_path = "water/nabd_fish_barriers_2012/nabd_fish_barriers_2012.shp",
-                                            cities = NULL){
+                                            cities = NULL,
+                                            poly_slices = 40,
+                                            n_cores = 2){
 
   all_cities <- get_cities()[["city_state"]]
 
@@ -135,13 +138,16 @@ count_watershed_teleconnections <- function(data_dir,
 
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
 
-        # get matrix of raster values within the watershed.
-        get_raster_val_matrix(cropcover_USA, watersheds_city) -> cropcover_raster
+        # get raster values of crops within the watershed.
+        if (city %in% c("New Orleans | LA", "Saint Louis | MO", "Laredo | TX", "Saginaw | MI", "Flint | MI", "Cleveland | OH")) {
+          get_raster_val_classes_byslice(watersheds_city, cropcover_USA, poly_slices, n_cores) -> cropcover_ids
+        } else {
+          get_raster_val_classes(cropcover_USA, watersheds_city) -> cropcover_ids
+        }
 
-        unique(cropcover_raster) -> cropcover_ids
         # filter reclass table by IDs that match raster IDs.
         crop_reclass_table %>%
-          filter(CDL_ID %in% cropcover_ids) ->
+          filter(CDL_ID %in% cropcover_ids$Group.1) ->
           crop_and_landcover_types
 
         # filter out where "is_crop" is true and only count crop types.
@@ -155,18 +161,14 @@ count_watershed_teleconnections <- function(data_dir,
           length() -> tc_fcdam
 
         # TELECONNECTION - CLASSIFY WATERSHED BASED ON % OF DEVELOPED/CULTIVATED AREA.
-        # Get frequencies of each type of land cover within the designated watershed.
-        cropcover_raster %>%
-          table() %>%
-          as.data.frame()-> freqdf
         # Remove NA and all categories that are not land cover/use(water/background).
-        freqdf %>% filter(!. %in% non_land_cdl_classes) -> all_land
+        cropcover_ids %>% filter(!Group.1 %in% non_land_cdl_classes) -> all_land
         # New df with only crops and developement categories
-        freqdf %>% filter(!. %in% non_devcrop_class) -> dev_and_crop
+        cropcover_ids %>% filter(!Group.1 %in% non_devcrop_class) -> dev_and_crop
         # Add cell count for all the land to get total land coverage.
-        totcells <- sum(all_land$Freq)
+        totcells <- sum(all_land$x)
         # Add cell count for all development and crop counts.
-        totaldevcrop <- sum(dev_and_crop$Freq)
+        totaldevcrop <- sum(dev_and_crop$x)
         # Find percent area for development and crops.
         percent_area <- 100*totaldevcrop/totcells
         # Assign to category based on percent area.

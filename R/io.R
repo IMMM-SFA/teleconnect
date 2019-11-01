@@ -210,19 +210,21 @@ get_ucs_power_plants <- function(ucs_file_path,
                                                     proj4string = CRS(proj4_string)))
 }
 
-#' Get raster value matrix from polygon input areas
+
+#' Get raster frequency per class from polygon input areas
 #'
-#' Get the matrix of raster values represented in the input raster dataset
-#' when restricted to the input watershed polygons for a target city.
+#' Get the frequency per class of raster values represented in the input raster dataset
+#' when restricted to the input watershed polygons for a target city.  This ignores NA.
 #'
 #' @param raster_object character. An object of class RasterLayer.
 #' @param polygon character. A polygon to define spatial boundary of raster value counts (e.g. a given city's watersheds)
-#' @return matrix of raster values in target polygons
+#' @return table of crop types present and their frequency of occurrence
 #' @importFrom sf st_crs st_transform
-#' @importFrom raster crop projection mask unique
+#' @importFrom raster crop projection mask unique freq
+#' @importFrom tibble as_tibble
 #' @author Chris R. Vernon (chris.vernon@pnnl.gov)
 #' @export
-get_raster_val_matrix <- function(raster_object, polygon) {
+get_raster_val_classes <- function(raster_object, polygon) {
 
   # transform polygon to sf object if not already
   if(class(polygon)[[1]] != "sf") polygon <- st_as_sf(polygon)
@@ -234,10 +236,12 @@ get_raster_val_matrix <- function(raster_object, polygon) {
   polys <- polygon %>%
     st_transform(crs = r_crs)
 
-  # calculate the number of unique land classes from the input raster that are in the target polygons
+  # calculate the frequency of unique land classes from the input raster that are in the target polygons
   n_lcs <- crop(raster_object, polys) %>%
     mask(polys) %>%
-    raster::getValues()
+    freq(useNA = "no") %>%
+    as_tibble() %>%
+    rename(Group.1 = value, x = count)
 
   return(n_lcs)
 }

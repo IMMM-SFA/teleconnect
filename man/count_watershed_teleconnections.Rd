@@ -9,7 +9,7 @@ count_watershed_teleconnections(data_dir,
   powerplants_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
   crop_file_path = "land/2016_30m_cdls/2016_30m_cdls.img",
   dams_file_path = "water/nabd_fish_barriers_2012/nabd_fish_barriers_2012.shp",
-  cities = NULL)
+  cities = NULL, poly_slices = 40, n_cores = 2)
 }
 \arguments{
 \item{data_dir}{root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")}
@@ -23,6 +23,10 @@ count_watershed_teleconnections(data_dir,
 \item{dams_file_path}{path of National Inventory of Dams "NID" point file}
 
 \item{cities}{a vector of cities to be included in the count. If omitted, all cities will be included.}
+
+\item{poly_slices}{integer for how may parts to split the watersheds polygons into to enable faster zonal stats}
+
+\item{n_cores}{integer for the number of machine cores used to run the polygon slicing function. 2 is default for users with 16GB of RAM.}
 }
 \description{
 count_watershed_teleconnections
