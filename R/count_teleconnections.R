@@ -193,3 +193,108 @@ count_watershed_teleconnections <- function(data_dir,
 
     })
 }
+
+
+
+#' count_utility_teleconnections
+#'
+#' @param data_dir root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")
+#' @param powerplants_file_path path of power plants data file
+#' @param utility_file_path path of electric retail service areas file
+#' @param cities a vector of cities to be included in the count. If omitted, all cities will be included.
+#' @details counts teleconnections for service areas associated with each city
+#' @importFrom purrr map_dfr
+#' @importFrom dplyr filter
+#' @importFrom tibble tibble as_tibble
+#' @export
+count_utility_teleconnections <- function(data_dir,
+                                            powerplants_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
+                                            utility_file_path = "energy/Electric_Retail_service_Territories/Electric_Retail_service_Territories.shp",
+                                            cities = NULL){
+
+  all_cities <- get_cities()[["city_state"]]
+
+  # use all cities if "cities" argument is omitted
+  if(is.null(cities)) cities <- all_cities %>% unique()
+
+  # throw error if any chosen city lies outside available cities
+  if(any(!cities %in% all_cities)) {
+    cities[!cities %in% all_cities] -> bad_cities
+    stop(paste0(paste(bad_cities), ": not part of '
+                teleconnect'!"))
+  }
+
+  # Load city mapping file
+  get_cities() %>%
+    subset(city_state %in% cities) -> city_mapping
+
+  # Load utility mapping file and subset only cities in city mapping file
+  get_city_utility_mapping() -> util_mapping
+
+  # Rename some cities within the mapping file to match up with the cities file. Wouldn't work when done within the function.
+  util_mapping$city_state[util_mapping$city_state == "Augusta | GA"] <- "Augusta-Richmond | GA"
+  util_mapping$city_state <- gsub("St. ", "Saint ", util_mapping$city_state)
+  util_mapping$city_state <- gsub("St ", "Saint ", util_mapping$city_state)
+  util_mapping$city_state <- gsub("DC", "D.C.", util_mapping$city_state)
+
+  # Subset the cities that are present in the city_mapping list.
+  util_mapping %>%
+    subset(city_state %in% city_mapping$city_state)-> city_to_utility
+
+  # read shapefiles for utility areas
+  import_shapefile(paste0(data_dir, utility_file_path),
+                   method = "rgdal") %>%
+    # subset for desired utility areas
+    subset(ID %in% city_to_utility$UTILITY_ID) -> utilities
+
+  # read ucs plant data
+  get_ucs_power_plants(paste0(data_dir, powerplants_file_path)) %>%
+    as_tibble() -> power_plants_USA
+
+
+  # map through all cities, computing utility teleconnections
+  cities %>%
+    map_dfr(function(city){
+      filter(city_to_utility, city_state == !!city) %>%
+        .[["UTILITY_ID"]] -> city_utility_ids
+
+      # subset utility shapefile for target city
+      utilities %>%
+        subset(ID %in% city_utility_ids) ->
+        utilities_city
+
+      # catch cases with no utilities (i.e., no utility polygons)
+      if(nrow(utilities_city) == 0){
+        done(city)
+        return(
+          tibble(city = !! city,
+                 n_utilities = 0,
+                 n_waterdependentplants = 0)
+        )
+      }else{
+
+        # TELECONNECTION - NUMBER OF UTILITIES
+        tc_n_utilities <- length(city_utility_ids)
+
+        # subset power plants for target city utilities
+        power_plants_USA %>%
+          subset(UTILITY_ID %in% city_utility_ids) -> power_plants_utility
+
+        # TELECONNECTION - NUMBER OF WATER DEPENDENT PLANTS
+        power_plants_utility %>%
+          subset(`Power.Plant.Type` == "Hydropower" | cooling == "Yes") %>%
+          .[["PLANT_CODE"]] %>% unique() %>%
+          length() ->
+          tc_n_water_dependent
+
+        # output
+        return(
+          tibble(city = !! city,
+                 n_utilites = tc_n_utilities,
+                 n_waterdependentplants = tc_n_water_dependent )
+        )
+      }
+
+    })
+}
+
