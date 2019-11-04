@@ -385,3 +385,27 @@ get_land_category <- function(percent_area){
   }
 
 }
+
+
+#' get_city_utility_mapping
+#' @details Load plant code file to map cities to Utility IDs
+#' @import vroom
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
+#' @export
+get_city_utility_mapping <- function(){
+
+  vroom(paste0(system.file("extdata", package = "teleconnect"),
+               "/EIA_Plant_2018.csv"),
+        col_select = c('UTILITY_ID',
+                       'City',
+                       'State'),
+        col_types = cols(UTILITY_ID = col_factor(),
+                         City = col_character(),
+                         State = col_character()),
+        delim = ",",
+        skip = 1) -> util_data_2018
+
+  util_data_2018$city_state <- with(util_data_2018, paste(City, "|", State))
+  city_to_utility <- util_data_2018[,c("UTILITY_ID", "city_state")]
+
+}
