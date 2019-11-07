@@ -6,6 +6,9 @@
 \usage{
 get_land_category(percent_area)
 }
+\arguments{
+\item{percent_area}{percent area of developed and cultivated areas}
+}
 \description{
 get_land_category
 }
