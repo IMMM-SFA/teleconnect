@@ -367,6 +367,7 @@ reclassify_raster <- function(crop_cover_levels){
 }
 
 #' get_land_category
+#' @param percent_area percent area of developed and cultivated areas
 #' @details Classify watershed condition based on percent development and cultivation.
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
 #' @export
