@@ -1,0 +1,236 @@
+city_state,Population
+Birmingham | AL,209880
+Huntsville | AL,197318
+Mobile | AL,189572
+Montgomery | AL,198218
+Tuscaloosa | AL,101113
+Mesa | AZ,508958
+Phoenix | AZ,1660272
+Tucson | AZ,545975
+Fort Smith | AR,87845
+Little Rock | AR,197881
+Antioch | CA,111535
+Bakersfield | CA,383579
+Berkeley | CA,121643
+Concord | CA,129688
+Fairfield | CA,116884
+Fresno | CA,530093
+Hemet | CA,85275
+Long Beach | CA,467354
+Los Angeles | CA,3990456
+Merced | CA,83316
+Mission Viejo | CA,95202
+Modesto | CA,215030
+Oakland | CA,429082
+Oxnard | CA,209877
+Redding | CA,91772
+Sacramento | CA,508529
+Salinas | CA,156259
+San Diego | CA,1425976
+San Francisco | CA,883305
+San Jose | CA,1030119
+Santa Ana | CA,332725
+Santa Barbara | CA,91350
+Santa Clarita | CA,210089
+Santa Cruz | CA,64725
+Santa Maria | CA,107408
+Santa Rosa | CA,177586
+Simi Valley | CA,125851
+Stockton | CA,311178
+Thousand Oaks | CA,127690
+Vallejo | CA,121913
+Visalia | CA,133800
+Aurora | CO,374114
+Boulder | CO,107353
+Colorado Springs | CO,472688
+Denver | CO,716492
+Fort Collins | CO,167830
+Pueblo | CO,111750
+Bridgeport | CT,144900
+Danbury | CT,84730
+Hartford | CT,122587
+New Haven | CT,130418
+Waterbury | CT,108093
+Washington | DC,702455
+Brooksville | FL,8298
+Cape Coral | FL,189343
+Deltona | FL,91951
+Fort Walton Beach | FL,22284
+Gainesville | FL,133857
+Jacksonville | FL,903889
+Kissimmee | FL,73597
+Lakeland | FL,110516
+Miami | FL,470914
+Ocala | FL,60429
+Orlando | FL,285713
+Panama (USA) | FL,36908
+Pensacola | FL,52713
+Port Saint Lucie | FL,195248
+Saint Petersburg | FL,265098
+Tallahassee | FL,193551
+Tampa | FL,392890
+Winter Haven | FL,43020
+Athens | GA,125964
+Atlanta | GA,498044
+Augusta-Richmond | GA,196939
+Macon | GA,153095
+Savannah | GA,145862
+Boise | ID,228790
+Champaign | IL,88029
+Chicago | IL,2705994
+Peoria | IL,111388
+Rockford | IL,146526
+Springfield | IL,114694
+Elkhart | IN,52367
+Evansville | IN,117963
+Fort Wayne | IN,267633
+Indianapolis | IN,867125
+Lafayette | IN,72168
+South Bend | IN,101860
+Cedar Rapids | IA,133174
+Davenport | IA,102085
+Des Moines | IA,216853
+Sioux City | IA,82396
+Waterloo | IA,67798
+Topeka | KS,125904
+Wichita | KS,389255
+Lexington | KY,323780
+Louisville | KY,620118
+Baton Rouge | LA,221599
+Houma | LA,32864
+Lafayette | LA,126143
+Lake Charles | LA,78001
+Monroe | LA,47877
+New Orleans | LA,391006
+Shreveport | LA,188987
+Portland | ME,66417
+Baltimore | MD,602495
+Frederick | MD,72146
+Hagerstown | MD,40205
+Barnstable | MA,44460
+Boston | MA,694583
+New Bedford | MA,95315
+Springfield | MA,155032
+Worcester | MA,185877
+Ann Arbor | MI,121890
+Detroit | MI,672662
+Flint | MI,95943
+Grand Rapids | MI,200217
+Kalamazoo | MI,76545
+Lansing | MI,118427
+Muskegon | MI,37287
+Saginaw | MI,48323
+Duluth | MN,85884
+Minneapolis | MN,425403
+Saint Paul | MN,307695
+Jackson | MS,164422
+Kansas City | MO,491918
+Saint Louis | MO,302838
+Springfield | MO,168122
+Billings | MT,109550
+Lincoln | NE,287401
+Omaha | NE,468262
+Las Vegas | NV,644644
+Reno | NV,250998
+Manchester | NH,112525
+Nashua | NH,89246
+Atlantic City | NJ,37804
+Newark | NJ,282090
+Trenton | NJ,83974
+Albuquerque | NM,560218
+Las Cruces | NM,102926
+Santa Fe | NM,84612
+Albany | NY,97279
+Binghamton | NY,44785
+Buffalo | NY,256304
+New York | NY,8398748
+Rochester | NY,206284
+Syracuse | NY,142749
+Utica | NY,60100
+Asheville | NC,92452
+Charlotte | NC,872498
+Concord | NC,94130
+Durham | NC,274291
+Fayetteville | NC,209468
+Gastonia | NC,77024
+Greensboro | NC,294722
+Hickory | NC,40925
+High Point | NC,112316
+Raleigh | NC,469298
+Wilmington | NC,122607
+Winston-Salem | NC,246328
+Fargo | ND,124844
+Akron | OH,198006
+Canton | OH,70458
+Cincinnati | OH,302605
+Cleveland | OH,383793
+Columbus | OH,892533
+Dayton | OH,140640
+Toledo | OH,274975
+Youngstown | OH,64958
+Oklahoma City | OK,649021
+Tulsa | OK,400669
+Eugene | OR,171245
+Medford | OR,82347
+Portland | OR,653115
+Salem | OR,173442
+Erie | PA,96471
+Harrisburg | PA,49229
+Lancaster | PA,59420
+Philadelphia | PA,1584138
+Pittsburgh | PA,301048
+Reading | PA,88495
+Scranton | PA,77182
+York | PA,44118
+Providence | RI,179335
+Columbia | SC,133451
+Greenville | SC,68563
+Myrtle Beach | SC,33908
+Spartanburg | SC,37644
+Sioux Falls | SD,181883
+Chattanooga | TN,180557
+Clarksville | TN,156794
+Johnson City | TN,66778
+Knoxville | TN,187500
+Memphis | TN,650618
+Murfreesboro | TN,141344
+Nashville | TN,669053
+Abilene | TX,122999
+Amarillo | TX,199924
+Austin | TX,964254
+Beaumont | TX,118428
+Brownsville | TX,183392
+Corpus Christi | TX,326554
+Dallas | TX,1345047
+El Paso | TX,682669
+Fort Worth | TX,895008
+Harlingen | TX,65436
+Houston | TX,2325502
+Killeen | TX,149103
+Laredo | TX,261639
+Lubbock | TX,255885
+McAllen | TX,143433
+Odessa | TX,120568
+Port Arthur | TX,55018
+San Antonio | TX,1532233
+Tyler | TX,105729
+Waco | TX,138183
+Salt Lake City | UT,200591
+Burlington | VT,42899
+Norfolk | VA,244076
+Richmond | VA,228783
+Roanoke | VA,99920
+Virginia Beach | VA,450189
+Bremerton | WA,41235
+Marysville | WA,69779
+Seattle | WA,744955
+Spokane | WA,219190
+Yakima | WA,93884
+Charleston | WV,47215
+Huntington | WV,46048
+Appleton | WI,74526
+Green Bay | WI,104879
+Kenosha | WI,100164
+Madison | WI,258054
+Milwaukee | WI,592025
+Racine | WI,77432
