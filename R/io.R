@@ -437,6 +437,7 @@ get_demeter_file <- function(irrigation_file_path){
 #' @details Count irrigated crops vs rainfed crops and determine irrigation status
 #' @importFrom tibble enframe
 #' @importFrom dplyr mutate case_when filter if_else
+#' @importFrom tidyr separate spread
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
 #' @export
 
@@ -445,36 +446,27 @@ get_irrigation_count <- function(irrigation_city){
   # add values of all columns to get sum (in meters) of area irrigated and rainfed.
   colSums(irrigation_city[,c(3:26)]) %>% enframe() -> dem_sums
   # create column for irrigation status
-  dem_sums$irr_count <- NA_integer_
-  # determine whether irrigated area is larger than rainfed area, assign status (irrigated or not)
-  dem_sums[1,3] <- if_else(dem_sums[1,2] > dem_sums[13,2], TRUE, NA)
-  dem_sums[2,3] <- if_else(dem_sums[2,2] > dem_sums[14,2], TRUE, NA)
-  dem_sums[3,3] <- if_else(dem_sums[3,2] > dem_sums[15,2], TRUE, NA)
-  dem_sums[4,3] <- if_else(dem_sums[4,2] > dem_sums[16,2], TRUE, NA)
-  dem_sums[5,3] <- if_else(dem_sums[5,2] > dem_sums[17,2], TRUE, NA)
-  dem_sums[6,3] <- if_else(dem_sums[6,2] > dem_sums[18,2], TRUE, NA)
-  dem_sums[7,3] <- if_else(dem_sums[7,2] > dem_sums[19,2], TRUE, NA)
-  dem_sums[8,3] <- if_else(dem_sums[8,2] > dem_sums[20,2], TRUE, NA)
-  dem_sums[9,3] <- if_else(dem_sums[9,2] > dem_sums[21,2], TRUE, NA)
-  dem_sums[10,3] <- if_else(dem_sums[10,2] > dem_sums[22,2], TRUE, NA)
-  dem_sums[11,3] <- if_else(dem_sums[11,2] > dem_sums[23,2], TRUE, NA)
-  dem_sums[12,3] <- if_else(dem_sums[12,2] > dem_sums[24,2], TRUE, NA)
+  dem_sums %>%
+    mutate(name = if_else(grepl("root_tuber", name), gsub("t_t", "tt", name), name)) %>%
+    separate(name, into = c("crop", "water"), sep = "_") %>%
+    spread(water, value) %>%
+    mutate(irr_count = if_else(irr > rfd, TRUE, FALSE)) -> demeter_sep
 
   # create column that will allow matching with the crop cover raster
-  dem_sums %>% mutate(GCAM_Class = case_when(
-    grepl("corn", name) ~ "Corn",
-    grepl("fibercrop", name) ~ "FiberCrop",
-    grepl("foddergrass",name) ~ "FodderGrass",
-    grepl("fodderherb", name) ~ "FodderHerb",
-    grepl("misccrop", name) ~ "MiscCrop",
-    grepl("oilcrop", name) ~ "OilCrop",
-    grepl("othergrain", name) ~ "OtherGrain",
-    grepl("palmfruit", name) ~ "PalmFruit",
-    grepl("rice", name) ~ "Rice",
-    grepl("root_tuber", name) ~ "Root_Tuber",
-    grepl("sugarcrop", name) ~ "SugarCrop",
-    grepl("wheat", name) ~ "Wheat")) %>%
-    filter(!is.na(dem_sums$irr_count)) -> irrigated_crops
+  demeter_sep %>% mutate(GCAM_Class = case_when(
+    grepl("corn", crop) ~ "Corn",
+    grepl("fibercrop", crop) ~ "FiberCrop",
+    grepl("foddergrass",crop) ~ "FodderGrass",
+    grepl("fodderherb", crop) ~ "FodderHerb",
+    grepl("misccrop", crop) ~ "MiscCrop",
+    grepl("oilcrop", crop) ~ "OilCrop",
+    grepl("othergrain", crop) ~ "OtherGrain",
+    grepl("palmfruit", crop) ~ "PalmFruit",
+    grepl("rice", crop) ~ "Rice",
+    grepl("roottuber", crop) ~ "Root_Tuber",
+    grepl("sugarcrop", crop) ~ "SugarCrop",
+    grepl("wheat", crop) ~ "Wheat")) %>%
+    filter(demeter_sep$irr_count != FALSE) -> irrigated_crops
 
   return(irrigated_crops)
 }
