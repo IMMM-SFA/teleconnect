@@ -35,7 +35,8 @@ Imports:
     tmaptools,
     car,
     stringr,
-    units
+    units,
+    tidyr
 Suggests: 
     testthat (>= 2.1.0),
     knitr,
