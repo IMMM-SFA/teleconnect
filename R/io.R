@@ -329,9 +329,9 @@ reclassify_raster <- function(crop_cover_levels){
       Class_Names %in% "Oats" ~ "OtherGrain",
       grepl("Grains", Class_Names) | grepl("Other Small Grains", Class_Names) ~ "OtherGrain",
       Class_Names %in% c("Corn", "Sweet Corn", "Pop or Orn Corn") ~ "Corn",
-      Class_Names %in% c("Sod/Grass Seed", "Switchgrass") ~ "FodderGrass",
+      Class_Names %in% c("Sod/Grass Seed", "Switchgrass","Other Hay/Non Alfalfa") ~ "FodderGrass",
       Class_Names %in% c("Canola", "Rape Seed", "Camelina") ~ "OilCrop",
-      Class_Names %in% c("Other Hay/Non Alfalfa", "Clover/Wildflowers", "Vetch") ~ "FodderHerb",
+      Class_Names %in% c("Clover/Wildflowers", "Vetch") ~ "FodderHerb",
       grepl("Wheat", Class_Names) ~ "Wheat",
       grepl("Speltz", Class_Names) ~ "Wheat",
       grepl("Sweet Potatoes", Class_Names) ~ "Root_Tuber",
@@ -385,4 +385,96 @@ get_land_category <- function(percent_area){
     watershed_condtion <-"Very High"
   }
 
+}
+
+#' get_demeter_file
+#' @param irrigation_file_path FUll path to the demeter data file
+#' @details Load demeter file for irrigation and rainfed crop data
+#' @import vroom
+#' @importFrom sp SpatialPointsDataFrame
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
+#' @export
+
+get_demeter_file <- function(irrigation_file_path){
+
+  vroom(irrigation_file_path,
+        col_types = cols(
+          latitude = col_double(),
+          longitude = col_double(),
+          corn_irr = col_double(),
+          fibercrop_irr = col_double(),
+          foddergrass_irr = col_double(),
+          fodderherb_irr = col_double(),
+          misccrop_irr = col_double(),
+          oilcrop_irr = col_double(),
+          othergrain_irr = col_double(),
+          palmfruit_irr = col_double(),
+          rice_irr = col_double(),
+          root_tuber_irr = col_double(),
+          sugarcrop_irr = col_double(),
+          wheat_irr = col_double(),
+          corn_rfd = col_double(),
+          fibercrop_rfd = col_double(),
+          foddergrass_rfd = col_double(),
+          fodderherb_rfd = col_double(),
+          misccrop_rfd = col_double(),
+          oilcrop_rfd = col_double(),
+          othergrain_rfd = col_double(),
+          palmfruit_rfd = col_double(),
+          rice_rfd = col_double(),
+          root_tuber_rfd = col_double(),
+          sugarcrop_rfd = col_double(),
+          wheat_rfd = col_double(),
+          area = col_double())) -> demeter
+  # convert to spatial points so that it can be masked by watershed.
+  SpatialPointsDataFrame(coords = demeter[ ,c(2,1)], demeter, proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs")) -> usa_irrigation
+
+  return(usa_irrigation)
+}
+
+#' get_irrigation_count
+#' @param irrigation_city irrigation data subsetted by city watersheds
+#' @details Count irrigated crops vs rainfed crops and determine irrigation status
+#' @importFrom tibble enframe
+#' @importFrom dplyr mutate case_when filter if_else
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
+#' @export
+
+get_irrigation_count <- function(irrigation_city){
+
+  # add values of all columns to get sum (in meters) of area irrigated and rainfed.
+  colSums(irrigation_city[,c(3:26)]) %>% enframe() -> dem_sums
+  # create column for irrigation status
+  dem_sums$irr_count <- NA_integer_
+  # determine whether irrigated area is larger than rainfed area, assign status (irrigated or not)
+  dem_sums[1,3] <- if_else(dem_sums[1,2] > dem_sums[13,2], TRUE, NA)
+  dem_sums[2,3] <- if_else(dem_sums[2,2] > dem_sums[14,2], TRUE, NA)
+  dem_sums[3,3] <- if_else(dem_sums[3,2] > dem_sums[15,2], TRUE, NA)
+  dem_sums[4,3] <- if_else(dem_sums[4,2] > dem_sums[16,2], TRUE, NA)
+  dem_sums[5,3] <- if_else(dem_sums[5,2] > dem_sums[17,2], TRUE, NA)
+  dem_sums[6,3] <- if_else(dem_sums[6,2] > dem_sums[18,2], TRUE, NA)
+  dem_sums[7,3] <- if_else(dem_sums[7,2] > dem_sums[19,2], TRUE, NA)
+  dem_sums[8,3] <- if_else(dem_sums[8,2] > dem_sums[20,2], TRUE, NA)
+  dem_sums[9,3] <- if_else(dem_sums[9,2] > dem_sums[21,2], TRUE, NA)
+  dem_sums[10,3] <- if_else(dem_sums[10,2] > dem_sums[22,2], TRUE, NA)
+  dem_sums[11,3] <- if_else(dem_sums[11,2] > dem_sums[23,2], TRUE, NA)
+  dem_sums[12,3] <- if_else(dem_sums[12,2] > dem_sums[24,2], TRUE, NA)
+
+  # create column that will allow matching with the crop cover raster
+  dem_sums %>% mutate(GCAM_Class = case_when(
+    grepl("corn", name) ~ "Corn",
+    grepl("fibercrop", name) ~ "FiberCrop",
+    grepl("foddergrass",name) ~ "FodderGrass",
+    grepl("fodderherb", name) ~ "FodderHerb",
+    grepl("misccrop", name) ~ "MiscCrop",
+    grepl("oilcrop", name) ~ "OilCrop",
+    grepl("othergrain", name) ~ "OtherGrain",
+    grepl("palmfruit", name) ~ "PalmFruit",
+    grepl("rice", name) ~ "Rice",
+    grepl("root_tuber", name) ~ "Root_Tuber",
+    grepl("sugarcrop", name) ~ "SugarCrop",
+    grepl("wheat", name) ~ "Wheat")) %>%
+    filter(!is.na(dem_sums$irr_count)) -> irrigated_crops
+
+  return(irrigated_crops)
 }
