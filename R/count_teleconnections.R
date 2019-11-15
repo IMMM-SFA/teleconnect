@@ -5,6 +5,7 @@
 #' @param powerplants_file_path path of power plants data file
 #' @param crop_file_path path of crop cover raster
 #' @param dams_file_path path of National Inventory of Dams "NID" point file
+#' @param irrigation_file_path path of edited demeter irrigation file.
 #' @param cities a vector of cities to be included in the count. If omitted, all cities will be included.
 #' @param poly_slices integer for how may parts to split the watersheds polygons into to enable faster zonal stats
 #' @param n_cores integer for the number of machine cores used to run the polygon slicing function. 2 is default for users with 16GB of RAM.
@@ -19,6 +20,7 @@ count_watershed_teleconnections <- function(data_dir,
                                             powerplants_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
                                             crop_file_path = "land/2016_30m_cdls/2016_30m_cdls.img",
                                             dams_file_path = "water/nabd_fish_barriers_2012/nabd_fish_barriers_2012.shp",
+                                            irrigation_file_path = "land/usa_demeter.csv",
                                             cities = NULL,
                                             poly_slices = 40,
                                             n_cores = 2){
@@ -64,6 +66,9 @@ count_watershed_teleconnections <- function(data_dir,
     subset(grepl("C", Purposes)) %>%
     as_Spatial() -> flood_control_dams
 
+  #read demeter irrigation file
+  get_demeter_file(paste0(data_dir, irrigation_file_path)) -> usa_irrigation
+
   # map through all cities, computing teleconnections
   cities %>%
     map_dfr(function(city){
@@ -88,7 +93,8 @@ count_watershed_teleconnections <- function(data_dir,
                  n_cropcover = 0,
                  n_utilities = 0,
                  n_balancauth = 0,
-                 n_cities = 0)
+                 n_cities = 0,
+                 n_irrigatedcrops = 0)
         )
       }else{
 
@@ -174,6 +180,15 @@ count_watershed_teleconnections <- function(data_dir,
         # Assign to category based on percent area.
         get_land_category(percent_area) -> watershed_condition
 
+        # TELECONNECTION - Count number of irrigated and rainfed crops in watershed.
+        # Get irrigation data points within city's watersheds
+        usa_irrigation[watersheds_city, ] %>%
+          as_tibble() -> irrigation_city
+        # count the number of crop types that are irrigated
+        get_irrigation_count(irrigation_city) %>%
+          filter(GCAM_Class %in% crop_and_landcover_types$GCAM_Class) -> irr_crops
+          length(irr_crops$irr_count) -> tc_n_irrigated_crops
+
         done(city)
 
         # output
@@ -187,7 +202,8 @@ count_watershed_teleconnections <- function(data_dir,
                  n_cropcover = tc_n_cropcover,
                  n_utilities = tc_n_utility,
                  n_balancauth = tc_n_ba,
-                 n_cities = tc_n_cities)
+                 n_cities = tc_n_cities,
+                 n_irrigatedcrops = tc_n_irrigated_crops)
         )
       }
 
