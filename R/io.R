@@ -470,3 +470,28 @@ get_irrigation_count <- function(irrigation_city){
 
   return(irrigated_crops)
 }
+
+#' get_nlud_names
+#' @param economic_ids dataframe of nlud sector ids
+#' @details Load in nlud_id_table.csv and merge with the economic_ids to get class names
+#' @import vroom
+#' @importFrom dplyr left_join
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
+#' @export
+
+get_nlud_names <- function(economic_ids){
+  # Load id table
+  vroom(paste0(system.file("extdata", package = "teleconnect"),
+               "/nlud_id_table.csv"),
+        col_select = c('Group.1',
+                       'NLUD_Class',
+                       'Reclass'),
+        col_types = cols(Group.1 = col_integer(),
+                         NLUD_Class = col_character(),
+                         Reclass = col_character()),
+        delim = ",", skip = 1) -> nlud_id_table
+  # Join ids and class names
+  left_join(economic_ids, nlud_id_table, by = "Group.1") -> nlud_table
+
+  return(nlud_table)
+}

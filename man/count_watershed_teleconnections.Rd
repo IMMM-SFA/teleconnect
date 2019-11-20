@@ -9,7 +9,8 @@ count_watershed_teleconnections(data_dir,
   powerplants_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
   crop_file_path = "land/2016_30m_cdls/2016_30m_cdls.img",
   dams_file_path = "water/nabd_fish_barriers_2012/nabd_fish_barriers_2012.shp",
-  irrigation_file_path = "land/usa_demeter.csv", cities = NULL,
+  irrigation_file_path = "land/usa_demeter.csv",
+  nlud_file_path = "land/usa_nlud_raster.tif", cities = NULL,
   poly_slices = 40, n_cores = 2)
 }
 \arguments{

@@ -1,0 +1,70 @@
+﻿Gathered from NLUD raster dataset here: https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0094628,,
+Group.1,NLUD_Class,Reclass
+532,Cons. Private ag easement,Conservation
+531,Cons. Private easement,Conservation
+523,Cons. Marine Protected Area,Conservation
+522,Cons. Public-limited Corps Engineers,Conservation
+521,Cons. Public-limited Municipal Watershed,Conservation
+519,Cons. Public Wild & Scenic River,Conservation
+518,"Cons. Public Archeaology, historic site",Conservation
+517,Cons. Public Wilderness study area,Conservation
+516,Cons. Public FWS Refuge,Conservation
+515,Cons. Public ACEC/RNA,Conservation
+514,Cons. Public Wilderness,Conservation
+513,Cons. Public Nature Reserve,Conservation
+512,Cons. Public Conservation area,Conservation
+511,Cons. Public Wildlife habitat,Conservation
+423,Rec. Nat. Scenic Area,Recreational Natural
+422,Rec. Nat. Recreation Area,Recreational Natural
+421,Rec. Nat. park,Recreational Natural
+419,Rec Dev. Boat/fish access,Recreational Developed
+418,Rec Dev. Picnic area,Recreational Developed
+417,Rec Dev. Campground,Recreational Developed
+415,Rec Dev. Resort/Ski area,Recreational Developed
+413,Rec Dev. Motorized,Recreational Developed
+412,Rec Dev. Golf course,Recreational Developed
+411,Rec Dev. Urban park,Recreational Developed
+410,Rec Dev. undifferentiated,Recreational Developed
+342,Prod Timber plantations,Timber
+341,Prod Timber,Timber
+330,Prod Mining (open pit),Mining
+321,Prod Grazed,Grazing
+315,Prod aquaculture,Agriculture
+314,Prod sod & switchgrass,Agriculture
+313,Prod orchards,Agriculture
+312,Prod Pastureland,Agriculture
+311,Prod Row crops,Agriculture
+310,Prod Cropland (general),Agriculture
+261,BU Misc,Miscellaneous 
+255,BU Trans. Undeveloped,Transportation
+252,BU Trans. Highways/railways,Transportation
+251,BU Trans. Airports,Transportation
+249,BU Inst. Prison,Institutional
+246,BU Inst. Military (undeveloped),Institutional
+245,BU Inst. Military (developed),Institutional
+244,BU Inst. Government/publicl,Institutional
+243,BU Inst. Medical,Institutional
+242,BU Inst. Schools (undeveloped),Institutional
+241,BU Inst. Schools (developed),Institutional
+234,BU Ind. Utilities,Industrial
+233,BU Ind. Landfill waste trmt),Industrial
+231,"BU Ind. Factory, plant",Industrial
+223,BU Comm. Entertainment,Commercial
+222,BU Comm. Retail/shopping,Commercial
+221,BU Comm. Office,Commercial
+215,BU Res. Rural (10 - 40 ac),Residential
+214,BU Res. Exurban (2.5 - 10 ac),Residential
+213,BU Res. Suburban (1 - 2.5 ac),Residential
+212,BU Res. Urban (0.1 - 1 ac),Residential
+211,BU Res. dense urba (>0.1 ac),Residential
+172,Water Bay/inlet,Water
+171,Water Open ocean,Water
+161,Water Wetlands,Water
+151,Water Canal/ditch,Water
+141,Water Estuary,Water
+132,Water Wash,Water
+131,Water River,Water
+121,Water Hum. Reservoir,Water
+113,Water Nat. Playa,Water
+112,Water Nat. Swamp/marsh,Water
+111,Water Nat. Lake,Water
