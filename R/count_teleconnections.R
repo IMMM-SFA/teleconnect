@@ -21,6 +21,7 @@ count_watershed_teleconnections <- function(data_dir,
                                             crop_file_path = "land/2016_30m_cdls/2016_30m_cdls.img",
                                             dams_file_path = "water/nabd_fish_barriers_2012/nabd_fish_barriers_2012.shp",
                                             irrigation_file_path = "land/usa_demeter.csv",
+                                            nlud_file_path = "land/usa_nlud_raster.tif",
                                             cities = NULL,
                                             poly_slices = 40,
                                             n_cores = 2){
@@ -61,6 +62,10 @@ count_watershed_teleconnections <- function(data_dir,
   # read reclassified crop table
   reclassify_raster(crop_cover_levels = levels(cropcover_USA)[[1]]) -> crop_reclass_table
 
+  # read NLUD economic raster
+  import_raster(paste0(data_dir, nlud_file_path)) ->
+    economic_USA
+
   # read NID point file and select only Flood Control Dams (C = Flood Control)
   import_shapefile(paste0(data_dir, dams_file_path)) %>%
     subset(grepl("C", Purposes)) %>%
@@ -94,7 +99,8 @@ count_watershed_teleconnections <- function(data_dir,
                  n_utilities = 0,
                  n_balancauth = 0,
                  n_cities = 0,
-                 n_irrigatedcrops = 0)
+                 n_irrigatedcrops = 0,
+                 n_economicsectors = 0)
         )
       }else{
 
@@ -189,6 +195,21 @@ count_watershed_teleconnections <- function(data_dir,
           filter(GCAM_Class %in% crop_and_landcover_types$GCAM_Class) -> irr_crops
           length(irr_crops$irr_count) -> tc_n_irrigated_crops
 
+        # TELECONNECTION - Count # of economic sectors within watershed
+        # get raster values of land use types within the watershed.
+        if (city %in% c("New Orleans | LA", "Saint Louis | MO", "Laredo | TX", "Saginaw | MI", "Flint | MI", "Cleveland | OH")) {
+          get_raster_val_classes_byslice(watersheds_city, economic_USA, poly_slices, n_cores) -> economic_ids
+         } else {
+          get_raster_val_classes(economic_USA, watersheds_city) -> economic_ids
+         }
+        # merge ids with id table to attach class names
+        get_nlud_names(economic_ids) -> nlud_table
+        # Filter out water and count the unique class variables within the watershed
+        nlud_table %>%
+          filter(Reclass != "Water") %>%
+          .[["Reclass"]] %>% unique() %>%
+          length() -> tc_n_economicsectors
+
         done(city)
 
         # output
@@ -203,7 +224,8 @@ count_watershed_teleconnections <- function(data_dir,
                  n_utilities = tc_n_utility,
                  n_balancauth = tc_n_ba,
                  n_cities = tc_n_cities,
-                 n_irrigatedcrops = tc_n_irrigated_crops)
+                 n_irrigatedcrops = tc_n_irrigated_crops,
+                 n_economicsectors = tc_n_economicsectors)
         )
       }
 
