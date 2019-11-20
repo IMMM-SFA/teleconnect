@@ -151,7 +151,7 @@ count_watershed_teleconnections <- function(data_dir,
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
 
         # get raster values of crops within the watershed.
-        if (city %in% c("New Orleans | LA", "Saint Louis | MO", "Laredo | TX", "Saginaw | MI", "Flint | MI", "Cleveland | OH")) {
+        if (city %in% sliced_cities) {
           get_raster_val_classes_byslice(watersheds_city, cropcover_USA, poly_slices, n_cores) -> cropcover_ids
         } else {
           get_raster_val_classes(cropcover_USA, watersheds_city) -> cropcover_ids
@@ -197,7 +197,7 @@ count_watershed_teleconnections <- function(data_dir,
 
         # TELECONNECTION - Count # of economic sectors within watershed
         # get raster values of land use types within the watershed.
-        if (city %in% c("New Orleans | LA", "Saint Louis | MO", "Laredo | TX", "Saginaw | MI", "Flint | MI", "Cleveland | OH")) {
+        if (city %in% sliced_cities) {
           get_raster_val_classes_byslice(watersheds_city, economic_USA, poly_slices, n_cores) -> economic_ids
          } else {
           get_raster_val_classes(economic_USA, watersheds_city) -> economic_ids
