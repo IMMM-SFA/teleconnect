@@ -6,6 +6,7 @@
 #' @param crop_file_path path of crop cover raster
 #' @param dams_file_path path of National Inventory of Dams "NID" point file
 #' @param irrigation_file_path path of edited demeter irrigation file.
+#' @param nuld_file_path path of land use raster file.
 #' @param cities a vector of cities to be included in the count. If omitted, all cities will be included.
 #' @param poly_slices integer for how may parts to split the watersheds polygons into to enable faster zonal stats
 #' @param n_cores integer for the number of machine cores used to run the polygon slicing function. 2 is default for users with 16GB of RAM.

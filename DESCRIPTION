@@ -36,7 +36,8 @@ Imports:
     car,
     stringr,
     units,
-    tidyr
+    tidyr,
+    methods
 Suggests: 
     testthat (>= 2.1.0),
     knitr,

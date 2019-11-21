@@ -31,6 +31,8 @@ count_watershed_teleconnections(data_dir,
 \item{poly_slices}{integer for how may parts to split the watersheds polygons into to enable faster zonal stats}
 
 \item{n_cores}{integer for the number of machine cores used to run the polygon slicing function. 2 is default for users with 16GB of RAM.}
+
+\item{nuld_file_path}{path of land use raster file.}
 }
 \description{
 count_watershed_teleconnections
