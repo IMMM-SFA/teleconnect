@@ -96,6 +96,7 @@ get_cities <- function(){
                          city_uid = col_integer(),
                          intake = col_character(),
                          DVSN_ID = col_integer(),
+                         DVTR_ID = col_integer(),
                          city_state = col_character())
   )
 }
