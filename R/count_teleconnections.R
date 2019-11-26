@@ -243,7 +243,6 @@ count_watershed_teleconnections <- function(data_dir,
 #' @details counts teleconnections for service areas associated with each city
 #' @importFrom purrr map_dfr
 #' @importFrom sf st_intersection st_as_sf st_agr
-#' @importFrom sp over
 #' @importFrom tibble tibble as_tibble
 #' @export
 count_utility_teleconnections <- function(data_dir,
@@ -275,7 +274,7 @@ count_utility_teleconnections <- function(data_dir,
   get_ucs_power_plants(paste0(data_dir, powerplants_file_path)) %>%
     as_tibble() -> power_plants_USA
 
-  # Load city centroid file for NAs
+  # Load city centroid file and merge with city mapping file
   import_shapefile(paste0(data_dir, citypoint_file_path)) %>% st_as_sf() %>%
     rename(.,"city_uid" = "City_ID") %>%
     left_join(., city_mapping, by = "city_uid") %>%
@@ -286,17 +285,19 @@ count_utility_teleconnections <- function(data_dir,
     map_dfr(function(city){
       filter(city_points, city_state == !!city) -> utility_city
 
-      # catch cases with no utilities (i.e., no utility polygons)
+        # intersect city points and utility polygons to find the service areas city belongs to.
         sf::st_agr(utility_city) = "constant"
         sf::st_agr(utilities) = "constant"
         suppressMessages(st_intersection(utility_city, utilities)) -> city_in_utility
+
+        # count number of utilities that serve the city
         length(city_in_utility$NAME)-> tc_n_utilities
 
         # subset power plants for target city utilities
         power_plants_USA %>%
           subset(UTILITY_ID %in% city_in_utility$ID) -> power_plants_utility
 
-        # TELECONNECTION - NUMBER OF WATER DEPENDENT PLANTS
+        # count number of water dependent plants
         power_plants_utility %>%
           subset(`Power.Plant.Type` == "Hydropower" | cooling == "Yes") %>%
           .[["PLANT_CODE"]] %>% unique() %>%
