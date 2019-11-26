@@ -263,7 +263,6 @@ count_utility_teleconnections <- function(data_dir,
     stop(paste0(paste(bad_cities), ": not part of '
                 teleconnect'!"))
   }
-
   # Load city mapping file
   get_cities() %>%
     subset(city_state %in% cities) -> city_mapping
@@ -286,14 +285,17 @@ count_utility_teleconnections <- function(data_dir,
   cities %>%
     map_dfr(function(city){
       filter(city_points, city_state == !!city) -> utility_city
+
       # catch cases with no utilities (i.e., no utility polygons)
         sf::st_agr(utility_city) = "constant"
         sf::st_agr(utilities) = "constant"
-        suppressMessages(st_intersection(utility_city, utilities)) %>%
-          .[["NAME"]] %>% length() -> tc_n_utilities
+        suppressMessages(st_intersection(utility_city, utilities)) -> city_in_utility
+        length(city_in_utility$NAME)-> tc_n_utilities
+
         # subset power plants for target city utilities
         power_plants_USA %>%
           subset(UTILITY_ID %in% city_in_utility$ID) -> power_plants_utility
+
         # TELECONNECTION - NUMBER OF WATER DEPENDENT PLANTS
         power_plants_utility %>%
           subset(`Power.Plant.Type` == "Hydropower" | cooling == "Yes") %>%
