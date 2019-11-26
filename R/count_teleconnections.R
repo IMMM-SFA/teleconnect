@@ -232,3 +232,79 @@ count_watershed_teleconnections <- function(data_dir,
 
     })
 }
+
+#' count_utility_teleconnections
+#'
+#' @param data_dir root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")
+#' @param powerplants_file_path path of power plants data file
+#' @param utility_file_path path of electric retail service areas file
+#' @param citypoint_file_path path of city centroid point file
+#' @param cities a vector of cities to be included in the count. If omitted, all cities will be included.
+#' @details counts teleconnections for service areas associated with each city
+#' @importFrom purrr map_dfr
+#' @importFrom sf st_intersection st_as_sf st_agr
+#' @importFrom sp over
+#' @importFrom tibble tibble as_tibble
+#' @export
+count_utility_teleconnections <- function(data_dir,
+                                          powerplants_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
+                                          utility_file_path = "energy/Electric_Retail_service_Territories/Electric_Retail_service_Territories.shp",
+                                          citypoint_file_path = "water/CWM_v2_2/City_Centroid.shp",
+                                          cities = NULL){
+
+  all_cities <- get_cities()[["city_state"]]
+
+  # use all cities if "cities" argument is omitted
+  if(is.null(cities)) cities <- all_cities %>% unique()
+
+  # throw error if any chosen city lies outside available cities
+  if(any(!cities %in% all_cities)) {
+    cities[!cities %in% all_cities] -> bad_cities
+    stop(paste0(paste(bad_cities), ": not part of '
+                teleconnect'!"))
+  }
+
+  # Load city mapping file
+  get_cities() %>%
+    subset(city_state %in% cities) -> city_mapping
+
+  # read shapefiles for utility areas
+  import_shapefile(paste0(data_dir, utility_file_path),
+                   method = "rgdal") %>% st_as_sf() -> utilities
+
+  # read ucs plant data
+  get_ucs_power_plants(paste0(data_dir, powerplants_file_path)) %>%
+    as_tibble() -> power_plants_USA
+
+  # Load city centroid file for NAs
+  import_shapefile(paste0(data_dir, citypoint_file_path)) %>% st_as_sf() %>%
+    rename(.,"city_uid" = "City_ID") %>%
+    left_join(., city_mapping, by = "city_uid") %>%
+    select(c("city_state","geometry")) %>% unique() -> city_points
+
+  # map through all cities, computing utility teleconnections
+  cities %>%
+    map_dfr(function(city){
+      filter(city_points, city_state == !!city) -> utility_city
+      # catch cases with no utilities (i.e., no utility polygons)
+        sf::st_agr(utility_city) = "constant"
+        sf::st_agr(utilities) = "constant"
+        suppressMessages(st_intersection(utility_city, utilities)) %>%
+          .[["NAME"]] %>% length() -> tc_n_utilities
+        # subset power plants for target city utilities
+        power_plants_USA %>%
+          subset(UTILITY_ID %in% city_in_utility$ID) -> power_plants_utility
+        # TELECONNECTION - NUMBER OF WATER DEPENDENT PLANTS
+        power_plants_utility %>%
+          subset(`Power.Plant.Type` == "Hydropower" | cooling == "Yes") %>%
+          .[["PLANT_CODE"]] %>% unique() %>%
+          length() -> tc_n_water_dependent
+
+      # output
+      return(
+        tibble(city = !! city,
+               n_utilites = tc_n_utilities,
+               n_waterdependentplants = tc_n_water_dependent)
+      )
+    })
+}
