@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/IMMM-SFA/teleconnect.svg?branch=master)](https://travis-ci.org/IMMM-SFA/teleconnect)
+[![DOI](https://zenodo.org/badge/203447802.svg)](https://zenodo.org/badge/latestdoi/203447802)
 
 # teleconnect
 An R package to identify multi-sector teleconnection complexity
