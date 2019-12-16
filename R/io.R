@@ -496,3 +496,28 @@ get_nlud_names <- function(economic_ids){
 
   return(nlud_table)
 }
+
+#' get_basins
+#' @param watersheds_city city watersheds shape
+#' @param huc2_basins HUC shapes for the USA
+#' @details Find all basins that city watersheds overlap with.
+#' @importFrom rgeos gBuffer
+#' @importFrom sp spTransform
+#' @importFrom sf st_as_sf st_agr st_intersection
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
+#' @export
+
+get_basins <- function(watersheds_city, huc2_basins){
+
+  # Transform watersheds_city projection so it works for gBuffer
+  spTransform(watersheds_city, CRS("+proj=longlat +datum=WGS84 +no_defs")) -> sp
+  # Shrink watershed polygon so that edge overlaps are taken out of the analysis.
+  # This removes bordering HUC shapes and includeds only overlapping watersheds.
+  suppressWarnings(gBuffer(sp, width = -0.09)) %>%
+    st_as_sf() -> shrink_watershed
+  sf::st_agr(huc2_basins) = "constant"
+  sf::st_agr(shrink_watershed) = "constant"
+  suppressMessages(st_intersection(huc2_basins, shrink_watershed)) -> huc_overlap
+
+  return(huc_overlap)
+}
