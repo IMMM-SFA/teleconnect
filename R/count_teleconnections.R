@@ -7,6 +7,7 @@
 #' @param dams_file_path path of National Inventory of Dams "NID" point file
 #' @param irrigation_file_path path of edited demeter irrigation file.
 #' @param nuld_file_path path of land use raster file.
+#' @param huc2_file_path path of HUC2 areas across the US.
 #' @param cities a vector of cities to be included in the count. If omitted, all cities will be included.
 #' @param poly_slices integer for how may parts to split the watersheds polygons into to enable faster zonal stats
 #' @param n_cores integer for the number of machine cores used to run the polygon slicing function. 2 is default for users with 16GB of RAM.
@@ -14,7 +15,8 @@
 #' @importFrom purrr map_dfr
 #' @importFrom dplyr filter group_indices left_join
 #' @importFrom tibble tibble
-#' @importFrom sf as_Spatial
+#' @importFrom sf as_Spatial st_agr
+#' @importFrom tmaptools set_projection
 #' @export
 count_watershed_teleconnections <- function(data_dir,
                                             watersheds_file_path = "water/CWM_v2_2/World_Watershed8.shp",
@@ -23,6 +25,7 @@ count_watershed_teleconnections <- function(data_dir,
                                             dams_file_path = "water/nabd_fish_barriers_2012/nabd_fish_barriers_2012.shp",
                                             irrigation_file_path = "land/usa_demeter.csv",
                                             nlud_file_path = "land/usa_nlud_raster.tif",
+                                            huc2_file_path = "water/mergedHUC2.shp",
                                             cities = NULL,
                                             poly_slices = 40,
                                             n_cores = 2){
@@ -72,8 +75,12 @@ count_watershed_teleconnections <- function(data_dir,
     subset(grepl("C", Purposes)) %>%
     as_Spatial() -> flood_control_dams
 
-  #read demeter irrigation file
+  # read demeter irrigation file
   get_demeter_file(paste0(data_dir, irrigation_file_path)) -> usa_irrigation
+
+  # read HUC shapefile
+  import_shapefile(paste0(data_dir, huc2_file_path)) %>%
+    set_projection(projection = "+proj=longlat +datum=WGS84 +no_defs") %>% st_as_sf() -> huc2_basins
 
   # map through all cities, computing teleconnections
   cities %>%
@@ -101,7 +108,8 @@ count_watershed_teleconnections <- function(data_dir,
                  n_balancauth = 0,
                  n_cities = 0,
                  n_irrigatedcrops = 0,
-                 n_economicsectors = 0)
+                 n_economicsectors = 0,
+                 interbasin_transfer = NA_character_)
         )
       }else{
 
@@ -211,6 +219,15 @@ count_watershed_teleconnections <- function(data_dir,
           .[["Reclass"]] %>% unique() %>%
           length() -> tc_n_economicsectors
 
+        # TELECONNECTION - Interbasin transfers for cities
+        get_basins(watersheds_city, huc2_basins) -> city_basins
+
+        if(length(city_basins$HUC2) > 1){
+           tc_interbasin_transfer = TRUE
+        }else{
+           tc_interbasin_transfer = FALSE
+        }
+
         done(city)
 
         # output
@@ -226,7 +243,8 @@ count_watershed_teleconnections <- function(data_dir,
                  n_balancauth = tc_n_ba,
                  n_cities = tc_n_cities,
                  n_irrigatedcrops = tc_n_irrigated_crops,
-                 n_economicsectors = tc_n_economicsectors)
+                 n_economicsectors = tc_n_economicsectors,
+                 interbasin_transfer = tc_interbasin_transfer)
         )
       }
 
