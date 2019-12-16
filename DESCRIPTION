@@ -37,7 +37,8 @@ Imports:
     stringr,
     units,
     tidyr,
-    methods
+    methods,
+    rgeos
 Suggests: 
     testthat (>= 2.1.0),
     knitr,
