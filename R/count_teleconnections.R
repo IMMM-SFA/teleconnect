@@ -25,7 +25,7 @@ count_watershed_teleconnections <- function(data_dir,
                                             dams_file_path = "water/nabd_fish_barriers_2012/nabd_fish_barriers_2012.shp",
                                             irrigation_file_path = "land/usa_demeter.csv",
                                             nlud_file_path = "land/usa_nlud_raster.tif",
-                                            huc2_file_path = "water/mergedHUC2.shp",
+                                            huc2_file_path = "water/USA_HUC2/mergedHUC2.shp",
                                             cities = NULL,
                                             poly_slices = 40,
                                             n_cores = 2){
