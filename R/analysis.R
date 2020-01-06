@@ -171,7 +171,7 @@ get_raster_val_classes_byslice <- function(ply, rast, n_parts, n_cores) {
   xrd_unagg <- foreach(i = 1:length(slices),
                  .combine=rbind,
                  .packages='teleconnect') %dopar% {
-                   tempmat = teleconnect::get_raster_val_classes(rast, slices[[i]]) #calling a function
+                   tempmat = teleconnect::get_zonal_data(rast, slices[[i]]) #calling a function
 
                    tempmat #Equivalent to tempmat = cbind(xrd, tempmat)
                  }
