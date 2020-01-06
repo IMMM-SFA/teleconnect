@@ -155,7 +155,7 @@ count_watershed_teleconnections <- function(data_dir,
         if (city %in% sliced_cities) {
           get_raster_val_classes_byslice(watersheds_city, cropcover_USA, poly_slices, n_cores) -> cropcover_ids
         } else {
-          get_raster_val_classes(cropcover_USA, watersheds_city) -> cropcover_ids
+          get_zonal_data(cropcover_USA, watersheds_city) -> cropcover_ids
         }
 
         # filter reclass table by IDs that match raster IDs.
@@ -201,7 +201,7 @@ count_watershed_teleconnections <- function(data_dir,
         if (city %in% sliced_cities) {
           get_raster_val_classes_byslice(watersheds_city, economic_USA, poly_slices, n_cores) -> economic_ids
          } else {
-          get_raster_val_classes(economic_USA, watersheds_city) -> economic_ids
+          get_zonal_data(economic_USA, watersheds_city) -> economic_ids
          }
         # merge ids with id table to attach class names
         get_nlud_names(economic_ids) -> nlud_table
