@@ -211,40 +211,37 @@ get_ucs_power_plants <- function(ucs_file_path,
                                                     proj4string = CRS(proj4_string)))
 }
 
-
 #' Get raster frequency per class from polygon input areas
 #'
-#' Get the frequency per class of raster values represented in the input raster dataset
-#' when restricted to the input watershed polygons for a target city.  This ignores NA.
+#' Get the coverage per class of raster values represented in the input raster dataset
+#' when restricted to the input watershed polygons for a target city.
 #'
 #' @param raster_object character. An object of class RasterLayer.
 #' @param polygon character. A polygon to define spatial boundary of raster value counts (e.g. a given city's watersheds)
-#' @return table of crop types present and their frequency of occurrence
-#' @importFrom sf st_crs st_transform
-#' @importFrom raster crop projection mask unique freq
-#' @importFrom tibble as_tibble
-#' @author Chris R. Vernon (chris.vernon@pnnl.gov)
+#' @return table of crop types present and their coverage within the polygon area
+#' @importFrom sf st_transform st_union st_as_sf
+#' @importFrom raster crs
+#' @importFrom exactextractr exact_extract
+#' @importFrom dplyr rename
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
 #' @export
-get_raster_val_classes <- function(raster_object, polygon) {
+get_zonal_data <- function(raster_object, polygon) {
+  # extract raster projection
+  raster_crs <- crs(raster_object)
+  # transform projection and union all polygons into one
+  polygon %>%
+    st_as_sf() %>%
+    st_transform(crs = raster_crs) %>%
+    st_union() -> ply_union
+  # use exactextractr to return classes and coverage fractions of each cell
+  exactextractr::exact_extract(raster_object, ply_union) %>%
+    as.data.frame() -> id_list
+  # combine coverage fractions for each cover class.
+  aggregate(id_list$coverage_fraction, by=list(Category=id_list$value), FUN=sum) -> id_agg
 
-  # transform polygon to sf object if not already
-  if(class(polygon)[[1]] != "sf") polygon <- st_as_sf(polygon)
+  rename(id_agg, "Group.1" = "Category") -> class_freq
 
-  # get the coordinate system of the input raster
-  r_crs <- st_crs(projection(raster_object))
-
-  # read in shapefile and transform projection to the raster CRS
-  polys <- polygon %>%
-    st_transform(crs = r_crs)
-
-  # calculate the frequency of unique land classes from the input raster that are in the target polygons
-  n_lcs <- crop(raster_object, polys) %>%
-    mask(polys) %>%
-    freq(useNA = "no") %>%
-    as_tibble() %>%
-    rename(Group.1 = value, x = count)
-
-  return(n_lcs)
+  return(class_freq)
 }
 
 #' Mask raster to polygon
