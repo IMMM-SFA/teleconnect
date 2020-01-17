@@ -15,17 +15,17 @@
 #' @importFrom dplyr filter group_indices left_join
 #' @importFrom tibble tibble
 #' @importFrom sf as_Spatial
+#' @importFrom foreign read.dbf
 #' @export
 count_watershed_teleconnections <- function(data_dir,
                                             watersheds_file_path = "water/CWM_v2_2/World_Watershed8.shp",
                                             powerplants_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
-                                            crop_file_path = "land/2016_30m_cdls/2016_30m_cdls.img",
+                                            crop_file_path = "land/2016_30m_cdls/cdl_lowres_usa.img",
+                                            crop_attribute_path = "land/2016_30m_cdls/cdl_lowres_usa.img.vat.dbf",
                                             dams_file_path = "water/nabd_fish_barriers_2012/nabd_fish_barriers_2012.shp",
                                             irrigation_file_path = "land/usa_demeter.csv",
-                                            nlud_file_path = "land/usa_nlud_raster.tif",
-                                            cities = NULL,
-                                            poly_slices = 40,
-                                            n_cores = 2){
+                                            nlud_file_path = "land/usa_nlud_LR.tif",
+                                            cities = NULL){
 
   all_cities <- get_cities()[["city_state"]]
 
@@ -57,15 +57,15 @@ count_watershed_teleconnections <- function(data_dir,
   get_ucs_power_plants(paste0(data_dir, powerplants_file_path)) -> power_plants_USA
 
   # read croptype raster for US
-  import_raster(paste0(data_dir, crop_file_path)) ->
-    cropcover_USA
+  import_raster(paste0(data_dir, crop_file_path)) -> cropcover_USA
+
+  read.dbf(paste0(data_dir,crop_attribute_path)) -> crop_cover_levels
 
   # read reclassified crop table
-  reclassify_raster(crop_cover_levels = levels(cropcover_USA)[[1]]) -> crop_reclass_table
+  reclassify_raster(crop_cover_levels) -> crop_reclass_table
 
   # read NLUD economic raster
-  import_raster(paste0(data_dir, nlud_file_path)) ->
-    economic_USA
+  import_raster( paste0(data_dir, nlud_file_path)) -> economic_USA
 
   # read NID point file and select only Flood Control Dams (C = Flood Control)
   import_shapefile(paste0(data_dir, dams_file_path)) %>%
@@ -83,8 +83,7 @@ count_watershed_teleconnections <- function(data_dir,
 
       # subset watersheds shapefile for target city
       watersheds %>%
-        subset(DVSN_ID %in% city_intake_ids) ->
-        watersheds_city
+        subset(DVSN_ID %in% city_intake_ids) -> watersheds_city
 
       # catch cases with only groundwater points (i.e., no watershed polygons)
       if(nrow(watersheds_city) == 0){
@@ -152,11 +151,7 @@ count_watershed_teleconnections <- function(data_dir,
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
 
         # get raster values of crops within the watershed.
-        if (city %in% sliced_cities) {
-          get_raster_val_classes_byslice(watersheds_city, cropcover_USA, poly_slices, n_cores) -> cropcover_ids
-        } else {
-          get_zonal_data(cropcover_USA, watersheds_city) -> cropcover_ids
-        }
+        get_zonal_data(cropcover_USA, watersheds_city) -> cropcover_ids
 
         # filter reclass table by IDs that match raster IDs.
         crop_reclass_table %>%
@@ -198,11 +193,8 @@ count_watershed_teleconnections <- function(data_dir,
 
         # TELECONNECTION - Count # of economic sectors within watershed
         # get raster values of land use types within the watershed.
-        if (city %in% sliced_cities) {
-          get_raster_val_classes_byslice(watersheds_city, economic_USA, poly_slices, n_cores) -> economic_ids
-         } else {
-          get_zonal_data(economic_USA, watersheds_city) -> economic_ids
-         }
+        get_zonal_data(economic_USA, watersheds_city) -> economic_ids
+
         # merge ids with id table to attach class names
         get_nlud_names(economic_ids) -> nlud_table
         # Filter out water and count the unique class variables within the watershed
