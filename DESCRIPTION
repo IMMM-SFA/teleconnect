@@ -38,7 +38,8 @@ Imports:
     units,
     tidyr,
     methods,
-    exactextractr
+    exactextractr,
+    foreign
 Suggests: 
     testthat (>= 2.1.0),
     knitr,
