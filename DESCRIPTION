@@ -39,7 +39,10 @@ Imports:
     tidyr,
     methods,
     exactextractr,
-    foreign
+    foreign,
+    dams,
+    geosphere,
+    lwgeom
 Suggests: 
     testthat (>= 2.1.0),
     knitr,
