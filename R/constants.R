@@ -20,5 +20,5 @@ c(watersheds_file_path = "water/CWM_v2_2/World_Watershed8.shp",
   irrigation_file_path = "land/usa_demeter.csv",
   nlud_file_path = "land/usa_nlud_LR.tif",
   hydro_file_path = "energy/EHA_Public_PlantFY2019_GIS_6/ORNL_EHAHydroPlant_PublicFY2019final.xlsx",
-  transfers_file_path = "water/USIBTsHUC6_Dickson.shp",
+  transfers_file_path = "water/usa_climates/USIBTsHUC6_Dickson.shp",
   climate_file_path = "land/kop_climate_classes.tif") -> teleconnect_files
