@@ -20,8 +20,8 @@
 count_watershed_teleconnections <- function(data_dir,
                                             watersheds_file_path = "water/CWM_v2_2/World_Watershed8.shp",
                                             powerplants_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
-                                            crop_file_path = "land/2016_30m_cdls/cdl_lowres_usa.img",
-                                            crop_attribute_path = "land/2016_30m_cdls/cdl_lowres_usa.img.vat.dbf",
+                                            crop_file_path = "land/2016_90m_cdls/cdl_lowres_usa.img",
+                                            crop_attribute_path = "land/2016_90m_cdls/cdl_lowres_usa.img.vat.dbf",
                                             dams_file_path = "water/nabd_fish_barriers_2012/nabd_fish_barriers_2012.shp",
                                             irrigation_file_path = "land/usa_demeter.csv",
                                             nlud_file_path = "land/usa_nlud_LR.tif",
@@ -280,7 +280,7 @@ count_utility_teleconnections <- function(data_dir,
         # intersect city points and utility polygons to find the service areas city belongs to.
         sf::st_agr(utility_city) = "constant"
         sf::st_agr(utilities) = "constant"
-        suppressMessages(st_intersection(utility_city, utilities)) -> city_in_utility
+        suppress_intersect(utility_city, utilities) -> city_in_utility
 
         # count number of utilities that serve the city
         length(city_in_utility$NAME)-> tc_n_utilities
