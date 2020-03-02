@@ -42,7 +42,8 @@ Imports:
     foreign,
     dams,
     geosphere,
-    lwgeom
+    lwgeom,
+    circular
 Suggests: 
     testthat (>= 2.1.0),
     knitr,
