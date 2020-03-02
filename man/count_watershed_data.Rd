@@ -4,19 +4,12 @@
 \alias{count_watershed_data}
 \title{count_watershed_data}
 \usage{
-count_watershed_data(data_dir,
-  watersheds_file_path = "water/CWM_v2_2/World_Watershed8.shp",
-  powerplants_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
-  crop_file_path = "land/2016_30m_cdls/cdl_lowres_usa.img",
-  crop_attribute_path = "land/2016_30m_cdls/cdl_lowres_usa.img.vat.dbf",
-  irrigation_file_path = "land/usa_demeter.csv",
-  nlud_file_path = "land/usa_nlud_LR.tif",
-  hydro_file_path = "energy/EHA_Public_PlantFY2019_GIS_6/ORNL_EHAHydroPlant_PublicFY2019final.xlsx",
-  transfers_file_path = "water/USIBTsHUC6_Dickson.shp",
-  watersheds = NULL)
+count_watershed_data(data_dir, watersheds = NULL)
 }
 \arguments{
 \item{data_dir}{root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")}
+
+\item{watersheds}{a vector of cities to be included in the count. If omitted, all cities will be included.}
 
 \item{watersheds_file_path}{path of watersheds shapefile within data_dir}
 
@@ -24,11 +17,9 @@ count_watershed_data(data_dir,
 
 \item{crop_file_path}{path of crop cover raster}
 
-\item{irrigation_file_path}{path of edited demeter irrigation file.}
-
-\item{watersheds}{a vector of cities to be included in the count. If omitted, all cities will be included.}
-
 \item{dams_file_path}{path of National Inventory of Dams "NID" point file}
+
+\item{irrigation_file_path}{path of edited demeter irrigation file.}
 
 \item{nuld_file_path}{path of land use raster file.}
 }
@@ -36,5 +27,5 @@ count_watershed_data(data_dir,
 count_watershed_data
 }
 \details{
-counts teleconnections assoicated with water supply catchments associated with each city
+counts teleconnections associated with water supply catchments associated with each city
 }
