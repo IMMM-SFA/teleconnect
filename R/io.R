@@ -249,41 +249,6 @@ get_zonal_data <- function(raster_object, polygon, city) {
   return(class_freq)
 }
 
-
-#' Get raster frequency per class from polygon input areas
-#'
-#' Get the coverage per class of raster values represented in the input raster dataset
-#' when restricted to the input watershed polygons for a target city.
-#'
-#' @param raster_object character. An object of class RasterLayer.
-#' @param polygon character. A polygon to define spatial boundary of raster value counts (e.g. a given city's watersheds)
-#' @return table of crop types present and their coverage within the polygon area
-#' @importFrom sf st_transform st_union st_as_sf
-#' @importFrom raster crs
-#' @importFrom exactextractr exact_extract
-#' @importFrom dplyr rename n
-#' @importFrom tmaptools aggregate_map
-#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
-#' @export
-get_wtrshd_data <- function(raster_object, polygon) {
-  # extract raster projection
-  raster_crs <- crs(raster_object)
-  # transform projection and union all polygons into one
-  polygon %>%
-    st_as_sf() %>%
-    st_transform(crs = raster_crs) %>%
-    st_union() -> ply_union
-  # use exactextractr to return classes and coverage fractions of each cell
-  exactextractr::exact_extract(raster_object, ply_union) %>%
-    .[[1]] %>% .[["value"]] %>%
-    tabulate() %>% tibble(count = .) %>%
-    mutate(value = 1:n()) %>% filter(count!=0) -> id_list
-
-  rename(id_list, "Group.1" = "value",
-         "x" = "count") -> class_freq
-  return(class_freq)
-}
-
 #' Mask raster to polygon
 #'
 #' @details masks a raster file against a chosen polygon.
@@ -483,7 +448,9 @@ get_demeter_file <- function(irrigation_file_path){
 get_irrigation_count <- function(irrigation_city){
 
   # add values of all columns to get sum (in meters) of area irrigated and rainfed.
-  colSums(irrigation_city[,c(3:26)]) %>% enframe() -> dem_sums
+    irrigation_city[,c(3:26)] * irrigation_city$area -> crop_areas
+    colSums(crop_areas) %>% enframe() -> dem_sums
+
   # create column for irrigation status
   dem_sums %>%
     mutate(name = if_else(grepl("root_tuber", name), gsub("t_t", "tt", name), name)) %>%
