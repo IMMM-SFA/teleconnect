@@ -11,14 +11,4 @@ hydro_variable <- "Normal_Storage"
 
 acrefeet_conv <- 1.2335e-6
 
-c(watersheds_file_path = "water/CWM_v2_2/World_Watershed8.shp",
-  withdrawal_file_path = "water/CWM_v2_2/Snapped_Withdrawal_Points.shp",
-  citypoint_file_path = "water/CWM_v2_2/City_Centroid.shp",
-  powerplants_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
-  crop_file_path = "land/2016_90m_cdls/cdl_lowres_usa.img",
-  crop_attribute_path = "land/2016_90m_cdls/cdl_lowres_usa.img.vat.dbf",
-  irrigation_file_path = "land/usa_demeter.csv",
-  nlud_file_path = "land/usa_nlud_LR.tif",
-  hydro_file_path = "energy/EHA_Public_PlantFY2019_GIS_6/ORNL_EHAHydroPlant_PublicFY2019final.xlsx",
-  transfers_file_path = "water/usa_climates/USIBTsHUC6_Dickson.shp",
-  climate_file_path = "land/kop_climate_classes.tif") -> teleconnect_files
+Mgallons_to_BCM <- 0.00378541 * 1e-3  # Million gallons to billion cubic meters
