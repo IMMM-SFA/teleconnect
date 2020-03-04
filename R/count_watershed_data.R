@@ -5,7 +5,7 @@
 #' @param cities a vector of cities to be included in the count. If omitted, all cities will be included.
 #' @details counts teleconnections associated with water supply catchments associated with each city
 #' @importFrom purrr map_dfr map
-#' @importFrom dplyr filter group_indices left_join if_else tribble
+#' @importFrom dplyr filter group_indices left_join if_else tribble group_by summarise arrange
 #' @importFrom tibble tibble
 #' @importFrom sf as_Spatial st_as_sf st_cast st_within
 #' @importFrom foreign read.dbf
@@ -13,7 +13,7 @@
 #' @importFrom geosphere areaPolygon distGeo
 #' @importFrom tmaptools set_projection
 #' @importFrom lwgeom st_startpoint st_endpoint
-#' @importFrom circular rad
+#' @importFrom reservoir yield
 #' @import dams
 #' @export
 count_watershed_data <- function(data_dir,
@@ -52,6 +52,8 @@ count_watershed_data <- function(data_dir,
   watersheds <- city_watershed_mapping[["DVSN_ID"]] %>%
     unique()
 
+  message(paste0("Processing ", length(watersheds), " watershed(s). This may take several minutes..."))
+
   # watershed_mapping %>%
   #   dplyr::select(city_state, DVSN_ID, city_uid, intake) %>%
   #   unique() -> water_mapping_select
@@ -89,6 +91,16 @@ count_watershed_data <- function(data_dir,
 
   # read NID point file
   dams::nid_cleaned -> nid_dataset
+
+  nid_dataset %>%
+    filter(!is.na(Longitude),
+           !is.na(Latitude)) %>%
+    as_tibble() ->
+    nid_no_NA
+
+  nid_spatial <- SpatialPointsDataFrame(coords = nid_no_NA[,c(6,7)],
+                                        data = nid_no_NA,
+                                        proj4string = CRS(proj4_string))
 
   # read hydrosource hydropower dataset
   get_hydro_dataset(data_dir, file_paths["hydro"]) %>%
@@ -269,6 +281,24 @@ count_watershed_data <- function(data_dir,
           get_zonal_data(us_climate, watersheds_select) %>%
             filter(Group.1 != 128) %>% .[["Group.1"]] -> climate_ids
 
+
+          # TELECONNECTION - WATERSHED STORAGE
+          sup(nid_spatial[watersheds_select, ]) %>%
+            as_tibble() -> watershed_dams
+
+          watershed_dams %>% nrow() -> n_dams
+
+          sum(watershed_dams$Normal_Storage, na.rm = TRUE) * AF_to_BCM ->
+            watershed_storage_BCM
+
+          get_watershed_ts(watershed) -> flow
+          yield(Q = flow,
+                capacity = watershed_storage_BCM,
+                reliability = 1,
+                plot = FALSE,
+                double_cycle = TRUE) %>% .[["Yield"]] * 12 ->
+            watershed_yield_BCM
+
           return(
             list(
               counts = tribble(
@@ -276,7 +306,7 @@ count_watershed_data <- function(data_dir,
                 "other cities using watershed",  n_other_cities,
                 "hydro plants",                  n_hydro_plants,
                 "thermal plants",                n_thermal_plants,
-               #"reservoirs",                    n_reservoirs,
+                "dams",                          n_dams,
                 "transfers in",                  n_transfers_into,
                 "transfers out",                 n_transfers_out,
                 "transfers within",              n_transfers_within
@@ -287,8 +317,9 @@ count_watershed_data <- function(data_dir,
                 "total hydro generation",          "MWh",    hydro_gen_MWh,
                 "total thermal generation",        "MWh",    thermal_gen_MWh,
                 "total thermal water consumption", "BCM/yr", thermal_consum_BCM,
-                "total thermal water withdrawals", "BCM/yr", thermal_withdr_BCM
-              # "total reservoir storage",         "BCM",    xxx
+                "total thermal water withdrawals", "BCM/yr", thermal_withdr_BCM,
+                "total reservoir storage",         "BCM",    watershed_storage_BCM,
+                "total watershed yield",           "BCM/yr", watershed_yield_BCM
                 ),
               land = land_table,
               economic_sectors = nlud_table,
@@ -297,7 +328,7 @@ count_watershed_data <- function(data_dir,
               )
             )
         }
-
+      done(watershed)
       }) -> watershed_output
 
   names(watershed_output) <- watersheds

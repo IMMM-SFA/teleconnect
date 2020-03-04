@@ -18,14 +18,25 @@
 #' @importFrom foreign read.dbf
 #' @export
 count_watershed_teleconnections <- function(data_dir,
-                                            watersheds_file_path = "water/CWM_v2_2/World_Watershed8.shp",
-                                            powerplants_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
-                                            crop_file_path = "land/2016_90m_cdls/cdl_lowres_usa.img",
-                                            crop_attribute_path = "land/2016_90m_cdls/cdl_lowres_usa.img.vat.dbf",
-                                            dams_file_path = "water/nabd_fish_barriers_2012/nabd_fish_barriers_2012.shp",
-                                            irrigation_file_path = "land/usa_demeter.csv",
-                                            nlud_file_path = "land/usa_nlud_LR.tif",
-                                            cities = NULL){
+                                            cities = NULL,
+                                            file_paths = c(
+                                              watersheds = "water/CWM_v2_2/World_Watershed8.shp",
+                                              withdrawal = "water/CWM_v2_2/Snapped_Withdrawal_Points.shp",
+                                              citypoint = "water/CWM_v2_2/City_Centroid.shp",
+                                              powerplants = "water/UCS-EW3-Energy-Water-Database.xlsx",
+                                              crop = "land/2016_90m_cdls/cdl_lowres_usa.img",
+                                              crop_attributes = "land/2016_90m_cdls/cdl_lowres_usa.img.vat.dbf",
+                                              irrigation = "land/usa_demeter.csv",
+                                              nlud = "land/usa_nlud_LR.tif",
+                                              hydro = "energy/EHA_Public_PlantFY2019_GIS_6/ORNL_EHAHydroPlant_PublicFY2019final.xlsx",
+                                              transfers = "water/transfers/USIBTsHUC6_Dickson.shp",
+                                              climate = "land/kop_climate_classes.tif"
+                                            )){
+
+  count_watershed_data(data_dir = data_dir,
+                       cities = cities,
+                       file_paths = file_paths) ->
+    watershed_data
 
   all_cities <- get_cities()[["city_state"]]
 
@@ -45,7 +56,7 @@ count_watershed_teleconnections <- function(data_dir,
     city_watershed_mapping
 
   # read shapefiles for watersheds
-  import_shapefile(paste0(data_dir, watersheds_file_path),
+  import_shapefile(paste0(data_dir, file_paths["watersheds"]),
                    method = "rgdal") %>%
     # subset for desired watersheds
     subset(DVSN_ID %in% city_watershed_mapping$DVSN_ID) ->
@@ -53,27 +64,13 @@ count_watershed_teleconnections <- function(data_dir,
     #dplyr::select(-City_Name) ->
     watersheds
 
-  # read ucs plant data
-  get_ucs_power_plants(paste0(data_dir, powerplants_file_path)) -> power_plants_USA
+  # # read NID point file and select only Flood Control Dams (C = Flood Control)
+  # import_shapefile(paste0(data_dir, dams_file_path)) %>%
+  #   subset(grepl("C", Purposes)) %>%
+  #   as_Spatial() -> flood_control_dams
 
-  # read croptype raster for US
-  import_raster(paste0(data_dir, crop_file_path)) -> cropcover_USA
-
-  read.dbf(paste0(data_dir,crop_attribute_path)) -> crop_cover_levels
-
-  # read reclassified crop table
-  reclassify_raster(crop_cover_levels) -> crop_reclass_table
-
-  # read NLUD economic raster
-  import_raster( paste0(data_dir, nlud_file_path)) -> economic_USA
-
-  # read NID point file and select only Flood Control Dams (C = Flood Control)
-  import_shapefile(paste0(data_dir, dams_file_path)) %>%
-    subset(grepl("C", Purposes)) %>%
-    as_Spatial() -> flood_control_dams
-
-  #read demeter irrigation file
-  get_demeter_file(paste0(data_dir, irrigation_file_path)) -> usa_irrigation
+  get_ucs_power_plants(paste0(data_dir, file_paths["powerplants"])) ->
+    power_plants_usa
 
   # map through all cities, computing teleconnections
   cities %>%
@@ -81,7 +78,6 @@ count_watershed_teleconnections <- function(data_dir,
       filter(city_watershed_mapping, city_state == !!city) %>%
         .[["DVSN_ID"]] -> city_intake_ids
 
-      # subset watersheds shapefile for target city
       watersheds %>%
         subset(DVSN_ID %in% city_intake_ids) -> watersheds_city
 
@@ -89,136 +85,155 @@ count_watershed_teleconnections <- function(data_dir,
       if(nrow(watersheds_city) == 0){
         done(city)
         return(
-          tibble(city = !! city,
-                 n_watersheds = 0,
-                 n_hydro = 0,
-                 n_thermal = 0,
-                 n_floodcontroldams = 0,
-                 wtrshd_impact = NA_character_,
-                 n_cropcover = 0,
-                 n_utilities = 0,
-                 n_balancauth = 0,
-                 n_cities = 0,
-                 n_irrigatedcrops = 0,
-                 n_economicsectors = 0)
+          tibble(city)
         )
       }else{
 
-        # TELECONNECTION - NUMBER OF WATERSHEDS
-        tc_n_watersheds <- length(city_intake_ids)
-        # NOTE: CURRENTLY COUNTS NESTED WATERSHEDS; ADDITIONAL...
-        # ... ALGORITHM NEEDED TO AVOID DOUBLE COUNTING
+        watershed_data[which(names(watershed_data) %in% city_intake_ids)] ->
+          city_watershed_data
 
-        # TELECONNECTION - NUMBER OF CITIES USING SAME WATERSHEDS
+        power_plants_city <- power_plants_usa[watersheds_city,]
+
+        # city population
+        get_population(city) -> city_population
+
+        # number of watersheds
+        length(city_watershed_data) -> n_watersheds
+
+        # number of other cities using these watersheds
         get_cities() %>% filter(DVSN_ID %in% city_intake_ids, city_state != !!city) %>%
-          select(city_state) %>% unique() %>% nrow() -> tc_n_cities
+          select(city_state) %>% unique() %>% nrow() -> n_other_cities
 
-        # subset power plants for target city watersheds
-        power_plants_USA[watersheds_city, ] -> power_plants_city
+        # number of climate zones
+        map(city_watershed_data, function(x){
+          x$climate_zones
+        }) %>% unlist() %>% unique() %>% length() -> n_climate_zones
 
-        # TELECONNECTION - NUMBER OF HYDRO PLANTS
-        power_plants_city %>%
-          subset(`Power Plant Type` == "Hydropower") %>%
-          .[["PLANT_CODE"]] %>% unique() %>%
-          length() ->
-          tc_n_hydroplants
+        # number of transfers in
+        map(city_watershed_data, function(x){
+          x$counts %>% filter(item == "transfers in") %>%
+            .[["count"]]
+        }) %>% unlist() %>% sum() -> n_transfers_in
 
-        # TELECONNECTION - NUMBER OF THERMAL PLANTS
-        power_plants_city %>% subset(cooling == "Yes") %>%
-          .[["PLANT_CODE"]] %>% unique() %>%
-          length() ->
-          tc_n_thermalplants
+        # number of transfers within
+        map(city_watershed_data, function(x){
+          x$counts %>% filter(item == "transfers within") %>%
+            .[["count"]]
+        }) %>% unlist() %>% sum() -> n_transfers_within
 
-        # TELECONNECTION - NUMBER OF UTILITIES
+        # number of transfers out
+        map(city_watershed_data, function(x){
+          x$counts %>% filter(item == "transfers out") %>%
+            .[["count"]]
+        }) %>% unlist() %>% sum() -> n_transfers_out
+
+        # total_watershed_area
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "watershed area") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> watershed_area_sqkm
+
+        # hydro gen
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "total hydro generation") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> hydro_gen_MWh
+
+        # thermal gen
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "total thermal generation") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> thermal_gen_MWh
+
+        # thermal consumption
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "total thermal water consumption") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> thermal_cons_BCM
+
+        # thermal withdrawal
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "total thermal water withdrawals") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> thermal_with_BCM
+
+        # number of utilities
         power_plants_city %>%
           subset(cooling == "Yes" | `Power Plant Type` == "Hydro") %>%
           .[["UTILITY_ID"]] %>% unique() %>%
-          length() -> tc_n_utility
+          length() -> n_utilities
 
-        # TELECONNECTION - NUMBER OF BALANCING AUTHORITIES
+        # number of balancing authorities
         power_plants_city %>%
           subset(cooling == "Yes" | `Power Plant Type` == "Hydro") %>%
           .@data %>% dplyr::select(PLANT_CODE, CNTRL_AREA) %>% unique() %>%
           .[["CNTRL_AREA"]] -> tc_ba_na
-
         sum(is.na(tc_ba_na)) -> n_missing_ba
-
         if(n_missing_ba > 0) message(paste0("For ", city,", ", n_missing_ba,
                                             " plant(s) not assigned a Balancing Authority"))
+        tc_ba_na %>% .[!is.na(.)] %>% unique() %>% length() -> n_ba
 
-        tc_ba_na %>% .[!is.na(.)] %>% unique() %>% length() -> tc_n_ba
-
-        # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
-
-        # get raster values of crops within the watershed.
-        get_zonal_data(cropcover_USA, watersheds_city) -> cropcover_ids
-
-        # filter reclass table by IDs that match raster IDs.
-        crop_reclass_table %>%
-          filter(CDL_ID %in% cropcover_ids$Group.1) ->
-          crop_and_landcover_types
-
-        # filter out where "is_crop" is true and only count crop types.
-        crop_and_landcover_types %>%
-          filter(is_crop == TRUE)%>%
-          .[["GCAM_ID"]] %>% unique() %>%
-          length() -> tc_n_cropcover
 
         # TELECONNECTION - NUMBER OF FLOOD CONTROL DAMS WITHIN WATERSHED.
-        flood_control_dams[watersheds_city, ] %>%
-          length() -> tc_fcdam
+        # flood_control_dams[watersheds_city, ] %>%
+        #   length() -> tc_fcdam
 
-        # TELECONNECTION - CLASSIFY WATERSHED BASED ON % OF DEVELOPED/CULTIVATED AREA.
-        # Remove NA and all categories that are not land cover/use(water/background).
-        cropcover_ids %>% filter(!Group.1 %in% non_land_cdl_classes) -> all_land
-        # New df with only crops and developement categories
-        cropcover_ids %>% filter(!Group.1 %in% non_devcrop_class) -> dev_and_crop
-        # Add cell count for all the land to get total land coverage.
-        totcells <- sum(all_land$x)
-        # Add cell count for all development and crop counts.
-        totaldevcrop <- sum(dev_and_crop$x)
-        # Find percent area for development and crops.
-        percent_area <- 100*totaldevcrop/totcells
-        # Assign to category based on percent area.
-        get_land_category(percent_area) -> watershed_condition
+        # number of GCAM crop classes present
+        map(city_watershed_data, function(x){
+          x$land %>% filter(is_crop == TRUE, cell_freq > 0) %>%
+            .[["GCAM_ID"]]
+        }) %>% unlist() %>% unique() %>% length() -> n_crop_classes
 
-        # TELECONNECTION - Count number of irrigated and rainfed crops in watershed.
-        # Get irrigation data points within city's watersheds
-        usa_irrigation[watersheds_city, ] %>%
-          as_tibble() -> irrigation_city
-        # count the number of crop types that are irrigated
-        get_irrigation_count(irrigation_city) %>%
-          filter(GCAM_Class %in% crop_and_landcover_types$GCAM_Class) -> irr_crops
-          length(irr_crops$irr_count) -> tc_n_irrigated_crops
+        # area of crop land as fraction of total land area
+        map(city_watershed_data, function(x){
+          x$land %>% .[["cell_freq"]] %>% sum(na.rm = T)
+        }) %>% unlist() %>% sum() -> total_cell_area
 
-        # TELECONNECTION - Count # of economic sectors within watershed
-        # get raster values of land use types within the watershed.
-        get_zonal_data(economic_USA, watersheds_city) -> economic_ids
+        map(city_watershed_data, function(x){
+          x$land %>% filter(is_crop == TRUE) %>%
+            .[["cell_freq"]] %>% sum(na.rm = T)
+        }) %>% unlist() %>% sum() -> crop_cell_area
 
-        # merge ids with id table to attach class names
-        get_nlud_names(economic_ids) -> nlud_table
-        # Filter out water and count the unique class variables within the watershed
-        nlud_table %>%
-          filter(Reclass != "Water") %>%
-          .[["Reclass"]] %>% unique() %>%
-          length() -> tc_n_economicsectors
+        # developed / area
+        map(city_watershed_data, function(x){
+          x$land %>% filter(grepl("Developed", CDL_Class)) %>%
+            .[["cell_freq"]] %>% sum(na.rm = T)
+        }) %>% unlist() %>% sum() -> dev_cell_area
+
+        crop_cell_area / total_cell_area -> cropland_fraction
+        dev_cell_area / total_cell_area -> developed_fraction
+
+
+        # economic sectors
+        map(city_watershed_data, function(x){
+          x$economic_sectors %>%
+            filter(Reclass != "Water") %>%
+            .[["Reclass"]] %>% unique()
+        }) %>% unlist() %>% unique() %>% length() -> n_economic_sectors
+
 
         done(city)
 
         # output
         return(
-          tibble(city = !! city,
-                 n_watersheds = tc_n_watersheds,
-                 n_hydro = tc_n_hydroplants,
-                 n_thermal = tc_n_thermalplants,
-                 n_floodcontroldams = tc_fcdam,
-                 wtrshd_impact = watershed_condition,
-                 n_cropcover = tc_n_cropcover,
-                 n_utilities = tc_n_utility,
-                 n_balancauth = tc_n_ba,
-                 n_cities = tc_n_cities,
-                 n_irrigatedcrops = tc_n_irrigated_crops,
-                 n_economicsectors = tc_n_economicsectors)
+          tibble(city,
+                 city_population,
+                 n_watersheds,
+                 watershed_area_sqkm,
+                 n_climate_zones,
+                 n_transfers_in,
+                 n_transfers_out,
+                 n_transfers_within,
+                 hydro_gen_MWh,
+                 thermal_gen_MWh,
+                 thermal_cons_BCM,
+                 thermal_with_BCM,
+                 n_utilities,
+                 n_ba,
+                 n_crop_classes,
+                 cropland_fraction,
+                 developed_fraction,
+                 n_economic_sectors)
         )
       }
 

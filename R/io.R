@@ -521,3 +521,34 @@ get_hydro_dataset <- function(data_dir, hydro_file_path){
 
   return(plants)
 }
+
+
+#' get_population
+#' @param city_state name of city_state
+#' @details Census populations
+#' @importFrom vroom vroom cols
+#' @author Sean Turner (sean.turner@pnnl.gov)
+get_population <- function(city_state){
+  vroom(paste0(system.file("extdata", package = "teleconnect"),
+               "/city_population.csv"),
+        skip = 1, col_types = cols()) %>%
+    filter(city_state == !! city_state) %>%
+    .[["Population"]]
+}
+
+#' get_watershed_ts
+#' @param watershed select watershed
+#' @details Load in runoff time series and select the watershed being analyzed and its time series
+#' @importFrom vroom vroom cols
+#' @importFrom dplyr pull
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
+#' @export
+get_watershed_ts <- function(watershed){
+
+  vroom(paste0(system.file("extdata", package = "teleconnect"),
+                                "/teleconnect_runoff_bcm.csv"),
+                         delim = ",", comment = "#", col_types = cols()) %>%
+    pull(as.character(watershed))
+}
+
+

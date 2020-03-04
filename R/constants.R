@@ -9,6 +9,7 @@ non_devcrop_class <- c(0,63:65,81,83:92,111,112,131:195)
 
 hydro_variable <- "Normal_Storage"
 
-acrefeet_conv <- 1.2335e-6
+AF_to_BCM <- 1233.48e-9
 
 Mgallons_to_BCM <- 0.00378541 * 1e-3  # Million gallons to billion cubic meters
+
