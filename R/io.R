@@ -429,7 +429,7 @@ get_demeter_file <- function(irrigation_file_path){
           root_tuber_rfd = col_double(),
           sugarcrop_rfd = col_double(),
           wheat_rfd = col_double(),
-          area = col_double())) -> demeter
+          area_sqkm = col_double())) -> demeter
   # convert to spatial points so that it can be masked by watershed.
   SpatialPointsDataFrame(coords = demeter[ ,c(2,1)], demeter, proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs")) -> usa_irrigation
 
@@ -448,7 +448,7 @@ get_demeter_file <- function(irrigation_file_path){
 get_irrigation_count <- function(irrigation_city){
 
   # add values of all columns to get sum (in meters) of area irrigated and rainfed.
-    irrigation_city[,c(3:26)] * irrigation_city$area -> crop_areas
+    irrigation_city[,c(3:26)] * irrigation_city$area_sqkm -> crop_areas
     colSums(crop_areas) %>% enframe() -> dem_sums
 
   # create column for irrigation status
