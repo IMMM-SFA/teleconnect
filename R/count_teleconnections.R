@@ -133,6 +133,31 @@ count_watershed_teleconnections <- function(data_dir,
             .[["value"]]
         }) %>% unlist() %>% sum() -> watershed_area_sqkm
 
+        # total storage
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "total reservoir storage") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> storage_BCM
+
+        # total yield
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "total watershed yield") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> yield_BCM
+
+
+        # hydro plants
+        map(city_watershed_data, function(x){
+          x$counts %>% filter(item == "hydro plants") %>%
+            .[["count"]]
+        }) %>% unlist() %>% sum() -> n_hydro_plants
+
+        # thermal plants
+        map(city_watershed_data, function(x){
+          x$counts %>% filter(item == "thermal plants") %>%
+            .[["count"]]
+        }) %>% unlist() %>% sum() -> n_thermal_plants
+
         # hydro gen
         map(city_watershed_data, function(x){
           x$metrics %>% filter(metric == "total hydro generation") %>%
@@ -203,7 +228,6 @@ count_watershed_teleconnections <- function(data_dir,
         crop_cell_area / total_cell_area -> cropland_fraction
         dev_cell_area / total_cell_area -> developed_fraction
 
-
         # economic sectors
         map(city_watershed_data, function(x){
           x$economic_sectors %>%
@@ -219,11 +243,16 @@ count_watershed_teleconnections <- function(data_dir,
           tibble(city,
                  city_population,
                  n_watersheds,
+                 n_other_cities,
                  watershed_area_sqkm,
+                 storage_BCM,
+                 yield_BCM,
                  n_climate_zones,
                  n_transfers_in,
                  n_transfers_out,
                  n_transfers_within,
+                 n_hydro_plants,
+                 n_thermal_plants,
                  hydro_gen_MWh,
                  thermal_gen_MWh,
                  thermal_cons_BCM,
