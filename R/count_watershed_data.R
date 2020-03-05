@@ -291,13 +291,17 @@ count_watershed_data <- function(data_dir,
           sum(watershed_dams$Normal_Storage, na.rm = TRUE) * AF_to_BCM ->
             watershed_storage_BCM
 
-          get_watershed_ts(watershed) -> flow
-          yield(Q = flow,
-                capacity = watershed_storage_BCM,
-                reliability = 1,
-                plot = FALSE,
-                double_cycle = TRUE) %>% .[["Yield"]] * 12 ->
-            watershed_yield_BCM
+          if(watershed %in% missing_watersheds){
+            watershed_yield_BCM <- 0
+          }else{
+            get_watershed_ts(watershed) -> flow
+            yield(Q = flow,
+                  capacity = watershed_storage_BCM,
+                  reliability = 1,
+                  plot = FALSE,
+                  double_cycle = TRUE) %>% .[["Yield"]] * 12 ->
+              watershed_yield_BCM
+          }
 
           return(
             list(

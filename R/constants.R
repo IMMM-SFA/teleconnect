@@ -13,3 +13,5 @@ AF_to_BCM <- 1233.48e-9
 
 Mgallons_to_BCM <- 0.00378541 * 1e-3  # Million gallons to billion cubic meters
 
+missing_watersheds <- c(3589, 3850, 3678, 3582, 3615, 4226, 4227, 2336, 3448, 2162, 3474) # for runoff
+
