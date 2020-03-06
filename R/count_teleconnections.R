@@ -30,7 +30,8 @@ count_watershed_teleconnections <- function(data_dir,
                                               nlud = "land/usa_nlud_LR.tif",
                                               hydro = "energy/EHA_Public_PlantFY2019_GIS_6/ORNL_EHAHydroPlant_PublicFY2019final.xlsx",
                                               transfers = "water/transfers/USIBTsHUC6_Dickson.shp",
-                                              climate = "land/kop_climate_classes.tif"
+                                              climate = "land/kop_climate_classes.tif",
+                                              HUC4 = "water/USA_HUC4/huc4_to_huc2.shp"
                                             )){
 
   count_watershed_data(data_dir = data_dir,
@@ -145,6 +146,11 @@ count_watershed_teleconnections <- function(data_dir,
             .[["value"]]
         }) %>% unlist() %>% sum() -> yield_BCM
 
+        # total irrigation consumption
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "total irrigation consumption") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> irr_cons_BCM
 
         # hydro plants
         map(city_watershed_data, function(x){
@@ -247,6 +253,7 @@ count_watershed_teleconnections <- function(data_dir,
                  watershed_area_sqkm,
                  storage_BCM,
                  yield_BCM,
+                 irr_cons_BCM,
                  n_climate_zones,
                  n_transfers_in,
                  n_transfers_out,

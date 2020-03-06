@@ -14,6 +14,7 @@
 #' @importFrom tmaptools set_projection
 #' @importFrom lwgeom st_startpoint st_endpoint
 #' @importFrom reservoir yield
+#' @importFrom raster intersect
 #' @import dams
 #' @export
 count_watershed_data <- function(data_dir,
@@ -29,7 +30,8 @@ count_watershed_data <- function(data_dir,
                                    nlud = "land/usa_nlud_LR.tif",
                                    hydro = "energy/EHA_Public_PlantFY2019_GIS_6/ORNL_EHAHydroPlant_PublicFY2019final.xlsx",
                                    transfers = "water/transfers/USIBTsHUC6_Dickson.shp",
-                                   climate = "land/kop_climate_classes.tif"
+                                   climate = "land/kop_climate_classes.tif",
+                                   HUC4 = "water/USA_HUC4/huc4_to_huc2.shp"
                                    )){
 
   all_cities <- get_cities()[["city_state"]]
@@ -114,8 +116,17 @@ count_watershed_data <- function(data_dir,
 
   sup(import_shapefile(paste0(data_dir, file_paths["transfers"]), method = "rgdal")) %>%
     st_as_sf() %>% st_transform("+proj=longlat +datum=WGS84 +no_defs") -> interbasin_transfers
+  # read in irrigation bcm file
+  get_irrigation_bcm() -> irrigation_bcm
 
+  # read in US climate raster
   import_raster(paste0(data_dir, file_paths["climate"])) -> us_climate
+
+  # read in HUC4 shapes
+  import_shapefile(paste0(data_dir, file_paths["HUC4"]),
+                   method = "rgdal") %>% st_as_sf() %>% select(c("HUC4")) -> HUC4_connect
+  stringr::str_sub(HUC4_connect$HUC4, -2,-1) -> HUC4_connect$HUC4
+  HUC4_connect %>% as_Spatial() %>% sp::spTransform(CRS("+proj=longlat +datum=WGS84 +no_defs")) -> HUC4_sp
 
   # map through all cities, computing teleconnections
   watersheds %>%
@@ -238,6 +249,25 @@ count_watershed_data <- function(data_dir,
           #   filter(GCAM_Class %in% crop_and_landcover_types$GCAM_Class) -> irr_crops
           # length(irr_crops$irr_count) -> tc_n_irrigated_crops
 
+          # TELECONNECTION - Irrigation Consumption
+          usa_irrigation[watersheds_select, ] %>%
+            as_tibble()  %>%
+            get_irrigation_count() %>% .[["irr"]] %>% sum() -> irrigation_km2
+
+          intersect(watersheds_select, HUC4_sp) %>% as.data.frame() -> watershed_HUC4
+
+          as.numeric(watershed_HUC4$HUC4) %>%
+            sprintf("%s", .) -> Final_HUC2_List
+
+          names(sort(summary(as.factor(Final_HUC2_List)), decreasing=T)[1]) -> HUC2_majority
+
+          irrigation_bcm %>% subset(HUC2 %in% HUC2_majority) %>% select(c("GCAM_commodity", "Irr_BCM_KM2")) %>%
+            subset(Irr_BCM_KM2 != 0) -> irrigation_BCM_KM2
+
+          sum(irrigation_BCM_KM2$Irr_BCM_KM2) / nrow(irrigation_BCM_KM2) -> average_BCM_KM2
+
+          irrigation_km2 * average_BCM_KM2 -> total_irr_bcm
+
           #--------------------------------------------------------
           # TELECONNECTION - Count # of economic sectors within watershed
           # get raster values of land use types within the watershed.
@@ -323,7 +353,8 @@ count_watershed_data <- function(data_dir,
                 "total thermal water consumption", "BCM/yr", thermal_consum_BCM,
                 "total thermal water withdrawals", "BCM/yr", thermal_withdr_BCM,
                 "total reservoir storage",         "BCM",    watershed_storage_BCM,
-                "total watershed yield",           "BCM/yr", watershed_yield_BCM
+                "total watershed yield",           "BCM/yr", watershed_yield_BCM,
+                "total irrigation consumption",    "BCM",    total_irr_bcm
                 ),
               land = land_table,
               economic_sectors = nlud_table,
