@@ -125,8 +125,8 @@ count_watershed_data <- function(data_dir,
   # read in HUC4 shapes
   import_shapefile(paste0(data_dir, file_paths["HUC4"]),
                    method = "rgdal") %>% st_as_sf() %>% select(c("HUC4")) -> HUC4_connect
-  stringr::str_sub(HUC4_connect$HUC4, -2,-1) -> HUC4_connect$HUC4
-  HUC4_connect %>% as_Spatial() %>% sp::spTransform(CRS("+proj=longlat +datum=WGS84 +no_defs")) -> HUC4_sp
+  stringr::str_sub(HUC4_connect$HUC4, 1, 2) -> HUC4_connect$HUC2
+  HUC4_connect %>% as_Spatial() %>% sp::spTransform(CRS("+proj=longlat +datum=WGS84 +no_defs")) -> HUC2_sp
 
   # map through all cities, computing teleconnections
   watersheds %>%
@@ -252,21 +252,24 @@ count_watershed_data <- function(data_dir,
           # TELECONNECTION - Irrigation Consumption
           usa_irrigation[watersheds_select, ] %>%
             as_tibble()  %>%
-            get_irrigation_count() %>% .[["irr"]] %>% sum() -> irrigation_km2
+            get_irrigation_count() -> irrigation_km2
 
-          intersect(watersheds_select, HUC4_sp) %>% as.data.frame() -> watershed_HUC4
+          intersect(watersheds_select, HUC2_sp) %>% as_tibble() -> watershed_HUC2
 
-          as.numeric(watershed_HUC4$HUC4) %>%
-            sprintf("%s", .) -> Final_HUC2_List
+          if(watershed_HUC2[["HUC2"]] %>% unique() %>% length() == 1){
+            HUC2_majority <- watershed_HUC2[["HUC2"]] %>% unique()
+          }else{
+            watershed_HUC2 %>%
+              group_by(HUC2) %>% summarise(area = sum(AreaKM2)) %>%
+              arrange(-area) %>% .[["HUC2"]] %>% .[1] -> HUC2_majority
+          }
 
-          names(sort(summary(as.factor(Final_HUC2_List)), decreasing=T)[1]) -> HUC2_majority
-
-          irrigation_bcm %>% subset(HUC2 %in% HUC2_majority) %>% select(c("GCAM_commodity", "Irr_BCM_KM2")) %>%
-            subset(Irr_BCM_KM2 != 0) -> irrigation_BCM_KM2
-
-          sum(irrigation_BCM_KM2$Irr_BCM_KM2) / nrow(irrigation_BCM_KM2) -> average_BCM_KM2
-
-          irrigation_km2 * average_BCM_KM2 -> total_irr_bcm
+          irrigation_bcm %>% filter(HUC2 %in% HUC2_majority) %>%
+            select(GCAM_commodity, Irr_BCM_KM2) %>%
+            right_join(irrigation_km2, by = "GCAM_commodity") %>%
+            mutate(consumption_BCM = Irr_BCM_KM2 * irr) %>%
+            .[["consumption_BCM"]] %>% sum(na.rm = T) ->
+            total_irr_bcm
 
           #--------------------------------------------------------
           # TELECONNECTION - Count # of economic sectors within watershed
@@ -358,7 +361,6 @@ count_watershed_data <- function(data_dir,
                 ),
               land = land_table,
               economic_sectors = nlud_table,
-              #irrigation = ????
               climate_zones = climate_ids
               )
             )
