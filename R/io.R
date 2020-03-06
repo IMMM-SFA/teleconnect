@@ -458,8 +458,10 @@ get_irrigation_count <- function(irrigation_city){
     spread(water, value) %>%
     mutate(irr_count = if_else(irr > rfd, TRUE, FALSE)) -> demeter_sep
 
+  sum(demeter_sep$irr) -> irrigation_km2
+
   # create column that will allow matching with the crop cover raster
-  demeter_sep %>% mutate(GCAM_Class = case_when(
+  demeter_sep %>% mutate(GCAM_commodity = dplyr::case_when(
     grepl("corn", crop) ~ "Corn",
     grepl("fibercrop", crop) ~ "FiberCrop",
     grepl("foddergrass",crop) ~ "FodderGrass",
@@ -471,10 +473,10 @@ get_irrigation_count <- function(irrigation_city){
     grepl("rice", crop) ~ "Rice",
     grepl("roottuber", crop) ~ "Root_Tuber",
     grepl("sugarcrop", crop) ~ "SugarCrop",
-    grepl("wheat", crop) ~ "Wheat")) %>%
-    filter(demeter_sep$irr_count != FALSE) -> irrigated_crops
+    grepl("wheat", crop) ~ "Wheat")) %>% select(c("GCAM_commodity","irr")) -> irrigation_table
+  #  filter(demeter_sep$irr_count != FALSE) -> irrigated_crops
 
-  return(irrigated_crops)
+  return(irrigation_table)
 }
 
 #' get_nlud_names
@@ -551,4 +553,14 @@ get_watershed_ts <- function(watershed){
     pull(as.character(watershed))
 }
 
+#' get_irrigation_bcm
+#' @param irrbcm_file_path irrigation bcm file path
+#' @details load in irrigation bcm file path
+#' @importFrom vroom vroom cols
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
+get_irrigation_bcm <- function(){
+  vroom(paste0(system.file("extdata", package = "teleconnect"),
+               "/HUC2_Irrigation_Data.csv"),
+        skip = 2, col_types = cols())
 
+}
