@@ -11,10 +11,11 @@ count_watershed_teleconnections(data_dir, cities = NULL,
   "water/UCS-EW3-Energy-Water-Database.xlsx", crop =
   "land/2016_90m_cdls/cdl_lowres_usa.img", crop_attributes =
   "land/2016_90m_cdls/cdl_lowres_usa.img.vat.dbf", irrigation =
-  "land/usa_demeter.csv", nlud = "land/usa_nlud_LR.tif", hydro =
+  "land/Version2_USA_Demeter.csv", nlud = "land/usa_nlud_LR.tif", hydro =
   "energy/EHA_Public_PlantFY2019_GIS_6/ORNL_EHAHydroPlant_PublicFY2019final.xlsx",
-  transfers = "water/transfers/USIBTsHUC6_Dickson.shp",      climate =
-  "land/kop_climate_classes.tif"))
+       transfers = "water/transfers/USIBTsHUC6_Dickson.shp", climate =
+  "land/kop_climate_classes.tif", HUC4 =
+  "water/USA_HUC4/huc4_to_huc2.shp"))
 }
 \arguments{
 \item{data_dir}{root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")}
