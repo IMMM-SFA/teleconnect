@@ -74,7 +74,7 @@ plot_watershed <- function(data_dir,
 
   # read NID point file and select only Flood Control Dams (C = Flood Control)
   import_shapefile(paste0(data_dir, dams_file_path)) %>%
-    subset(grepl("C", Purposes)) %>%
+    #subset(grepl("C", Purposes)) %>%
     as_Spatial() -> flood_control_dams
 
   # read crop raster for US
@@ -163,7 +163,7 @@ plot_watershed <- function(data_dir,
       tm_fill(col = "dodgerblue") + #tm_borders("darkgrey") +
       tm_shape(city_point) +
       tm_bubbles(col = "hotpink", shape = 22, border.col = "black", size = 2, alpha = 0.7) +
-      tm_layout(title = paste0(city),
+      tm_layout(title = "",
                 frame = FALSE),
     # 2. Flood control dams
     # tm_shape(watersheds_city_trans, bbox = map_extent) +
