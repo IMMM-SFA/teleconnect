@@ -31,7 +31,7 @@ import_shapefile <- function(shp_path, quiet = TRUE, method = "sf") {
 #' @export
 import_raster <- function(raster_path) {
 
-  return(raster(raster_path))
+  return(raster(raster_path, RAT = TRUE))
 }
 
 
@@ -181,7 +181,11 @@ get_ucs_power_plants <- function(ucs_file_path,
            cooling_tech = `Cooling Technology`,
            PLANT_CODE = `Plant Code`,
            `Power Plant Type` = Fuel,
-           lat = Latitude, lon = Longitude) %>%
+           lat = Latitude, lon = Longitude,
+           MWh = `Estimated Generation (MWh)`,
+           PLANT_NAME = `Plant Name`,
+           consumption = `Calculated Consumption (million gallons/yr)`,
+           withdrawal = `Calculated Withdrawal (million gallons/yr)`) %>%
     # aggregate to plant level by removing generator variables (e.g., nameplate) ...
     # and taking unique columns...
     unique() -> ucs
@@ -211,40 +215,38 @@ get_ucs_power_plants <- function(ucs_file_path,
                                                     proj4string = CRS(proj4_string)))
 }
 
-
 #' Get raster frequency per class from polygon input areas
 #'
-#' Get the frequency per class of raster values represented in the input raster dataset
-#' when restricted to the input watershed polygons for a target city.  This ignores NA.
+#' Get the coverage per class of raster values represented in the input raster dataset
+#' when restricted to the input watershed polygons for a target city.
 #'
 #' @param raster_object character. An object of class RasterLayer.
 #' @param polygon character. A polygon to define spatial boundary of raster value counts (e.g. a given city's watersheds)
-#' @return table of crop types present and their frequency of occurrence
-#' @importFrom sf st_crs st_transform
-#' @importFrom raster crop projection mask unique freq
-#' @importFrom tibble as_tibble
-#' @author Chris R. Vernon (chris.vernon@pnnl.gov)
+#' @return table of crop types present and their coverage within the polygon area
+#' @importFrom sf st_transform st_union st_as_sf
+#' @importFrom raster crs
+#' @importFrom exactextractr exact_extract
+#' @importFrom dplyr rename n
+#' @importFrom tmaptools aggregate_map
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
 #' @export
-get_raster_val_classes <- function(raster_object, polygon) {
+get_zonal_data <- function(raster_object, polygon, city) {
+  # extract raster projection
+  raster_crs <- crs(raster_object)
+  # transform projection and union all polygons into one
+  polygon %>%
+    st_as_sf() %>%
+    st_transform(crs = raster_crs) %>%
+    st_union() -> ply_union
+  # use exactextractr to return classes and coverage fractions of each cell
+  exactextractr::exact_extract(raster_object, ply_union) %>%
+    .[[1]] %>% .[["value"]] %>%
+    tabulate() %>% tibble(count = .) %>%
+    mutate(value = 1:n()) %>% filter(count!=0) -> id_list
 
-  # transform polygon to sf object if not already
-  if(class(polygon)[[1]] != "sf") polygon <- st_as_sf(polygon)
-
-  # get the coordinate system of the input raster
-  r_crs <- st_crs(projection(raster_object))
-
-  # read in shapefile and transform projection to the raster CRS
-  polys <- polygon %>%
-    st_transform(crs = r_crs)
-
-  # calculate the frequency of unique land classes from the input raster that are in the target polygons
-  n_lcs <- crop(raster_object, polys) %>%
-    mask(polys) %>%
-    freq(useNA = "no") %>%
-    as_tibble() %>%
-    rename(Group.1 = value, x = count)
-
-  return(n_lcs)
+  rename(id_list, "Group.1" = "value",
+                  "x" = "count") -> class_freq
+  return(class_freq)
 }
 
 #' Mask raster to polygon
@@ -297,8 +299,8 @@ reclassify_raster <- function(crop_cover_levels){
 
   # Obtain the attribute table for the raster.
   crop_cover_levels %>%
-    filter(Class_Names != "") %>%
-    dplyr::select(ID, CDL_Class = Class_Names) %>%
+    filter(Class_Name != "") %>%
+    dplyr::select(ID = Value, CDL_Class = Class_Name) %>%
     mutate(CDL_Class = as.character(CDL_Class))->
     cdl_classes
 
@@ -318,36 +320,37 @@ reclassify_raster <- function(crop_cover_levels){
 
   # This is then merged with the CDL IDs. All of the IDs that are still NA are made into a new table to do the second link.
   crop_cover_levels %>%
+    rename(ID = Value) %>%
     left_join(gcam_link, by = "ID") %>%
     left_join(gcam_classes, by = "GCAM_ID") %>%
-    dplyr::select(ID, Class_Names, GCAM_ID, CDL_Class, GCAM_commodity) -> crop_level_join
+    dplyr::select(ID, Class_Name, GCAM_ID, CDL_Class, GCAM_commodity) -> crop_level_join
 
   crop_level_join[is.na(crop_level_join$GCAM_commodity), ] -> na_crops
 
   # This second link uses grepl to assign crops that are still NA to GCAM crops.
   na_crops %>%
     mutate(GCAM_Class = case_when(
-      Class_Names %in% "Oats" ~ "OtherGrain",
-      grepl("Grains", Class_Names) | grepl("Other Small Grains", Class_Names) ~ "OtherGrain",
-      Class_Names %in% c("Corn", "Sweet Corn", "Pop or Orn Corn") ~ "Corn",
-      Class_Names %in% c("Sod/Grass Seed", "Switchgrass","Other Hay/Non Alfalfa") ~ "FodderGrass",
-      Class_Names %in% c("Canola", "Rape Seed", "Camelina") ~ "OilCrop",
-      Class_Names %in% c("Clover/Wildflowers", "Vetch") ~ "FodderHerb",
-      grepl("Wheat", Class_Names) ~ "Wheat",
-      grepl("Speltz", Class_Names) ~ "Wheat",
-      grepl("Sweet Potatoes", Class_Names) ~ "Root_Tuber",
-      grepl("Sugar", Class_Names) ~ "SugarCrop",
-      grepl("Flaxseed", Class_Names) ~ "FiberCrop",
-      grepl("Dbl Crop Barley", Class_Names) ~ "OtherGrain",
-      grepl("Dbl Crop Corn", Class_Names) ~ "Corn",
-      grepl("Wht", Class_Names) ~ "Wheat",
-      grepl("Dbl Crop Lettuce/", Class_Names) ~ "MiscCrop",
-      grepl("Dbl Crop Soybeans/", Class_Names) ~ "OilCrop",
-      grepl("Developed", Class_Names) | grepl("Water", Class_Names) | grepl("Perennial", Class_Names) |
-      grepl("Barren", Class_Names) | grepl("Forest", Class_Names) | grepl("land", Class_Names) | grepl("Background", Class_Names) |
-      grepl("Clouds", Class_Names) | grepl("Undefined", Class_Names) | grepl("Aqua", Class_Names) ~ NA_character_,
+      Class_Name %in% "Oats" ~ "OtherGrain",
+      grepl("Grains", Class_Name) | grepl("Other Small Grains", Class_Name) ~ "OtherGrain",
+      Class_Name %in% c("Corn", "Sweet Corn", "Pop or Orn Corn") ~ "Corn",
+      Class_Name %in% c("Sod/Grass Seed", "Switchgrass","Other Hay/Non Alfalfa") ~ "FodderGrass",
+      Class_Name %in% c("Canola", "Rape Seed", "Camelina") ~ "OilCrop",
+      Class_Name %in% c("Clover/Wildflowers", "Vetch") ~ "FodderHerb",
+      grepl("Wheat", Class_Name) ~ "Wheat",
+      grepl("Speltz", Class_Name) ~ "Wheat",
+      grepl("Sweet Potatoes", Class_Name) ~ "Root_Tuber",
+      grepl("Sugar", Class_Name) ~ "SugarCrop",
+      grepl("Flaxseed", Class_Name) ~ "FiberCrop",
+      grepl("Dbl Crop Barley", Class_Name) ~ "OtherGrain",
+      grepl("Dbl Crop Corn", Class_Name) ~ "Corn",
+      grepl("Wht", Class_Name) ~ "Wheat",
+      grepl("Dbl Crop Lettuce/", Class_Name) ~ "MiscCrop",
+      grepl("Dbl Crop Soybeans/", Class_Name) ~ "OilCrop",
+      grepl("Developed", Class_Name) | grepl("Water", Class_Name) | grepl("Perennial", Class_Name) |
+      grepl("Barren", Class_Name) | grepl("Forest", Class_Name) | grepl("land", Class_Name) | grepl("Background", Class_Name) |
+      grepl("Clouds", Class_Name) | grepl("Undefined", Class_Name) | grepl("Aqua", Class_Name) ~ NA_character_,
       TRUE ~ "MiscCrop")) %>%
-    dplyr::select(ID, Class_Names, GCAM_Class) -> na_crops_class
+    dplyr::select(ID, Class_Name, GCAM_Class) -> na_crops_class
 
   # This joins both tables together so that every CDL crop is assigned a GCAM crop
   left_join(crop_level_join, na_crops_class, by = "ID") -> full_crop_table
@@ -426,7 +429,7 @@ get_demeter_file <- function(irrigation_file_path){
           root_tuber_rfd = col_double(),
           sugarcrop_rfd = col_double(),
           wheat_rfd = col_double(),
-          area = col_double())) -> demeter
+          area_sqkm = col_double())) -> demeter
   # convert to spatial points so that it can be masked by watershed.
   SpatialPointsDataFrame(coords = demeter[ ,c(2,1)], demeter, proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs")) -> usa_irrigation
 
@@ -445,7 +448,9 @@ get_demeter_file <- function(irrigation_file_path){
 get_irrigation_count <- function(irrigation_city){
 
   # add values of all columns to get sum (in meters) of area irrigated and rainfed.
-  colSums(irrigation_city[,c(3:26)]) %>% enframe() -> dem_sums
+    irrigation_city[,c(3:26)] * irrigation_city$area_sqkm -> crop_areas
+    colSums(crop_areas) %>% enframe() -> dem_sums
+
   # create column for irrigation status
   dem_sums %>%
     mutate(name = if_else(grepl("root_tuber", name), gsub("t_t", "tt", name), name)) %>%
@@ -453,8 +458,10 @@ get_irrigation_count <- function(irrigation_city){
     spread(water, value) %>%
     mutate(irr_count = if_else(irr > rfd, TRUE, FALSE)) -> demeter_sep
 
+  sum(demeter_sep$irr) -> irrigation_km2
+
   # create column that will allow matching with the crop cover raster
-  demeter_sep %>% mutate(GCAM_Class = case_when(
+  demeter_sep %>% mutate(GCAM_commodity = dplyr::case_when(
     grepl("corn", crop) ~ "Corn",
     grepl("fibercrop", crop) ~ "FiberCrop",
     grepl("foddergrass",crop) ~ "FodderGrass",
@@ -466,10 +473,10 @@ get_irrigation_count <- function(irrigation_city){
     grepl("rice", crop) ~ "Rice",
     grepl("roottuber", crop) ~ "Root_Tuber",
     grepl("sugarcrop", crop) ~ "SugarCrop",
-    grepl("wheat", crop) ~ "Wheat")) %>%
-    filter(demeter_sep$irr_count != FALSE) -> irrigated_crops
+    grepl("wheat", crop) ~ "Wheat")) %>% select(c("GCAM_commodity","irr")) -> irrigation_table
+  #  filter(demeter_sep$irr_count != FALSE) -> irrigated_crops
 
-  return(irrigated_crops)
+  return(irrigation_table)
 }
 
 #' get_nlud_names
@@ -495,4 +502,65 @@ get_nlud_names <- function(economic_ids){
   left_join(economic_ids, nlud_id_table, by = "Group.1") -> nlud_table
 
   return(nlud_table)
+}
+
+
+#' get_hydro_dataset
+#' @param economic_ids dataframe of nlud sector ids
+#' @details Load in nlud_id_table.csv and merge with the economic_ids to get class names
+#' @importFrom readxl read_xlsx
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
+#' @export
+
+get_hydro_dataset <- function(data_dir, hydro_file_path){
+  # Load id table
+  read_xlsx(paste0(data_dir, hydro_file_path),
+            sheet = "Operational") %>%
+    select(NID_ID = NID_ID,
+           lat = Lat, lon = Lon,
+           PLANT_NAME = PtName,
+           generation = CH_MWh) -> plants
+
+  return(plants)
+}
+
+
+#' get_population
+#' @param city_state name of city_state
+#' @details Census populations
+#' @importFrom vroom vroom cols
+#' @author Sean Turner (sean.turner@pnnl.gov)
+get_population <- function(city_state){
+  vroom(paste0(system.file("extdata", package = "teleconnect"),
+               "/city_population.csv"),
+        skip = 1, col_types = cols()) %>%
+    filter(city_state == !! city_state) %>%
+    .[["Population"]]
+}
+
+#' get_watershed_ts
+#' @param watershed select watershed
+#' @details Load in runoff time series and select the watershed being analyzed and its time series
+#' @importFrom vroom vroom cols
+#' @importFrom dplyr pull
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
+#' @export
+get_watershed_ts <- function(watershed){
+
+  vroom(paste0(system.file("extdata", package = "teleconnect"),
+                                "/teleconnect_runoff_bcm.csv"),
+                         delim = ",", comment = "#", col_types = cols()) %>%
+    pull(as.character(watershed))
+}
+
+#' get_irrigation_bcm
+#' @param irrbcm_file_path irrigation bcm file path
+#' @details load in irrigation bcm file path
+#' @importFrom vroom vroom cols
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
+get_irrigation_bcm <- function(){
+  vroom(paste0(system.file("extdata", package = "teleconnect"),
+               "/HUC2_Irrigation_Data.csv"),
+        skip = 2, col_types = cols())
+
 }

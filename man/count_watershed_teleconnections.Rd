@@ -4,17 +4,23 @@
 \alias{count_watershed_teleconnections}
 \title{count_watershed_teleconnections}
 \usage{
-count_watershed_teleconnections(data_dir,
-  watersheds_file_path = "water/CWM_v2_2/World_Watershed8.shp",
-  powerplants_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
-  crop_file_path = "land/2016_30m_cdls/2016_30m_cdls.img",
-  dams_file_path = "water/nabd_fish_barriers_2012/nabd_fish_barriers_2012.shp",
-  irrigation_file_path = "land/usa_demeter.csv",
-  nlud_file_path = "land/usa_nlud_raster.tif", cities = NULL,
-  poly_slices = 40, n_cores = 2)
+count_watershed_teleconnections(data_dir, cities = NULL,
+  file_paths = c(watersheds = "water/CWM_v2_2/World_Watershed8.shp",
+  withdrawal = "water/CWM_v2_2/Snapped_Withdrawal_Points.shp", citypoint =
+  "water/CWM_v2_2/City_Centroid.shp", powerplants =
+  "water/UCS-EW3-Energy-Water-Database.xlsx", crop =
+  "land/2016_90m_cdls/cdl_lowres_usa.img", crop_attributes =
+  "land/2016_90m_cdls/cdl_lowres_usa.img.vat.dbf", irrigation =
+  "land/Version2_USA_Demeter.csv", nlud = "land/usa_nlud_LR.tif", hydro =
+  "energy/EHA_Public_PlantFY2019_GIS_6/ORNL_EHAHydroPlant_PublicFY2019final.xlsx",
+       transfers = "water/transfers/USIBTsHUC6_Dickson.shp", climate =
+  "land/kop_climate_classes.tif", HUC4 =
+  "water/USA_HUC4/huc4_to_huc2.shp"))
 }
 \arguments{
 \item{data_dir}{root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")}
+
+\item{cities}{a vector of cities to be included in the count. If omitted, all cities will be included.}
 
 \item{watersheds_file_path}{path of watersheds shapefile within data_dir}
 
@@ -26,13 +32,11 @@ count_watershed_teleconnections(data_dir,
 
 \item{irrigation_file_path}{path of edited demeter irrigation file.}
 
-\item{cities}{a vector of cities to be included in the count. If omitted, all cities will be included.}
+\item{nuld_file_path}{path of land use raster file.}
 
 \item{poly_slices}{integer for how may parts to split the watersheds polygons into to enable faster zonal stats}
 
 \item{n_cores}{integer for the number of machine cores used to run the polygon slicing function. 2 is default for users with 16GB of RAM.}
-
-\item{nuld_file_path}{path of land use raster file.}
 }
 \description{
 count_watershed_teleconnections

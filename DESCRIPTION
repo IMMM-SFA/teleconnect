@@ -37,7 +37,14 @@ Imports:
     stringr,
     units,
     tidyr,
-    methods
+    methods,
+    exactextractr,
+    foreign,
+    dams,
+    geosphere,
+    lwgeom,
+    circular,
+    reservoir
 Suggests: 
     testthat (>= 2.1.0),
     knitr,
