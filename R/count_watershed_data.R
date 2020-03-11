@@ -66,17 +66,6 @@ count_watershed_data <- function(data_dir,
     # subset for desired watersheds
     subset(DVSN_ID %in% watersheds) -> catchment_shapes
 
-  # read shapefiles for watersheds
-  import_shapefile(paste0(data_dir, file_paths["withdrawal"]),
-                   method = "rgdal") %>% st_as_sf() %>%
-    subset(DVSN_ID %in% watersheds) -> withdrawal_points
-
-  # read shapefiles for watersheds
-  import_shapefile(paste0(data_dir, file_paths["citypoint"]),
-                   method = "rgdal") %>% st_as_sf() %>%
-    rename("city_uid" = "City_ID") %>%
-    subset(city_uid %in% city_watershed_mapping$city_uid) -> city_points
-
   # read ucs plant data
   get_ucs_power_plants(paste0(data_dir, file_paths["powerplants"])) -> power_plants_USA
 
@@ -327,12 +316,12 @@ count_watershed_data <- function(data_dir,
           if(watershed %in% missing_watersheds){
             watershed_yield_BCM <- 0
           }else{
-            get_watershed_ts(watershed) -> flow
-            yield(Q = flow,
+            sup(get_watershed_ts(watershed)) -> flow
+            sup(yield(Q = flow,
                   capacity = watershed_storage_BCM,
                   reliability = 1,
                   plot = FALSE,
-                  double_cycle = TRUE) %>% .[["Yield"]] * 12 ->
+                  double_cycle = TRUE)) %>% .[["Yield"]] * 12 ->
               watershed_yield_BCM
           }
 
@@ -373,49 +362,3 @@ count_watershed_data <- function(data_dir,
   return(watershed_output)
 
 }
-
-
-
-
-
-
-
-#---------------------------------------------------------
-# # TELECONNECTION - Distance between withdrawal point and city
-#
-# # Get cities that watershed is connected to
-# city_watershed_mapping %>%
-#   filter(DVSN_ID == watershed) -> watershed_cities
-#
-# watershed_cities[c("city_uid", "DVSN_ID","DVTR_ID")] -> city_connect
-#
-# # Subset city points by previous result, then add row.id to connect to distances
-# city_points %>%
-#   filter(city_uid %in% watershed_cities$city_uid)  -> citypoints_df
-# citypoints_df$row.id <- as.numeric(rownames(citypoints_df))
-#
-# # Create into spatial object
-# citypoints_df %>% as_Spatial() -> wtrsh_city_points
-#
-# # Subset withdrawal points by watershed DVSN_ID and create to spatial object
-# withdrawal_points %>%
-#   filter(DVSN_ID == watershed) %>% as_Spatial() -> wtrshd_withdrawal
-#
-# # Find distance bewtween withdrawal point and all cities associated
-# distGeo(wtrshd_withdrawal, wtrsh_city_points) %>% as.data.frame() -> point_distance
-# point_distance$row.id <- as.numeric(rownames(point_distance))
-#
-# # Find max distance for watershed
-# max(point_distance$.) -> max_wtrshd_distance
-#
-# # Join up with cities
-# left_join(citypoints_df, point_distance, by = "row.id") %>%
-#   rename(Distance_to_City = ".") %>%
-#   left_join(city_connect, by = "city_uid") %>%
-#   mutate(DVSN_ID = as.integer(DVSN_ID)) %>% as.data.frame() %>%
-#   dplyr::select(city_uid, Distance_to_City, DVSN_ID, DVTR_ID) ->
-#   city_distance
-
-
-
-
