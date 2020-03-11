@@ -73,11 +73,22 @@ count_watershed_teleconnections <- function(data_dir,
   get_ucs_power_plants(paste0(data_dir, file_paths["powerplants"])) ->
     power_plants_usa
 
+  # read shapefiles for watersheds
+  import_shapefile(paste0(data_dir, file_paths["citypoint"]),
+                   method = "rgdal") %>% st_as_sf() %>%
+    rename("city_uid" = "City_ID") %>%
+    subset(city_uid %in% city_watershed_mapping$city_uid) -> city_points
+
+  # read shapefiles for watersheds
+  import_shapefile(paste0(data_dir, file_paths["withdrawal"]),
+                   method = "rgdal") %>% st_as_sf() -> withdrawal_points
+
   # map through all cities, computing teleconnections
   cities %>%
     map_dfr(function(city){
-      filter(city_watershed_mapping, city_state == !!city) %>%
-        .[["DVSN_ID"]] -> city_intake_ids
+      filter(city_watershed_mapping, city_state == !!city) -> city_select
+
+      city_select %>% .[["DVSN_ID"]] -> city_intake_ids
 
       watersheds %>%
         subset(DVSN_ID %in% city_intake_ids) -> watersheds_city
@@ -104,6 +115,19 @@ count_watershed_teleconnections <- function(data_dir,
         # number of other cities using these watersheds
         get_cities() %>% filter(DVSN_ID %in% city_intake_ids, city_state != !!city) %>%
           select(city_state) %>% unique() %>% nrow() -> n_other_cities
+
+        # maximum distance between city's watershed(s)
+        city_points %>%
+          subset(city_uid %in% city_select$city_uid) %>%
+          as_Spatial() -> city_centroid
+
+        withdrawal_points %>%
+          subset(DVSN_ID %in% city_intake_ids) %>%
+          as_Spatial() -> withdrawal_city
+
+        distGeo(withdrawal_city, city_centroid) %>%
+          as_tibble() %>%
+          .[["value"]] %>% max()/1000 -> max_withdr_dist_km
 
         # number of climate zones
         map(city_watershed_data, function(x){
@@ -269,7 +293,8 @@ count_watershed_teleconnections <- function(data_dir,
                  n_crop_classes,
                  cropland_fraction,
                  developed_fraction,
-                 n_economic_sectors)
+                 n_economic_sectors,
+                 max_withdr_dist_km)
         )
       }
 
