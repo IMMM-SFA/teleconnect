@@ -127,7 +127,11 @@ count_watershed_teleconnections <- function(data_dir,
 
         distGeo(withdrawal_city, city_centroid) %>%
           as_tibble() %>%
-          .[["value"]] %>% max()/1000 -> max_withdr_dist_km
+          .[["value"]] -> distance_values
+
+        distance_values %>% max()/m_to_km -> max_withdr_dist_km
+
+        distance_values %>% mean()/m_to_km -> avg_withdr_dis_km
 
         # number of climate zones
         map(city_watershed_data, function(x){
@@ -294,7 +298,8 @@ count_watershed_teleconnections <- function(data_dir,
                  cropland_fraction,
                  developed_fraction,
                  n_economic_sectors,
-                 max_withdr_dist_km)
+                 max_withdr_dist_km,
+                 avg_withdr_dis_km)
         )
       }
 
