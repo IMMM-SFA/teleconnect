@@ -88,6 +88,7 @@ import_points_from_csv <- function(f, pts_lat_field, pts_lon_field, pts_crs = 43
 #' Provides consistent mapping across cities, intakes and watersheds.
 #' @import vroom
 #' @author Sean Turner (sean.turner@pnnl.gov)
+#' @export
 get_cities <- function(){
   vroom(paste0(system.file("extdata", package = "teleconnect"),
                "/city_to_intake_mapping.csv"),
