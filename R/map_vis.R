@@ -100,7 +100,7 @@ plot_watershed <- function(data_dir,
     dplyr::rename(ID = Value) %>%
     select(ID, cropclass) %>%
     mutate(cropclass = if_else(ID == 131, "Barren_", cropclass),
-    cropclass = if_else(ID == 152, "Shrubland_", cropclass)) -> crop_tbl
+           cropclass = if_else(ID == 152, "Shrubland_", cropclass)) -> crop_tbl
   crop_tbl$ID <- as.integer(crop_tbl$ID)
   crop_tbl$cropclass <- as.factor(crop_tbl$cropclass)
   levels(cropcover_USA) <- crop_tbl
@@ -143,103 +143,103 @@ plot_watershed <- function(data_dir,
 
   subset(power_plants_city, `Power Plant Type` %in% c("Hydropower", "Thermal")) -> power_plant_list
   if(nrow(power_plant_list) == 0){
-      if(nrow(flood_control_dams) == 0){
-    # create map visuals
-    tmap_options(max.categories = 132)
-    tmap_arrange(
-      # 3. Power plant map
-      # tm_shape(watersheds_city_trans, bbox = map_extent) +
-      #   tm_borders() + tm_fill("lightgrey") +
-      #   tm_shape(power_plants_city) +
-      #   tm_bubbles(shape = "Cooling Technology",
-      #              col = "Power Plant Type", size = 0.5) +
-      #   tm_layout(frame = TRUE, legend.position = c("left", "top"),
-      #             legend.bg.color = "white",
-      #             legend.bg.alpha = 0.5,
-      #             legend.width = -0.32),
-      # 1. map of state with watersheds defined
-      tm_shape(state_shape_trans, bbox = state_ws_extent) +
-        tm_borders() + tm_fill(col = "white") +
-        tm_shape(watersheds_city_trans) +
-        tm_fill(col = "dodgerblue") + #tm_borders("darkgrey") +
-        tm_shape(city_point) +
-        tm_bubbles(col = "hotpink", shape = 22, border.col = "black", size = 2, alpha = 0.7) +
-        tm_layout(title = paste0(city),
-                  frame = FALSE),
-      # 2. Flood control dams
-      # tm_shape(watersheds_city_trans, bbox = map_extent) +
-      #   tm_borders() + tm_fill("lightgrey") +
-      #   tm_shape(flood_control_dams) +
-      #   tm_bubbles(size = 0.5) +
-      #   tm_layout(frame = TRUE, legend.position = c("left", "top"),
-      #             legend.bg.color = "white",
-      #             legend.bg.alpha = 0.5,
-      #             legend.width = -0.32),
+    if(nrow(flood_control_dams) == 0){
+      # create map visuals
+      tmap_options(max.categories = 132)
+      tmap_arrange(
+        # 3. Power plant map
+        # tm_shape(watersheds_city_trans, bbox = map_extent) +
+        #   tm_borders() + tm_fill("lightgrey") +
+        #   tm_shape(power_plants_city) +
+        #   tm_bubbles(shape = "Cooling Technology",
+        #              col = "Power Plant Type", size = 0.5) +
+        #   tm_layout(frame = TRUE, legend.position = c("left", "top"),
+        #             legend.bg.color = "white",
+        #             legend.bg.alpha = 0.5,
+        #             legend.width = -0.32),
+        # 1. map of state with watersheds defined
+        tm_shape(state_shape_trans, bbox = state_ws_extent) +
+          tm_borders() + tm_fill(col = "white") +
+          tm_shape(watersheds_city_trans) +
+          tm_fill(col = "dodgerblue") + #tm_borders("darkgrey") +
+          tm_shape(city_point) +
+          tm_bubbles(col = "hotpink", shape = 22, border.col = "black", size = 2, alpha = 0.7) +
+          tm_layout(title = paste0(city),
+                    frame = FALSE),
+        # 2. Flood control dams
+        # tm_shape(watersheds_city_trans, bbox = map_extent) +
+        #   tm_borders() + tm_fill("lightgrey") +
+        #   tm_shape(flood_control_dams) +
+        #   tm_bubbles(size = 0.5) +
+        #   tm_layout(frame = TRUE, legend.position = c("left", "top"),
+        #             legend.bg.color = "white",
+        #             legend.bg.alpha = 0.5,
+        #             legend.width = -0.32),
 
-      # 4. cropcover raster map
-      tm_shape(cropcover_city_watersheds_agg, bbox = map_extent) +
-        tm_raster(palette = crop_palette,
-                  legend.show = F) +
-      tm_shape(watersheds_city_trans, bbox = map_extent) +
-      tm_borders(col = "black") +
-      tm_layout(frame = FALSE, legend.position = c("left", "top"),
-                legend.bg.color = "white",
-                legend.bg.alpha = 0.5,
-                legend.width = -0.32,
-                legend.show = FALSE),
-    ncol = 2
-  )
-      }else{
+        # 4. cropcover raster map
+        tm_shape(cropcover_city_watersheds_agg, bbox = map_extent) +
+          tm_raster(palette = crop_palette,
+                    legend.show = F) +
+          tm_shape(watersheds_city_trans, bbox = map_extent) +
+          tm_borders(col = "black") +
+          tm_layout(frame = FALSE, legend.position = c("left", "top"),
+                    legend.bg.color = "white",
+                    legend.bg.alpha = 0.5,
+                    legend.width = -0.32,
+                    legend.show = FALSE),
+        ncol = 2
+      )
+    }else{
 
-        # create map visuals
-        tmap_options(max.categories = 132)
-        tmap_arrange(
-          # 3. Power plant map
-          # tm_shape(watersheds_city_trans, bbox = map_extent) +
-          #   tm_borders() + tm_fill("lightgrey") +
-          #   tm_shape(power_plants_city) +
-          #   tm_bubbles(shape = "Cooling Technology",
-          #              col = "Power Plant Type", size = 0.5) +
-          #   tm_layout(frame = TRUE, legend.position = c("left", "top"),
-          #             legend.bg.color = "white",
-          #             legend.bg.alpha = 0.5,
-          #             legend.width = -0.32),
-          # 1. map of state with watersheds defined
-          tm_shape(state_shape_trans, bbox = state_ws_extent) +
-            tm_borders() + tm_fill(col = "white") +
-            tm_shape(watersheds_city_trans) +
-            tm_fill(col = "dodgerblue") + #tm_borders("darkgrey") +
-            tm_shape(city_point) +
-            tm_bubbles(col = "hotpink", shape = 22, border.col = "black", size = 2, alpha = 0.7) +
-            tm_layout(title = paste0(city),
-                      frame = FALSE),
-          # 2. Flood control dams
-          # tm_shape(watersheds_city_trans, bbox = map_extent) +
-          #   tm_borders() + tm_fill("lightgrey") +
-          #   tm_shape(flood_control_dams) +
-          #   tm_bubbles(size = 0.5) +
-          #   tm_layout(frame = TRUE, legend.position = c("left", "top"),
-          #             legend.bg.color = "white",
-          #             legend.bg.alpha = 0.5,
-          #             legend.width = -0.32),
+      # create map visuals
+      tmap_options(max.categories = 132)
+      tmap_arrange(
+        # 3. Power plant map
+        # tm_shape(watersheds_city_trans, bbox = map_extent) +
+        #   tm_borders() + tm_fill("lightgrey") +
+        #   tm_shape(power_plants_city) +
+        #   tm_bubbles(shape = "Cooling Technology",
+        #              col = "Power Plant Type", size = 0.5) +
+        #   tm_layout(frame = TRUE, legend.position = c("left", "top"),
+        #             legend.bg.color = "white",
+        #             legend.bg.alpha = 0.5,
+        #             legend.width = -0.32),
+        # 1. map of state with watersheds defined
+        tm_shape(state_shape_trans, bbox = state_ws_extent) +
+          tm_borders() + tm_fill(col = "white") +
+          tm_shape(watersheds_city_trans) +
+          tm_fill(col = "dodgerblue") + #tm_borders("darkgrey") +
+          tm_shape(city_point) +
+          tm_bubbles(col = "hotpink", shape = 22, border.col = "black", size = 2, alpha = 0.7) +
+          tm_layout(title = paste0(city),
+                    frame = FALSE),
+        # 2. Flood control dams
+        # tm_shape(watersheds_city_trans, bbox = map_extent) +
+        #   tm_borders() + tm_fill("lightgrey") +
+        #   tm_shape(flood_control_dams) +
+        #   tm_bubbles(size = 0.5) +
+        #   tm_layout(frame = TRUE, legend.position = c("left", "top"),
+        #             legend.bg.color = "white",
+        #             legend.bg.alpha = 0.5,
+        #             legend.width = -0.32),
 
-          # 4. cropcover raster map
-          tm_shape(cropcover_city_watersheds_agg, bbox = map_extent) +
-            tm_raster(palette = crop_palette,
-                      legend.show = F) +
-            tm_shape(watersheds_city_trans, bbox = map_extent) +
-            tm_borders(col = "black") +
-            tm_shape(flood_control_dams[watersheds_city, ]) +
-            tm_bubbles(size = 0.2, col = "lightblue", shape = 25) +
-            tm_layout(frame = FALSE, legend.position = c("left", "top"),
-                      legend.bg.color = "white",
-                      legend.bg.alpha = 0.5,
-                      legend.width = -0.32,
-                      legend.show = FALSE),
-          ncol = 2
-        )
+        # 4. cropcover raster map
+        tm_shape(cropcover_city_watersheds_agg, bbox = map_extent) +
+          tm_raster(palette = crop_palette,
+                    legend.show = F) +
+          tm_shape(watersheds_city_trans, bbox = map_extent) +
+          tm_borders(col = "black") +
+          tm_shape(flood_control_dams[watersheds_city, ]) +
+          tm_bubbles(size = 0.2, col = "lightblue", shape = 25) +
+          tm_layout(frame = FALSE, legend.position = c("left", "top"),
+                    legend.bg.color = "white",
+                    legend.bg.alpha = 0.5,
+                    legend.width = -0.32,
+                    legend.show = FALSE),
+        ncol = 2
+      )
 
-      }
+    }
   }else{
 
     # create map visuals
@@ -294,5 +294,3 @@ plot_watershed <- function(data_dir,
     )
   }
 }
-
-
