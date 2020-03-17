@@ -550,7 +550,7 @@ get_watershed_ts <- function(watershed){
 
   vroom(paste0(system.file("extdata", package = "teleconnect"),
                                 "/teleconnect_runoff_bcm.csv"),
-                         delim = ",", comment = "#", col_types = cols()) %>%
+                         delim = ",", skip = 2, col_types = cols()) %>%
     pull(as.character(watershed))
 }
 
