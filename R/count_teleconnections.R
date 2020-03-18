@@ -83,6 +83,12 @@ count_watershed_teleconnections <- function(data_dir,
   import_shapefile(paste0(data_dir, file_paths["withdrawal"]),
                    method = "rgdal") %>% st_as_sf() -> withdrawal_points
 
+  # Get watershed usage table
+  get_watershed_usage(cities) -> watershed_usage_table
+
+  # Get Population
+  get_population() -> cities_population
+
   # map through all cities, computing teleconnections
   cities %>%
     map_dfr(function(city){
@@ -107,14 +113,12 @@ count_watershed_teleconnections <- function(data_dir,
         power_plants_city <- power_plants_usa[watersheds_city,]
 
         # city population
-        get_population(city) -> city_population
+        cities_population %>%
+          filter(city_state == !! city) %>%
+          .[["Population"]] -> city_population
 
         # number of watersheds
         length(city_watershed_data) -> n_watersheds
-
-        # number of other cities using these watersheds
-        get_cities() %>% filter(DVSN_ID %in% city_intake_ids, city_state != !!city) %>%
-          select(city_state) %>% unique() %>% nrow() -> n_other_cities
 
         # maximum distance between city's watershed(s)
         city_points %>%
@@ -133,6 +137,21 @@ count_watershed_teleconnections <- function(data_dir,
 
         distance_values %>% mean()/m_to_km -> avg_withdr_dis_km
 
+        # Get number of cities
+        watershed_usage_table %>%
+          subset(Watershed_DVSN_ID %in% city_intake_ids) -> city_usage
+        if(nrow(city_usage) == 0){
+          dependent_population <- 0
+          n_other_cities <- 0
+        }else{
+        city_usage[,4] %>% unique() %>%
+          left_join(cities_population, by = "city_state") %>%
+          .[["Population"]] %>%
+          sum() -> dependent_population
+
+        city_usage[,4] %>% unique() %>%
+          nrow() -> n_other_cities
+        }
         # number of climate zones
         map(city_watershed_data, function(x){
           x$climate_zones
@@ -278,6 +297,7 @@ count_watershed_teleconnections <- function(data_dir,
                  city_population,
                  n_watersheds,
                  n_other_cities,
+                 dependent_population,
                  watershed_area_sqkm,
                  storage_BCM,
                  yield_BCM,
