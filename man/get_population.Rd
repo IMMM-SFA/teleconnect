@@ -4,7 +4,7 @@
 \alias{get_population}
 \title{get_population}
 \usage{
-get_population(city_state)
+get_population()
 }
 \arguments{
 \item{city_state}{name of city_state}
