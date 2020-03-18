@@ -531,12 +531,10 @@ get_hydro_dataset <- function(data_dir, hydro_file_path){
 #' @details Census populations
 #' @importFrom vroom vroom cols
 #' @author Sean Turner (sean.turner@pnnl.gov)
-get_population <- function(city_state){
+get_population <- function(){
   vroom(paste0(system.file("extdata", package = "teleconnect"),
                "/city_population.csv"),
-        skip = 1, col_types = cols()) %>%
-    filter(city_state == !! city_state) %>%
-    .[["Population"]]
+        skip = 1, col_types = cols())
 }
 
 #' get_watershed_ts
@@ -565,3 +563,17 @@ get_irrigation_bcm <- function(){
         skip = 2, col_types = cols())
 
 }
+
+#' get_watershed_usage
+#' @details load in watershed usage table
+#' @importFrom vroom vroom cols
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
+get_watershed_usage <- function(city){
+  vroom(paste0(system.file("extdata", package = "teleconnect"),
+               "/city_usage_table.csv"),
+        skip = 2, col_types = cols()) -> connect_table
+  connect_table <- connect_table[!(connect_table$city_state == city),]
+
+  return(connect_table)
+}
+
