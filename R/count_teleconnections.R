@@ -144,13 +144,13 @@ count_watershed_teleconnections <- function(data_dir,
           dependent_population <- 0
           n_other_cities <- 0
         }else{
-        city_usage[,4] %>% unique() %>%
-          left_join(cities_population, by = "city_state") %>%
+        city_usage %>% select(city_state) %>% unique() -> select_cities
+
+        nrow(select_cities) -> n_other_cities
+
+        left_join(select_cities, cities_population, by = "city_state") %>%
           .[["Population"]] %>%
           sum() -> dependent_population
-
-        city_usage[,4] %>% unique() %>%
-          nrow() -> n_other_cities
         }
         # number of climate zones
         map(city_watershed_data, function(x){
