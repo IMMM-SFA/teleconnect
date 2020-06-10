@@ -577,3 +577,13 @@ get_watershed_usage <- function(city){
   return(connect_table)
 }
 
+#' get_teleconnect_table
+#' @details load in teleconnect table
+#' @importFrom vroom vroom cols
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
+get_teleconnect_table <- function(){
+  vroom(paste0(system.file("extdata", package = "teleconnect"),
+               "/teleconnect_table.csv")) -> teleconnect_table
+  return(teleconnect_table)
+}
+
