@@ -9,7 +9,6 @@
 #' @param conus_file_path path of CONUS state boundaries shape file
 #' @param city character. City to be analysed in the format "City | STATE" (e.g., "Phoenix | AZ")
 #' @import tmap
-#' @importFrom tmaptools aggregate_map
 #' @importFrom dplyr filter mutate if_else right_join
 #' @importFrom tibble rowid_to_column
 #' @importFrom raster levels extent
@@ -306,15 +305,12 @@ plot_watershed <- function(data_dir,
 #' @param crop_file_path path of CDL img file
 #' @param conus_file_path path of CONUS state boundaries shape file
 #' @param city character. City to be analysed in the format "City | STATE" (e.g., "Phoenix | AZ")
-#' @importFrom tmaptools aggregate_map
 #' @importFrom dplyr filter mutate if_else right_join
 #' @importFrom tibble rowid_to_column
 #' @importFrom raster levels extent rasterToPoints
 #' @importFrom foreign read.dbf
 #' @importFrom vroom vroom
 #' @import ggplot2
-#' @import tmaptools
-#' @import tmap
 #'
 #' @export
 #'
