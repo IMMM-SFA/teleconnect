@@ -329,9 +329,13 @@ plot_watershed_ggplot <- function(data_dir,
 
   all_cities <- get_cities()[["city_state"]]
 
+  get_teleconnect_table() -> all_data
+  all_data[complete.cases(all_data), ] -> all_data
+  all_data$city -> plotted_cities
+
   # throw error if any chosen city lies outside available cities
-  if(!city %in% all_cities) {
-    stop(paste0(paste(city), " is not part of 'teleconnect'!"))
+  if(!city %in% plotted_cities) {
+    stop(paste0(paste(city), " has no watershed and cannot be plotted!"))
   }
 
   # get city watershed_ids
@@ -421,221 +425,112 @@ plot_watershed_ggplot <- function(data_dir,
   watersheds_city_trans <- st_as_sf(watersheds_city) %>% st_transform(crs = r_crs)
   state_shape_trans <- st_as_sf(state_shape) %>% st_transform(crs = r_crs)
 
-  # create extents to define bounding boxes of maps
-  watersheds_city_trans %>% extent() -> ws_extent
-  state_shape_trans %>% extent() -> state_extent
-  extent_y_diff <- (ws_extent@ymax - ws_extent@ymin) * 0.05
-  extent_x_diff <- (ws_extent@xmax - ws_extent@xmin) * 0.05
+#--------------CONVERT RASTER--------------------------------------------------------------------
 
-  extent(
-    ws_extent@xmin - extent_x_diff,
-    ws_extent@xmax + extent_x_diff,
-    ws_extent@ymin - extent_y_diff,
-    ws_extent@ymax + extent_y_diff
-  ) -> map_extent
-
-  extent(
-    min(ws_extent@xmin, state_extent@xmin),
-    max(ws_extent@xmax, state_extent@xmax),
-    min(ws_extent@ymin, state_extent@ymin),
-    max(ws_extent@ymax, state_extent@ymax)
-  ) -> state_ws_extent
-
-  map.p <- rasterToPoints(cropcover_city_watersheds_agg)
-  df <- data.frame(map.p)
+  rasterToPoints(cropcover_city_watersheds_agg) %>%
+    data.frame() -> df
   colnames(df) <- c("Longitude", "Latitude", "Value")
   left_join(df, cropclasses, by = "Value") -> df2
 
   flood_control_dams %>% st_as_sf() -> flood_control_sf
   watersheds_city %>% st_as_sf() -> watershed_sf
   flood_control_sf[watershed_sf, ] -> select_dams
+
   subset(power_plants_city, `Power Plant Type` %in% c("Hydropower", "Thermal")) %>%
     as.data.frame() %>%
     mutate(color2 = if_else(Power.Plant.Type == "Hydropower", "yellow1", "red")) -> plants
 
-  get_teleconnect_table() -> all_data
-  all_data[is.na(all_data)] <- 0
+#----------------GET TELE DATA--------------------------------------------------------------------
 
-  all_data %>% filter(city == !!city) %>% pull(yield_BCM) -> yield_point
-  all_data %>% filter(city == !!city) %>% pull(irr_cons_BCM) -> cons_point
+  all_data %>% filter(city == !!city) -> city_data
+
+  city_data %>% pull(yield_BCM) -> yield_point
+  city_data %>% pull(irr_cons_BCM) -> cons_point
   cons_point / yield_point -> cons_per_yield
 
 
-  all_data %>% filter(city == !!city) %>% pull(n_other_cities) -> number_cities
+  city_data %>% pull(n_other_cities) -> number_cities
 
-  all_data %>% filter(city == !!city) %>% pull(n_hydro_plants) -> hydro
-  all_data %>% filter(city == !!city) %>% pull(n_thermal_plants) -> thermal
+  city_data %>% pull(n_hydro_plants) -> hydro
+  city_data %>% pull(n_thermal_plants) -> thermal
   hydro + thermal -> total_plants
 
-  all_data %>% filter(city == !!city) %>% pull(cropland_fraction) -> crop_point
+  city_data %>% pull(cropland_fraction) -> crop_point
 
+#------------------GRAPH PLOTS----------------------------------------------------------
+
+  all_data %>%
+    ggplot(aes(n_other_cities)) +
+    stat_ecdf(pad = F) -> cdf_plot
+  cdf_plot +
+    geom_point(data = layer_data(cdf_plot) %>% filter(x == number_cities),
+               aes(x, y), col = "red", size = 5) +
+    xlab("Other Cities") +
+    ylab("") +
+    theme_classic() -> plot3
+
+  all_data %>%
+    ggplot(aes(irr_cons_BCM / yield_BCM)) +
+    stat_ecdf(pad = F) -> cdf_plot
+  cdf_plot +
+    geom_point(data = layer_data(cdf_plot) %>% filter(x == cons_per_yield),
+               aes(x, y), col = "red", size = 5) +
+    xlab("IrrCons/Yield") +
+    ylab("") +
+    theme_classic() -> plot4
+
+  all_data %>%
+    ggplot(aes(n_hydro_plants + n_thermal_plants)) +
+    stat_ecdf(pad = F) -> cdf_plot
+  cdf_plot +
+    geom_point(data = layer_data(cdf_plot) %>% filter(x == total_plants),
+               aes(x, y), col = "red", size = 5) +
+    xlab("Total Plants") +
+    ylab("") +
+    theme_classic() -> plot5
+
+  all_data %>%
+    ggplot(aes(cropland_fraction)) +
+    stat_ecdf(pad = F) -> cdf_plot
+  cdf_plot +
+    geom_point(data = layer_data(cdf_plot) %>% filter(x == crop_point),
+               aes(x, y), col = "red", size = 5) +
+    xlab("Crop Fraction") +
+    ylab("") +
+    theme_classic() -> plot6
+
+  cowplot::plot_grid(plot3,plot5) -> graph_plot1
+  cowplot::plot_grid(plot4,plot6) -> graph_plot2
+
+  ggplot(state_shape_trans)+
+    geom_sf(fill = "white")+
+    geom_sf(data = watersheds_city_trans, fill = "dodgerblue3", colour = "darkgrey") +
+    geom_sf(data = city_point,fill = "hotpink", colour = "black", size = 7, alpha = 0.7, shape = 22) +
+    theme_void() +
+    ggtitle(paste0(city)) -> plot1
+
+#---------------PLOT ALL TOGETHER----------------------------------------------------------------------
 
   subset(power_plants_city, `Power Plant Type` %in% c("Hydropower", "Thermal")) -> power_plant_list
   if(nrow(power_plant_list) == 0){
     if(nrow(flood_control_dams) == 0){
 
-      ggplot(state_shape_trans)+
-        geom_sf(fill = "white")+
-        geom_sf(data = watersheds_city_trans, fill = "dodgerblue3", colour = "darkgrey") +
-        geom_sf(data = city_point,fill = "hotpink", colour = "black", size = 7, alpha = 0.7, shape = 22) +
-        theme(line = element_blank(),
-              legend.position = "none",
-              axis.text.x = element_blank(),
-              axis.text.y = element_blank(),
-              axis.title.x = element_blank(),
-              axis.title.y = element_blank(),
-              panel.background = element_blank(),
-              plot.title = element_text(hjust = 0.5)) +
-        ggtitle(paste0(city)) -> plot1
-
       ggplot(df2) +
         geom_raster(aes(x= Longitude, y=Latitude, fill=color)) +
         scale_fill_identity() +
         geom_sf(data = watersheds_city_trans, fill = "white",colour = "black", alpha = 0) +
-        theme(line = element_blank(),
-              legend.position = "none",
-              axis.text.x = element_blank(),
-              axis.text.y = element_blank(),
-              axis.title.x = element_blank(),
-              axis.title.y = element_blank(),
-              panel.background = element_blank(),
-              plot.title = element_text(hjust = 0.5)) -> plot2
-
-      all_data %>%
-        ggplot(aes(n_other_cities)) +
-        stat_ecdf(pad = F) -> cdf_plot
-      cdf_plot +
-        geom_point(data = layer_data(cdf_plot) %>% filter(x == number_cities),
-                   aes(x, y), col = "red", size = 5) +
-        xlab("Other Cities") +
-        ylab("") +
-        theme_classic() -> plot3
-
-      all_data %>%
-        ggplot(aes(irr_cons_BCM / yield_BCM)) +
-        stat_ecdf(pad = F) -> cdf_plot
-      cdf_plot +
-        geom_point(data = layer_data(cdf_plot) %>% filter(x == cons_per_yield),
-                   aes(x, y), col = "red", size = 5) +
-        xlab("IrrCons/Yield") +
-        ylab("") +
-        theme_classic() -> plot4
-
-      cowplot::plot_grid(plot3,plot4) -> graph_plot1
-
-      all_data %>%
-        ggplot(aes(n_hydro_plants + n_thermal_plants)) +
-        stat_ecdf(pad = F) -> cdf_plot
-      cdf_plot +
-        geom_point(data = layer_data(cdf_plot) %>% filter(x == total_plants),
-                   aes(x, y), col = "red", size = 5) +
-        xlab("Total Plants") +
-        ylab("") +
-        theme_classic() -> plot5
-
-      all_data %>%
-        ggplot(aes(cropland_fraction)) +
-        stat_ecdf(pad = F) -> cdf_plot
-      cdf_plot +
-        geom_point(data = layer_data(cdf_plot) %>% filter(x == crop_point),
-                   aes(x, y), col = "red", size = 5) +
-        xlab("Crop Fraction") +
-        ylab("") +
-        theme_classic() -> plot6
-      cowplot::plot_grid(plot5,plot6) -> graph_plot2
-
-      cowplot::plot_grid(plot1,plot2,graph_plot1,graph_plot2)
+        theme_void() -> plot2
 
     }else{
-
-      ggplot(state_shape_trans)+
-        geom_sf(fill = "white")+
-        geom_sf(data = watersheds_city_trans, fill = "dodgerblue3", colour = "darkgrey") +
-        geom_sf(data = city_point,fill = "hotpink", colour = "black", size = 7, alpha = 0.7, shape = 22) +
-        theme(line = element_blank(),
-              legend.position = "none",
-              axis.text.x = element_blank(),
-              axis.text.y = element_blank(),
-              axis.title.x = element_blank(),
-              axis.title.y = element_blank(),
-              panel.background = element_blank(),
-              plot.title = element_text(hjust = 0.5)) +
-        ggtitle(paste0(city)) -> plot1
 
       ggplot(df2) +
         geom_raster(aes(x= Longitude, y=Latitude, fill=color)) +
         scale_fill_identity() +
         geom_sf(data = watersheds_city_trans, fill = "white",colour = "black", alpha = 0) +
         geom_sf(data = select_dams, size = 2, fill = "lightblue", colour = "black", shape = 25) +
-        theme(line = element_blank(),
-              legend.position = "none",
-              axis.text.x = element_blank(),
-              axis.text.y = element_blank(),
-              axis.title.x = element_blank(),
-              axis.title.y = element_blank(),
-              panel.background = element_blank(),
-              plot.title = element_text(hjust = 0.5)) -> plot2
-
-      all_data %>%
-        ggplot(aes(n_other_cities)) +
-        stat_ecdf(pad = F) -> cdf_plot
-      cdf_plot +
-        geom_point(data = layer_data(cdf_plot) %>% filter(x == number_cities),
-                   aes(x, y), col = "red", size = 5) +
-        xlab("Other Cities") +
-        ylab("") +
-        theme_classic() -> plot3
-
-      all_data %>%
-        ggplot(aes(irr_cons_BCM / yield_BCM)) +
-        stat_ecdf(pad = F) -> cdf_plot
-      cdf_plot +
-        geom_point(data = layer_data(cdf_plot) %>% filter(x == cons_per_yield),
-                   aes(x, y), col = "red", size = 5) +
-        xlab("IrrCons/Yield") +
-        ylab("") +
-        theme_classic() -> plot4
-
-      cowplot::plot_grid(plot3,plot4) -> graph_plot1
-
-      all_data %>%
-        ggplot(aes(n_hydro_plants + n_thermal_plants)) +
-        stat_ecdf(pad = F) -> cdf_plot
-      cdf_plot +
-        geom_point(data = layer_data(cdf_plot) %>% filter(x == total_plants),
-                   aes(x, y), col = "red", size = 5) +
-        xlab("Total Plants") +
-        ylab("") +
-        theme_classic() -> plot5
-
-      all_data %>%
-        ggplot(aes(cropland_fraction)) +
-        stat_ecdf(pad = F) -> cdf_plot
-      cdf_plot +
-        geom_point(data = layer_data(cdf_plot) %>% filter(x == crop_point),
-                   aes(x, y), col = "red", size = 5) +
-        xlab("Crop Fraction") +
-        ylab("") +
-        theme_classic() -> plot6
-      cowplot::plot_grid(plot5,plot6) -> graph_plot2
-
-      cowplot::plot_grid(plot1,plot2,graph_plot1,graph_plot2)
+        theme_void() -> plot2
 }
   }else{
-
-    ggplot(state_shape_trans)+
-      geom_sf(fill = "white")+
-      geom_sf(data = watersheds_city_trans, fill = "dodgerblue3", colour = "darkgrey") +
-      geom_sf(data = city_point,fill = "hotpink", colour = "black", size = 7, alpha = 0.7, shape = 22) +
-      theme(line = element_blank(),
-            legend.position = "none",
-            axis.text.x = element_blank(),
-            axis.text.y = element_blank(),
-            axis.title.x = element_blank(),
-            axis.title.y = element_blank(),
-            panel.background = element_blank(),
-            plot.title = element_text(hjust = 0.5)) +
-      ggtitle(paste0(city)) -> plot1
 
     ggplot(df2) +
       geom_raster(aes(x= Longitude, y=Latitude, fill=color)) +
@@ -644,58 +539,7 @@ plot_watershed_ggplot <- function(data_dir,
       geom_point(data = plants, aes(x = lon.1, y = lat.1, color = Power.Plant.Type),size=3) +
       scale_color_manual(values = c("Hydropower" = "yellow", "Thermal" = "red")) +
       geom_sf(data = select_dams, size = 2, fill = "lightblue", colour = "black", shape = 25) +
-      theme(line = element_blank(),
-            legend.position = "none",
-            axis.text.x = element_blank(),
-            axis.text.y = element_blank(),
-            axis.title.x = element_blank(),
-            axis.title.y = element_blank(),
-            panel.background = element_blank(),
-            plot.title = element_text(hjust = 0.5)) -> plot2
-
-    all_data %>%
-      ggplot(aes(n_other_cities)) +
-      stat_ecdf(pad = F) -> cdf_plot
-    cdf_plot +
-      geom_point(data = layer_data(cdf_plot) %>% filter(x == number_cities),
-                 aes(x, y), col = "red", size = 5) +
-      xlab("Other Cities") +
-      ylab("") +
-      theme_classic() -> plot3
-
-    all_data %>%
-      ggplot(aes(irr_cons_BCM / yield_BCM)) +
-      stat_ecdf(pad = F) -> cdf_plot
-    cdf_plot +
-      geom_point(data = layer_data(cdf_plot) %>% filter(x == cons_per_yield),
-                 aes(x, y), col = "red", size = 5) +
-      xlab("IrrCons/Yield") +
-      ylab("") +
-      theme_classic() -> plot4
-
-    cowplot::plot_grid(plot3,plot4) -> graph_plot1
-
-    all_data %>%
-      ggplot(aes(n_hydro_plants + n_thermal_plants)) +
-      stat_ecdf(pad = F) -> cdf_plot
-    cdf_plot +
-      geom_point(data = layer_data(cdf_plot) %>% filter(x == total_plants),
-                 aes(x, y), col = "red", size = 5) +
-      xlab("Total Plants") +
-      ylab("") +
-      theme_classic() -> plot5
-
-    all_data %>%
-      ggplot(aes(cropland_fraction)) +
-      stat_ecdf(pad = F) -> cdf_plot
-    cdf_plot +
-      geom_point(data = layer_data(cdf_plot) %>% filter(x == crop_point),
-                 aes(x, y), col = "red", size = 5) +
-      xlab("Crop Fraction") +
-      ylab("") +
-      theme_classic() -> plot6
-    cowplot::plot_grid(plot5,plot6) -> graph_plot2
-
-    cowplot::plot_grid(plot1,plot2,graph_plot1,graph_plot2)
+      theme_void() -> plot2
   }
+  cowplot::plot_grid(plot1,plot2,graph_plot1,graph_plot2)
 }
