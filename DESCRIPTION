@@ -45,7 +45,9 @@ Imports:
     lwgeom,
     circular,
     reservoir,
-    ggplot2
+    ggplot2,
+    tmaptools,
+    tmap
 Suggests: 
     testthat (>= 2.1.0),
     knitr,

@@ -313,6 +313,8 @@ plot_watershed <- function(data_dir,
 #' @importFrom foreign read.dbf
 #' @importFrom vroom vroom
 #' @import ggplot2
+#' @import tmaptools
+#' @import tmap
 #'
 #' @export
 #'
