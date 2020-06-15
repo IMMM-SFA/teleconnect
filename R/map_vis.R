@@ -310,6 +310,7 @@ plot_watershed <- function(data_dir,
 #' @importFrom raster levels extent rasterToPoints
 #' @importFrom foreign read.dbf
 #' @importFrom vroom vroom
+#' @importFrom tmaptools set_projection
 #' @import ggplot2
 #'
 #' @export
@@ -353,8 +354,7 @@ plot_watershed_ggplot <- function(data_dir,
   import_shapefile(paste0(data_dir, watersheds_file_path),
                    method = "rgdal") %>%
     # subset for desired watersheds
-    subset(DVSN_ID %in% city_watershed_mapping$DVSN_ID) ->
-    watersheds_city
+    subset(DVSN_ID %in% city_watershed_mapping$DVSN_ID) -> watersheds_city
 
   # get state shape
   import_shapefile(paste0(data_dir, conus_file_path),
@@ -430,8 +430,12 @@ plot_watershed_ggplot <- function(data_dir,
   colnames(df) <- c("Longitude", "Latitude", "Value")
   left_join(df, cropclasses, by = "Value") -> df2
 
-  flood_control_dams %>% st_as_sf() -> flood_control_sf
-  watersheds_city %>% st_as_sf() -> watershed_sf
+
+
+  flood_control_dams %>% st_as_sf() %>%
+    set_projection(projection = CRS("+proj=longlat +datum=WGS84 +no_defs")) -> flood_control_sf
+  watersheds_city %>% st_as_sf() %>%
+    set_projection(projection = CRS("+proj=longlat +datum=WGS84 +no_defs")) -> watershed_sf
   flood_control_sf[watershed_sf, ] -> select_dams
 
   subset(power_plants_city, `Power Plant Type` %in% c("Hydropower", "Thermal")) %>%
@@ -514,7 +518,7 @@ plot_watershed_ggplot <- function(data_dir,
     if(nrow(flood_control_dams) == 0){
 
       ggplot(df2) +
-        geom_raster(aes(x= Longitude, y=Latitude, fill=color)) +
+        geom_tile(aes(x= Longitude, y=Latitude, fill=color)) +
         scale_fill_identity() +
         geom_sf(data = watersheds_city_trans, fill = "white",colour = "black", alpha = 0) +
         theme_void() -> plot2
@@ -522,7 +526,7 @@ plot_watershed_ggplot <- function(data_dir,
     }else{
 
       ggplot(df2) +
-        geom_raster(aes(x= Longitude, y=Latitude, fill=color)) +
+        geom_tile(aes(x= Longitude, y=Latitude, fill=color)) +
         scale_fill_identity() +
         geom_sf(data = watersheds_city_trans, fill = "white",colour = "black", alpha = 0) +
         geom_sf(data = select_dams, size = 2, fill = "lightblue", colour = "black", shape = 25) +
@@ -531,7 +535,7 @@ plot_watershed_ggplot <- function(data_dir,
   }else{
 
     ggplot(df2) +
-      geom_raster(aes(x= Longitude, y=Latitude, fill=color)) +
+      geom_tile(aes(x= Longitude, y=Latitude, fill=color)) +
       scale_fill_identity() +
       geom_sf(data = watersheds_city_trans, fill = "white",colour = "black", alpha = 0) +
       geom_point(data = plants, aes(x = lon.1, y = lat.1, color = Power.Plant.Type),size=3) +
