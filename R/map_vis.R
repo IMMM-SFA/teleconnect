@@ -430,17 +430,15 @@ plot_watershed_ggplot <- function(data_dir,
   colnames(df) <- c("Longitude", "Latitude", "Value")
   left_join(df, cropclasses, by = "Value") -> df2
 
-
-
-  flood_control_dams %>% st_as_sf() %>%
-    set_projection(projection = CRS("+proj=longlat +datum=WGS84 +no_defs")) -> flood_control_sf
+  #flood_control_dams %>% st_as_sf() %>%
+  #  set_projection(projection = CRS("+proj=longlat +datum=WGS84 +no_defs")) -> flood_control_sf
   watersheds_city %>% st_as_sf() %>%
     set_projection(projection = CRS("+proj=longlat +datum=WGS84 +no_defs")) -> watershed_sf
-  flood_control_sf[watershed_sf, ] -> select_dams
+  #flood_control_sf[watershed_sf, ] -> select_dams
 
   subset(power_plants_city, `Power Plant Type` %in% c("Hydropower", "Thermal")) %>%
     as.data.frame() %>%
-    mutate(color2 = if_else(Power.Plant.Type == "Hydropower", "yellow1", "red")) -> plants
+    mutate(color2 = if_else(Power.Plant.Type == "Hydropower", "skyblue4", "sienna1")) -> plants
 
 #----------------GET TELE DATA--------------------------------------------------------------------
 
@@ -463,7 +461,7 @@ plot_watershed_ggplot <- function(data_dir,
 
   all_data %>%
     ggplot(aes(n_other_cities)) +
-    stat_ecdf(pad = F) -> cdf_plot
+    stat_ecdf() -> cdf_plot
   cdf_plot +
     geom_point(data = layer_data(cdf_plot) %>% filter(x == number_cities),
                aes(x, y), col = "red", size = 5) +
@@ -473,7 +471,7 @@ plot_watershed_ggplot <- function(data_dir,
 
   all_data %>%
     ggplot(aes(irr_cons_BCM / yield_BCM)) +
-    stat_ecdf(pad = F) -> cdf_plot
+    stat_ecdf() -> cdf_plot
   cdf_plot +
     geom_point(data = layer_data(cdf_plot) %>% filter(x == cons_per_yield),
                aes(x, y), col = "red", size = 5) +
@@ -483,7 +481,7 @@ plot_watershed_ggplot <- function(data_dir,
 
   all_data %>%
     ggplot(aes(n_hydro_plants + n_thermal_plants)) +
-    stat_ecdf(pad = F) -> cdf_plot
+    stat_ecdf() -> cdf_plot
   cdf_plot +
     geom_point(data = layer_data(cdf_plot) %>% filter(x == total_plants),
                aes(x, y), col = "red", size = 5) +
@@ -493,7 +491,7 @@ plot_watershed_ggplot <- function(data_dir,
 
   all_data %>%
     ggplot(aes(cropland_fraction)) +
-    stat_ecdf(pad = F) -> cdf_plot
+    stat_ecdf() -> cdf_plot
   cdf_plot +
     geom_point(data = layer_data(cdf_plot) %>% filter(x == crop_point),
                aes(x, y), col = "red", size = 5) +
@@ -515,33 +513,37 @@ plot_watershed_ggplot <- function(data_dir,
 
   subset(power_plants_city, `Power Plant Type` %in% c("Hydropower", "Thermal")) -> power_plant_list
   if(nrow(power_plant_list) == 0){
-    if(nrow(flood_control_dams) == 0){
+    #if(nrow(flood_control_dams) == 0){
+
+      #ggplot(df2) +
+      # geom_tile(aes(x= Longitude, y=Latitude, fill=color)) +
+      # scale_fill_identity() +
+      # geom_sf(data = watersheds_city_trans, fill = "white",colour = "black", alpha = 0) +
+      # theme_void() -> plot2
+
+    #}else{
 
       ggplot(df2) +
         geom_tile(aes(x= Longitude, y=Latitude, fill=color)) +
         scale_fill_identity() +
         geom_sf(data = watersheds_city_trans, fill = "white",colour = "black", alpha = 0) +
+        #geom_sf(data = select_dams, size = 2, fill = "lightblue", colour = "black", shape = 25) +
         theme_void() -> plot2
-
-    }else{
-
-      ggplot(df2) +
-        geom_tile(aes(x= Longitude, y=Latitude, fill=color)) +
-        scale_fill_identity() +
-        geom_sf(data = watersheds_city_trans, fill = "white",colour = "black", alpha = 0) +
-        geom_sf(data = select_dams, size = 2, fill = "lightblue", colour = "black", shape = 25) +
-        theme_void() -> plot2
-}
+#}
   }else{
 
     ggplot(df2) +
       geom_tile(aes(x= Longitude, y=Latitude, fill=color)) +
       scale_fill_identity() +
       geom_sf(data = watersheds_city_trans, fill = "white",colour = "black", alpha = 0) +
-      geom_point(data = plants, aes(x = lon.1, y = lat.1, color = Power.Plant.Type),size=3) +
-      scale_color_manual(values = c("Hydropower" = "yellow", "Thermal" = "red")) +
-      geom_sf(data = select_dams, size = 2, fill = "lightblue", colour = "black", shape = 25) +
-      theme_void() -> plot2
+      geom_point(data = plants, aes(x = lon.1, y = lat.1, fill = color2),colour="black",pch=21,size=3) +
+      geom_point(data = plants, aes(x = lon.1, y = lat.1, color = Power.Plant.Type),size=2) +
+      labs(color = "Power Type") +
+      scale_color_manual(values = c("Hydropower" = "skyblue4","Thermal" = "sienna1")) +
+      theme_void() +
+      theme(legend.position = "right",
+            legend.title = element_text("Plant Type")) -> plot2
+      #geom_sf(data = select_dams, size = 2, fill = "lightblue", colour = "black", shape = 25) + -> plot2
   }
   cowplot::plot_grid(plot1,plot2,graph_plot1,graph_plot2)
 }
