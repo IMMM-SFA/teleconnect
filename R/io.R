@@ -228,7 +228,6 @@ get_ucs_power_plants <- function(ucs_file_path,
 #' @importFrom raster crs
 #' @importFrom exactextractr exact_extract
 #' @importFrom dplyr rename n
-#' @importFrom tmaptools aggregate_map
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
 #' @export
 get_zonal_data <- function(raster_object, polygon, city) {

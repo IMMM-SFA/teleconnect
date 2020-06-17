@@ -4,7 +4,8 @@
 \alias{plot_watershed}
 \title{plot_watershed}
 \usage{
-plot_watershed(data_dir,
+plot_watershed(
+  data_dir,
   watersheds_file_path = "water/CWM_v2_2/World_Watershed8.shp",
   crop_file_path = "land/2016_90m_cdls/cdl_lowres_usa.img",
   crop_attributes = "land/2016_90m_cdls/cdl_lowres_usa.img.vat.dbf",
@@ -12,7 +13,9 @@ plot_watershed(data_dir,
   conus_file_path = "misc/states_21basic/states.shp",
   dams_file_path = "water/nabd_fish_barriers_2012/nabd_fish_barriers_2012.shp",
   nlud_file_path = "land/usa_nlud_raster.tif",
-  citypoint_file_path = "water/CWM_v2_2/City_Centroid.shp", city)
+  citypoint_file_path = "water/CWM_v2_2/City_Centroid.shp",
+  city
+)
 }
 \arguments{
 \item{data_dir}{root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")}
