@@ -228,7 +228,6 @@ get_ucs_power_plants <- function(ucs_file_path,
 #' @importFrom raster crs
 #' @importFrom exactextractr exact_extract
 #' @importFrom dplyr rename n
-#' @importFrom tmaptools aggregate_map
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
 #' @export
 get_zonal_data <- function(raster_object, polygon, city) {
@@ -575,5 +574,15 @@ get_watershed_usage <- function(city){
   connect_table <- connect_table[!(connect_table$city_state == city),]
 
   return(connect_table)
+}
+
+#' get_teleconnect_table
+#' @details load in teleconnect table
+#' @importFrom vroom vroom cols
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
+get_teleconnect_table <- function(){
+  vroom(paste0(system.file("extdata", package = "teleconnect"),
+               "/teleconnect_table.csv")) -> teleconnect_table
+  return(teleconnect_table)
 }
 

@@ -101,9 +101,16 @@ count_watershed_teleconnections <- function(data_dir,
 
       # catch cases with only groundwater points (i.e., no watershed polygons)
       if(nrow(watersheds_city) == 0){
+
+        # city population
+        cities_population %>%
+          filter(city_state == !! city) %>%
+          .[["Population"]] -> city_population
+
         done(city)
         return(
-          tibble(city)
+          tibble(city,
+                 city_population)
         )
       }else{
 
@@ -144,13 +151,13 @@ count_watershed_teleconnections <- function(data_dir,
           dependent_population <- 0
           n_other_cities <- 0
         }else{
-        city_usage %>% select(city_state) %>% unique() -> select_cities
+          city_usage %>% select(city_state) %>% unique() -> select_cities
 
-        nrow(select_cities) -> n_other_cities
+          nrow(select_cities) -> n_other_cities
 
-        left_join(select_cities, cities_population, by = "city_state") %>%
-          .[["Population"]] %>%
-          sum() -> dependent_population
+          left_join(select_cities, cities_population, by = "city_state") %>%
+            .[["Population"]] %>%
+            sum() -> dependent_population
         }
         # number of climate zones
         map(city_watershed_data, function(x){
@@ -378,23 +385,23 @@ count_utility_teleconnections <- function(data_dir,
     map_dfr(function(city){
       filter(city_points, city_state == !!city) -> utility_city
 
-        # intersect city points and utility polygons to find the service areas city belongs to.
-        sf::st_agr(utility_city) = "constant"
-        sf::st_agr(utilities) = "constant"
-        suppress_intersect(utility_city, utilities) -> city_in_utility
+      # intersect city points and utility polygons to find the service areas city belongs to.
+      sf::st_agr(utility_city) = "constant"
+      sf::st_agr(utilities) = "constant"
+      suppress_intersect(utility_city, utilities) -> city_in_utility
 
-        # count number of utilities that serve the city
-        length(city_in_utility$NAME)-> tc_n_utilities
+      # count number of utilities that serve the city
+      length(city_in_utility$NAME)-> tc_n_utilities
 
-        # subset power plants for target city utilities
-        power_plants_USA %>%
-          subset(UTILITY_ID %in% city_in_utility$ID) -> power_plants_utility
+      # subset power plants for target city utilities
+      power_plants_USA %>%
+        subset(UTILITY_ID %in% city_in_utility$ID) -> power_plants_utility
 
-        # count number of water dependent plants
-        power_plants_utility %>%
-          subset(`Power.Plant.Type` == "Hydropower" | cooling == "Yes") %>%
-          .[["PLANT_CODE"]] %>% unique() %>%
-          length() -> tc_n_water_dependent
+      # count number of water dependent plants
+      power_plants_utility %>%
+        subset(`Power.Plant.Type` == "Hydropower" | cooling == "Yes") %>%
+        .[["PLANT_CODE"]] %>% unique() %>%
+        length() -> tc_n_water_dependent
 
       # output
       return(

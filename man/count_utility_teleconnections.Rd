@@ -4,11 +4,14 @@
 \alias{count_utility_teleconnections}
 \title{count_utility_teleconnections}
 \usage{
-count_utility_teleconnections(data_dir,
+count_utility_teleconnections(
+  data_dir,
   powerplants_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
-  utility_file_path = "energy/Electric_Retail_service_Territories/Electric_Retail_service_Territories.shp",
+ 
+    utility_file_path = "energy/Electric_Retail_service_Territories/Electric_Retail_service_Territories.shp",
   citypoint_file_path = "water/CWM_v2_2/City_Centroid.shp",
-  cities = NULL)
+  cities = NULL
+)
 }
 \arguments{
 \item{data_dir}{root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")}
