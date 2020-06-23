@@ -1,4 +1,3 @@
-
 # projection
 proj4_string <- "+proj=longlat +datum=WGS84 +no_defs"
 
@@ -17,3 +16,4 @@ m_to_km <- 1000
 
 missing_watersheds <- c(3589, 3850, 3678, 3582, 3615, 4226, 4227, 2336, 3448, 2162, 3474) # for runoff
 
+avg_wateruse_ltr <- 333
