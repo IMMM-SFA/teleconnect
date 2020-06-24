@@ -31,7 +31,8 @@ count_watershed_teleconnections <- function(data_dir,
                                               hydro = "energy/EHA_Public_PlantFY2019_GIS_6/ORNL_EHAHydroPlant_PublicFY2019final.xlsx",
                                               transfers = "water/transfers/USIBTsHUC6_Dickson.shp",
                                               climate = "land/kop_climate_classes.tif",
-                                              HUC4 = "water/USA_HUC4/huc4_to_huc2.shp"
+                                              HUC4 = "water/USA_HUC4/huc4_to_huc2.shp",
+                                              population = "land/pden2010_block/pden2010_60m.tif"
                                             )){
 
   count_watershed_data(data_dir = data_dir,
@@ -157,7 +158,7 @@ count_watershed_teleconnections <- function(data_dir,
 
           left_join(select_cities, cities_population, by = "city_state") %>%
             .[["Population"]] %>%
-            sum() -> dependent_population
+            sum() -> dependent_city_pop
         }
         # number of climate zones
         map(city_watershed_data, function(x){
@@ -205,6 +206,18 @@ count_watershed_teleconnections <- function(data_dir,
           x$metrics %>% filter(metric == "total irrigation consumption") %>%
             .[["value"]]
         }) %>% unlist() %>% sum() -> irr_cons_BCM
+
+        # population water consumption
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "population") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> pop
+
+        # population water consumption
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "population water consumption") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> pop_cons_ltr_sqkm
 
         # hydro plants
         map(city_watershed_data, function(x){
@@ -304,11 +317,12 @@ count_watershed_teleconnections <- function(data_dir,
                  city_population,
                  n_watersheds,
                  n_other_cities,
-                 dependent_population,
+                 dependent_city_pop,
                  watershed_area_sqkm,
                  storage_BCM,
                  yield_BCM,
                  irr_cons_BCM,
+                 pop,
                  n_climate_zones,
                  n_transfers_in,
                  n_transfers_out,
