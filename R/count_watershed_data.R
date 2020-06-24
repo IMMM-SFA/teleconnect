@@ -82,15 +82,16 @@ count_watershed_data <- function(data_dir,
   import_raster(paste0(data_dir, file_paths["nlud"])) -> economic_USA
 
   # read NID point file
-  dams::nid_cleaned -> nid_dataset
+  dams::nid_subset -> nid_dataset
 
   nid_dataset %>%
-    filter(!is.na(Longitude),
-           !is.na(Latitude)) %>%
+    filter(!is.na(longitude),
+           !is.na(latitude)) %>%
     as_tibble() ->
     nid_no_NA
 
-  nid_spatial <- SpatialPointsDataFrame(coords = nid_no_NA[,c(6,7)],
+  nid_spatial <- SpatialPointsDataFrame(coords = nid_no_NA %>%
+                                          select(longitude, latitude),
                                         data = nid_no_NA,
                                         proj4string = CRS(proj4_string))
 
@@ -314,7 +315,7 @@ count_watershed_data <- function(data_dir,
 
         watershed_dams %>% nrow() -> n_dams
 
-        sum(watershed_dams$Normal_Storage, na.rm = TRUE) * AF_to_BCM ->
+        sum(watershed_dams$normal_storage, na.rm = TRUE) * AF_to_BCM ->
           watershed_storage_BCM
 
 
@@ -357,6 +358,7 @@ count_watershed_data <- function(data_dir,
               "total reservoir storage",         "BCM",      watershed_storage_BCM,
               "total watershed yield",           "BCM/yr",   watershed_yield_BCM,
               "total irrigation consumption",    "BCM",      total_irr_bcm,
+              "population",                      "people",   wtrshd_population,
               "population water consumption",    "ltr/sqkm", pop_water_consum
             ),
             land = land_table,

@@ -209,6 +209,12 @@ count_watershed_teleconnections <- function(data_dir,
 
         # population water consumption
         map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "population") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> pop
+
+        # population water consumption
+        map(city_watershed_data, function(x){
           x$metrics %>% filter(metric == "population water consumption") %>%
             .[["value"]]
         }) %>% unlist() %>% sum() -> pop_cons_ltr_sqkm
@@ -316,7 +322,7 @@ count_watershed_teleconnections <- function(data_dir,
                  storage_BCM,
                  yield_BCM,
                  irr_cons_BCM,
-                 pop_cons_ltr_sqkm,
+                 pop,
                  n_climate_zones,
                  n_transfers_in,
                  n_transfers_out,
