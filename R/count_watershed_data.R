@@ -15,6 +15,7 @@
 #' @importFrom lwgeom st_startpoint st_endpoint
 #' @importFrom reservoir yield
 #' @importFrom raster intersect
+#' @import rgeos
 #' @import dams
 #' @export
 count_watershed_data <- function(data_dir,
@@ -32,7 +33,8 @@ count_watershed_data <- function(data_dir,
                                    transfers = "water/transfers/USIBTsHUC6_Dickson.shp",
                                    climate = "land/kop_climate_classes.tif",
                                    HUC4 = "water/USA_HUC4/huc4_to_huc2.shp",
-                                   population = "land/pden2010_block/pden2010_60m.tif"
+                                   population = "land/pden2010_block/pden2010_60m.tif",
+                                   runoff = "water/Historical_Mean_Runoff/Historical_Mean_Runoff.tif"
                                  )){
 
   all_cities <- get_cities()[["city_state"]]
@@ -82,16 +84,17 @@ count_watershed_data <- function(data_dir,
   import_raster(paste0(data_dir, file_paths["nlud"])) -> economic_USA
 
   # read NID point file
-  dams::nid_subset -> nid_dataset
+  dams::nid_cleaned %>%
+    as.data.frame() -> nid_dataset
 
   nid_dataset %>%
-    filter(!is.na(longitude),
-           !is.na(latitude)) %>%
+    filter(!is.na(nid_dataset$Longitude),
+           !is.na(nid_dataset$Latitude))  %>%
     as_tibble() ->
     nid_no_NA
 
   nid_spatial <- SpatialPointsDataFrame(coords = nid_no_NA %>%
-                                          select(longitude, latitude),
+                                          select(Longitude, Latitude),
                                         data = nid_no_NA,
                                         proj4string = CRS(proj4_string))
 
@@ -122,6 +125,8 @@ count_watershed_data <- function(data_dir,
   # read in population raster
   import_raster(paste0(data_dir, file_paths["population"])) -> population_raster
 
+  import_raster(paste0(data_dir, file_paths["runoff"])) -> runoff_raster
+
   # map through all cities, computing teleconnections
   watersheds %>%
     map(function(watershed){
@@ -140,7 +145,7 @@ count_watershed_data <- function(data_dir,
 
 
         # get area of watershed IN SQUARE KILOMETERS
-        raster::area(watersheds_select) / 1000000 -> polygon_area
+        raster::area(watersheds_select) / m_to_km -> polygon_area
 
         #-------------------------------------------------------
         # TELECONNECTION - NUMBER OF CITIES USING WATERSHED
@@ -234,6 +239,48 @@ count_watershed_data <- function(data_dir,
         get_land_category(percent_area) -> watershed_condition
 
         #--------------------------------------------------------
+        # TELECONNECTION - FIND RUNOFF VALUES FOR DEVELOPED AND CULTIVATED AREAS
+        # Developed Runoff Calculation
+        cropcover_USA %>%
+          mask_raster_to_polygon(watersheds_select) ->
+          cropcover_agg
+
+        runoff_raster %>%
+          mask_raster_to_polygon(watersheds_select) ->
+          runoff_agg
+
+        developed_values  <- c(82,121,122,123,124)
+
+        suppressMessages(get_runoff_values(cropcover_agg, runoff_agg, developed_values)) -> dev_runoff_m3persec
+
+        # Crop Runoff Calculation
+        crop_reclass_table %>% filter(!is.na(GCAM_Class)) %>%
+          .[["CDL_ID"]] -> cultivated_values
+
+        suppressMessages(get_runoff_values(cropcover_agg, runoff_agg, cultivated_values)) -> cultivated_runoff_m3persec
+
+        # Rest of land runoff calculation
+
+        append(developed_values, cultivated_values) -> crop_dev_vals
+
+        crop_reclass_table %>%
+          filter(!CDL_ID %in% crop_dev_vals) %>%
+          filter(!CDL_ID %in% non_land_cdl_classes) %>%
+          .[["CDL_ID"]] -> other_vals
+
+        suppressMessages(get_runoff_values(cropcover_agg, runoff_agg, other_vals)) -> other_runoff_m3persec
+
+        # Total runoff calculation
+        append(crop_dev_vals, other_vals) -> all_vals
+        #get_runoff_values(cropcover_agg, runoff_agg, all_vals) -> total_runoff_m3persec
+
+        # Calculate fractions
+        dev_runoff_m3persec + cultivated_runoff_m3persec + other_runoff_m3persec -> expec_total_runoff
+
+        (dev_runoff_m3persec / expec_total_runoff) -> developed_runoff_percent
+        (cultivated_runoff_m3persec / expec_total_runoff) -> cultivated_runoff_percent
+
+        #--------------------------------------------------------
         # TELECONNECTION - Count number of irrigated and rainfed crops in watershed.
         # Get irrigation data points within city's watersheds
         # usa_irrigation[watersheds_select, ] %>%
@@ -248,7 +295,7 @@ count_watershed_data <- function(data_dir,
           as_tibble()  %>%
           get_irrigation_count() -> irrigation_km2
 
-        intersect(watersheds_select, HUC2_sp) %>% as_tibble() -> watershed_HUC2
+        raster::intersect(watersheds_select, HUC2_sp) %>% as_tibble() -> watershed_HUC2
 
         if(watershed_HUC2[["HUC2"]] %>% unique() %>% length() == 1){
           HUC2_majority <- watershed_HUC2[["HUC2"]] %>% unique()
@@ -315,9 +362,8 @@ count_watershed_data <- function(data_dir,
 
         watershed_dams %>% nrow() -> n_dams
 
-        sum(watershed_dams$normal_storage, na.rm = TRUE) * AF_to_BCM ->
+        sum(watershed_dams$Normal_Storage, na.rm = TRUE) * AF_to_BCM ->
           watershed_storage_BCM
-
 
         sup(get_watershed_ts(watershed)) -> flow
         sup(yield(Q = flow,
@@ -357,6 +403,8 @@ count_watershed_data <- function(data_dir,
               "total thermal water withdrawals", "BCM/yr",   thermal_withdr_BCM,
               "total reservoir storage",         "BCM",      watershed_storage_BCM,
               "total watershed yield",           "BCM/yr",   watershed_yield_BCM,
+              "runoff % from cropland",          "m3/sec",   cultivated_runoff_percent,
+              "runoff % from developed land",    "m3/sec",   developed_runoff_percent,
               "total irrigation consumption",    "BCM",      total_irr_bcm,
               "population",                      "people",   wtrshd_population,
               "population water consumption",    "ltr/sqkm", pop_water_consum
