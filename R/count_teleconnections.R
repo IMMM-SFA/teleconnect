@@ -32,7 +32,8 @@ count_watershed_teleconnections <- function(data_dir,
                                               transfers = "water/transfers/USIBTsHUC6_Dickson.shp",
                                               climate = "land/kop_climate_classes.tif",
                                               HUC4 = "water/USA_HUC4/huc4_to_huc2.shp",
-                                              population = "land/pden2010_block/pden2010_60m.tif"
+                                              population = "land/pden2010_block/pden2010_60m.tif",
+                                              runoff = "water/Historical_Mean_Runoff/Historical_Mean_Runoff.tif"
                                             )){
 
   count_watershed_data(data_dir = data_dir,
@@ -149,7 +150,7 @@ count_watershed_teleconnections <- function(data_dir,
         watershed_usage_table %>%
           subset(Watershed_DVSN_ID %in% city_intake_ids) -> city_usage
         if(nrow(city_usage) == 0){
-          dependent_population <- 0
+          dependent_city_pop <- 0
           n_other_cities <- 0
         }else{
           city_usage %>% select(city_state) %>% unique() -> select_cities
@@ -255,6 +256,18 @@ count_watershed_teleconnections <- function(data_dir,
             .[["value"]]
         }) %>% unlist() %>% sum() -> thermal_with_BCM
 
+        # cultivated runoff percent
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "runoff % from cropland") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> cropland_runoff_fraction
+
+        # developed runoff percent
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "runoff % from developed land") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> developed_runoff_fraction
+
         # number of utilities
         power_plants_city %>%
           subset(cooling == "Yes" | `Power Plant Type` == "Hydro") %>%
@@ -337,7 +350,9 @@ count_watershed_teleconnections <- function(data_dir,
                  n_ba,
                  n_crop_classes,
                  cropland_fraction,
+                 cropland_runoff_fraction,
                  developed_fraction,
+                 developed_runoff_fraction,
                  n_economic_sectors,
                  max_withdr_dist_km,
                  avg_withdr_dis_km)
