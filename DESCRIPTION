@@ -47,7 +47,8 @@ Imports:
     reservoir,
     ggplot2,
     tmaptools,
-    tmap
+    tmap,
+    rgeos
 Suggests: 
     testthat (>= 2.1.0),
     knitr,

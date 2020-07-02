@@ -586,3 +586,42 @@ get_teleconnect_table <- function(){
   return(teleconnect_table)
 }
 
+#' get_runoff_values
+#' @details calculate runoff volume in meters cubed per second
+#' @importFrom raster rasterToPolygons extract area values
+#' @importFrom sf st_as_sf st_union as_Spatial
+#' @importFrom tidyr as_tibble
+#' @importFrom dplyr rename
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
+get_runoff_values <- function(cropcover_agg, runoff_agg, lc_values){
+
+  cropcover_agg -> lc_USA
+
+  lc_USA[!(cropcover_agg[] %in% lc_values)] <- NA
+
+  if(all(is.na(values(lc_USA)))) return(0)
+
+  rasterToPolygons(lc_USA, na.rm = TRUE,dissolve = TRUE) %>%
+    st_as_sf() %>%
+    st_union() %>%
+    st_as_sf() -> lc_combine
+
+  raster::extract(runoff_agg, lc_combine) %>%
+    tidyr::as_tibble(.name_repair = "universal") %>%
+    rename(values = ...1) -> runoff_df
+  runoff_df[is.na(runoff_df)] <- 0
+  runoff_df$values %>%
+    mean() * mm_to_m -> runoff_mean_meters
+
+  lc_combine %>%
+    as_Spatial() %>%
+    raster::area() -> area_sq_m
+
+  (runoff_mean_meters * area_sq_m) / day_to_sec -> runoff_m3persec
+
+  return(runoff_m3persec)
+}
+
+
+
+

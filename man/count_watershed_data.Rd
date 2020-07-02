@@ -16,7 +16,9 @@ count_watershed_data(
     "land/Version2_USA_Demeter.csv", nlud = "land/usa_nlud_LR.tif", hydro =
     "energy/EHA_Public_PlantFY2019_GIS_6/ORNL_EHAHydroPlant_PublicFY2019final.xlsx",     
     transfers = "water/transfers/USIBTsHUC6_Dickson.shp", climate =
-    "land/kop_climate_classes.tif", HUC4 = "water/USA_HUC4/huc4_to_huc2.shp")
+    "land/kop_climate_classes.tif", HUC4 = "water/USA_HUC4/huc4_to_huc2.shp", population
+    = "land/pden2010_block/pden2010_60m.tif", runoff =
+    "water/Historical_Mean_Runoff/Historical_Mean_Runoff.tif")
 )
 }
 \arguments{
