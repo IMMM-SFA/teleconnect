@@ -588,7 +588,7 @@ get_teleconnect_table <- function(){
 
 #' get_runoff_values
 #' @details calculate runoff volume in meters cubed per second
-#' @importFrom raster rasterToPolygons extract area
+#' @importFrom raster rasterToPolygons extract area values
 #' @importFrom sf st_as_sf st_union as_Spatial
 #' @importFrom tidyr as_tibble
 #' @importFrom dplyr rename
@@ -598,6 +598,8 @@ get_runoff_values <- function(cropcover_agg, runoff_agg, lc_values){
   cropcover_agg -> lc_USA
 
   lc_USA[!(cropcover_agg[] %in% lc_values)] <- NA
+
+  if(all(is.na(values(lc_USA)))) return(0)
 
   rasterToPolygons(lc_USA, na.rm = TRUE,dissolve = TRUE) %>%
     st_as_sf() %>%

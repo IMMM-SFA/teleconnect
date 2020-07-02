@@ -84,17 +84,22 @@ count_watershed_data <- function(data_dir,
   import_raster(paste0(data_dir, file_paths["nlud"])) -> economic_USA
 
   # read NID point file
-  dams::nid_cleaned %>%
-    as.data.frame() -> nid_dataset
+  # dams::nid_cleaned %>%
+  #   as.data.frame() -> nid_dataset
+
+  dams::nid_subset -> nid_dataset
 
   nid_dataset %>%
-    filter(!is.na(nid_dataset$Longitude),
-           !is.na(nid_dataset$Latitude))  %>%
+    filter(!is.na(longitude),
+           !is.na(latitude)) %>%
+    # filter(!is.na(nid_dataset$Longitude),
+    #        !is.na(nid_dataset$Latitude))  %>%
     as_tibble() ->
     nid_no_NA
 
   nid_spatial <- SpatialPointsDataFrame(coords = nid_no_NA %>%
-                                          select(Longitude, Latitude),
+                                          select(longitude, latitude),
+                                          #select(Longitude, Latitude),
                                         data = nid_no_NA,
                                         proj4string = CRS(proj4_string))
 
@@ -265,7 +270,7 @@ count_watershed_data <- function(data_dir,
 
         crop_reclass_table %>%
           filter(!CDL_ID %in% crop_dev_vals) %>%
-          filter(!CDL_ID %in% non_land_cdl_classes) %>%
+          #filter(!CDL_ID %in% non_land_cdl_classes) %>%
           .[["CDL_ID"]] -> other_vals
 
         suppressMessages(get_runoff_values(cropcover_agg, runoff_agg, other_vals)) -> other_runoff_m3persec
@@ -277,8 +282,8 @@ count_watershed_data <- function(data_dir,
         # Calculate fractions
         dev_runoff_m3persec + cultivated_runoff_m3persec + other_runoff_m3persec -> expec_total_runoff
 
-        (dev_runoff_m3persec / expec_total_runoff) -> developed_runoff_percent
-        (cultivated_runoff_m3persec / expec_total_runoff) -> cultivated_runoff_percent
+        100 * (dev_runoff_m3persec / expec_total_runoff) -> developed_runoff_percent
+        100 * (cultivated_runoff_m3persec / expec_total_runoff) -> cultivated_runoff_percent
 
         #--------------------------------------------------------
         # TELECONNECTION - Count number of irrigated and rainfed crops in watershed.
@@ -403,8 +408,9 @@ count_watershed_data <- function(data_dir,
               "total thermal water withdrawals", "BCM/yr",   thermal_withdr_BCM,
               "total reservoir storage",         "BCM",      watershed_storage_BCM,
               "total watershed yield",           "BCM/yr",   watershed_yield_BCM,
-              "runoff % from cropland",          "m3/sec",   cultivated_runoff_percent,
-              "runoff % from developed land",    "m3/sec",   developed_runoff_percent,
+              "average runoff",                  "m3/s",     expec_total_runoff,
+              "runoff from cropland",            "%",        cultivated_runoff_percent,
+              "runoff from developed land",      "%",        developed_runoff_percent,
               "total irrigation consumption",    "BCM",      total_irr_bcm,
               "population",                      "people",   wtrshd_population,
               "population water consumption",    "ltr/sqkm", pop_water_consum
