@@ -130,7 +130,11 @@ count_watershed_data <- function(data_dir,
   # read in population raster
   import_raster(paste0(data_dir, file_paths["population"])) -> population_raster
 
+  # read in runoff raster
   import_raster(paste0(data_dir, file_paths["runoff"])) -> runoff_raster
+
+  # read in waste flow points
+  get_wasteflow_points() -> wasteflow_points
 
   # map through all cities, computing teleconnections
   watersheds %>%
@@ -213,6 +217,12 @@ count_watershed_data <- function(data_dir,
         if_else(nrow(thermal_plants) == 0, 0,
                 sum(thermal_plants$withdr_BCM)) ->
           thermal_withdr_BCM
+
+        #-------------------------------------------------------
+        # TELECONNECTION - WASTE WATER TREATMENT PLANTS
+        wasteflow_points[watersheds_select, ] -> wasteflow_select
+
+
 
         #-------------------------------------------------------
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
