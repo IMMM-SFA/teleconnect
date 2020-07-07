@@ -622,6 +622,25 @@ get_runoff_values <- function(cropcover_agg, runoff_agg, lc_values){
   return(runoff_m3persec)
 }
 
+#' get_wasteflow_points
+#' @details load in waste flow table and converts to Spatial Point Dataframe
+#' @importFrom vroom vroom cols
+#' @importFrom sp SpatialPointsDataFrame CRS
+#' @importFrom dplyr filter
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
+get_wasteflow_points <- function(){
+  suppressMessages(vroom(paste0(system.file("extdata", package = "teleconnect"),
+               "/waste_flow_data.csv"))) -> waste_table
 
+  waste_table %>% filter(!is.na(lon)) -> waste_table_filter
+
+  waste_table_filter[c("lon", "lat")] -> coords
+
+  SpatialPointsDataFrame(coords,
+                         data = waste_table_filter,
+                         proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs")) -> flow_points
+
+  return(flow_points)
+}
 
 
