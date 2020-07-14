@@ -589,7 +589,7 @@ get_teleconnect_table <- function(){
 #' get_runoff_values
 #' @details calculate runoff volume in meters cubed per second
 #' @importFrom raster rasterToPolygons extract area values
-#' @importFrom sf st_as_sf st_union as_Spatial
+#' @importFrom sf st_as_sf st_union as_Spatial st_make_valid
 #' @importFrom tidyr as_tibble
 #' @importFrom dplyr rename
 #' @importFrom stars st_as_stars
@@ -603,7 +603,7 @@ get_runoff_values <- function(cropcover_agg, runoff_agg, lc_values){
   if(all(is.na(values(lc_USA)))) return(0)
 
   lc_combine <- sf::st_as_sf(stars::st_as_stars(lc_USA),
-                             as_points = FALSE, merge = TRUE) %>% st_union()
+                             as_points = FALSE, merge = TRUE) %>% st_make_valid() %>% st_union()
 
   lc_combine %>%
     tmaptools::set_projection(projection = CRS("+proj=longlat +datum=WGS84 +no_defs")) %>%
