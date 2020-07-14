@@ -7,7 +7,7 @@
 #' @importFrom purrr map_dfr map
 #' @importFrom dplyr filter group_indices left_join if_else tribble group_by summarise arrange
 #' @importFrom tibble tibble
-#' @importFrom sf as_Spatial st_as_sf st_cast st_within
+#' @importFrom sf as_Spatial st_as_sf st_cast st_within st_make_valid
 #' @importFrom foreign read.dbf
 #' @importFrom exactextractr exact_extract
 #' @importFrom geosphere areaPolygon distGeo
@@ -15,6 +15,7 @@
 #' @importFrom lwgeom st_startpoint st_endpoint
 #' @importFrom reservoir yield
 #' @importFrom raster intersect
+#' @importFrom stringr str_remove
 #' @import rgeos
 #' @import dams
 #' @export
@@ -73,7 +74,7 @@ count_watershed_data <- function(data_dir,
   get_ucs_power_plants(paste0(data_dir, file_paths["powerplants"])) -> power_plants_USA
 
   # read croptype raster for US
-  import_raster(paste0(data_dir, file_paths["crop"])) -> cropcover_USA
+  sup(import_raster(paste0(data_dir, file_paths["crop"]))) -> cropcover_USA
 
   read.dbf(paste0(data_dir, file_paths["crop_attributes"])) -> crop_cover_levels
 
@@ -256,10 +257,12 @@ count_watershed_data <- function(data_dir,
         #--------------------------------------------------------
         # TELECONNECTION - FIND RUNOFF VALUES FOR DEVELOPED AND CULTIVATED AREAS
         # Developed Runoff Calculation
+        raster::crs(cropcover_USA) <- "+proj=longlat +datum=WGS84 +no_defs"
         cropcover_USA %>%
           mask_raster_to_polygon(watersheds_select) ->
           cropcover_agg
 
+        raster::crs(runoff_raster) <- "+proj=longlat +datum=WGS84 +no_defs"
         runoff_raster %>%
           mask_raster_to_polygon(watersheds_select) ->
           runoff_agg
@@ -310,7 +313,10 @@ count_watershed_data <- function(data_dir,
           as_tibble()  %>%
           get_irrigation_count() -> irrigation_km2
 
-        raster::intersect(watersheds_select, HUC2_sp) %>% as_tibble() -> watershed_HUC2
+        watersheds_select %>% st_as_sf() %>% sf::st_make_valid() -> wtrshd_sf
+        HUC2_sp %>% st_as_sf() %>% sf::st_make_valid() -> HUC_sf
+
+        sup(sf::st_intersection(wtrshd_sf, HUC_sf)) %>% as_tibble() -> watershed_HUC2
 
         if(watershed_HUC2[["HUC2"]] %>% unique() %>% length() == 1){
           HUC2_majority <- watershed_HUC2[["HUC2"]] %>% unique()
@@ -319,6 +325,8 @@ count_watershed_data <- function(data_dir,
             group_by(HUC2) %>% summarise(area = sum(AreaKM2)) %>%
             arrange(-area) %>% .[["HUC2"]] %>% .[1] -> HUC2_majority
         }
+
+        HUC2_majority <- stringr::str_remove(HUC2_majority, "^0+")
 
         irrigation_bcm %>% filter(HUC2 %in% HUC2_majority) %>%
           select(GCAM_commodity, Irr_BCM_KM2) %>%
@@ -377,7 +385,7 @@ count_watershed_data <- function(data_dir,
 
         watershed_dams %>% nrow() -> n_dams
 
-        sum(watershed_dams$Normal_Storage, na.rm = TRUE) * AF_to_BCM ->
+        sum(watershed_dams$normal_storage, na.rm = TRUE) * AF_to_BCM ->
           watershed_storage_BCM
 
         sup(get_watershed_ts(watershed)) -> flow
