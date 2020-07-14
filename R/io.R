@@ -592,6 +592,7 @@ get_teleconnect_table <- function(){
 #' @importFrom sf st_as_sf st_union as_Spatial
 #' @importFrom tidyr as_tibble
 #' @importFrom dplyr rename
+#' @importFrom stars st_as_stars
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
 get_runoff_values <- function(cropcover_agg, runoff_agg, lc_values){
 
@@ -601,19 +602,23 @@ get_runoff_values <- function(cropcover_agg, runoff_agg, lc_values){
 
   if(all(is.na(values(lc_USA)))) return(0)
 
-  rasterToPolygons(lc_USA, na.rm = TRUE,dissolve = TRUE) %>%
-    st_as_sf() %>%
-    st_union() %>%
-    st_as_sf() -> lc_combine
-
-  raster::extract(runoff_agg, lc_combine) %>%
-    tidyr::as_tibble(.name_repair = "universal") %>%
-    rename(values = ...1) -> runoff_df
-  runoff_df[is.na(runoff_df)] <- 0
-  runoff_df$values %>%
-    mean() * mm_to_m -> runoff_mean_meters
+  lc_combine <- sf::st_as_sf(stars::st_as_stars(lc_USA),
+                             as_points = FALSE, merge = TRUE) %>% st_union()
 
   lc_combine %>%
+    tmaptools::set_projection(projection = CRS("+proj=longlat +datum=WGS84 +no_defs")) %>%
+    st_as_sf() -> lc_proj
+
+  raster::crs(runoff_agg) <- "+proj=longlat +datum=WGS84 +no_defs"
+
+  exactextractr::exact_extract(runoff_agg,lc_proj) %>%
+    as.data.frame() %>%
+    filter(coverage_fraction > 0.5) %>% select(c("value")) -> runoff_df
+  runoff_df[is.na(runoff_df)] <- 0
+  runoff_df$value %>%
+    mean() * mm_to_m -> runoff_mean_meters
+
+  lc_proj %>%
     as_Spatial() %>%
     raster::area() -> area_sq_m
 
