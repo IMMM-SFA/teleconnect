@@ -36,9 +36,9 @@ count_watershed_teleconnections <- function(data_dir,
                                               runoff = "water/Historical_Mean_Runoff/Historical_Mean_Runoff.tif"
                                             )){
 
-  count_watershed_data(data_dir = data_dir,
+  suppressWarnings(count_watershed_data(data_dir = data_dir,
                        cities = cities,
-                       file_paths = file_paths) ->
+                       file_paths = file_paths)) ->
     watershed_data
 
   all_cities <- get_cities()[["city_state"]]
@@ -258,15 +258,15 @@ count_watershed_teleconnections <- function(data_dir,
 
         # cultivated runoff percent
         map(city_watershed_data, function(x){
-          x$metrics %>% filter(metric == "runoff % from cropland") %>%
+          x$metrics %>% filter(metric == "runoff from cropland") %>%
             .[["value"]]
-        }) %>% unlist() %>% sum() -> cropland_runoff_fraction
+        }) %>% unlist() %>% sum() -> cropland_runoff_percent
 
         # developed runoff percent
         map(city_watershed_data, function(x){
-          x$metrics %>% filter(metric == "runoff % from developed land") %>%
+          x$metrics %>% filter(metric == "runoff from developed land") %>%
             .[["value"]]
-        }) %>% unlist() %>% sum() -> developed_runoff_fraction
+        }) %>% unlist() %>% sum() -> developed_runoff_percent
 
         # number of utilities
         power_plants_city %>%
@@ -350,9 +350,9 @@ count_watershed_teleconnections <- function(data_dir,
                  n_ba,
                  n_crop_classes,
                  cropland_fraction,
-                 cropland_runoff_fraction,
+                 cropland_runoff_percent,
                  developed_fraction,
-                 developed_runoff_fraction,
+                 developed_runoff_percent,
                  n_economic_sectors,
                  max_withdr_dist_km,
                  avg_withdr_dis_km)

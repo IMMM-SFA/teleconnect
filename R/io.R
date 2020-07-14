@@ -589,9 +589,10 @@ get_teleconnect_table <- function(){
 #' get_runoff_values
 #' @details calculate runoff volume in meters cubed per second
 #' @importFrom raster rasterToPolygons extract area values
-#' @importFrom sf st_as_sf st_union as_Spatial
+#' @importFrom sf st_as_sf st_union as_Spatial st_make_valid
 #' @importFrom tidyr as_tibble
 #' @importFrom dplyr rename
+#' @importFrom stars st_as_stars
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
 get_runoff_values <- function(cropcover_agg, runoff_agg, lc_values){
 
@@ -601,19 +602,23 @@ get_runoff_values <- function(cropcover_agg, runoff_agg, lc_values){
 
   if(all(is.na(values(lc_USA)))) return(0)
 
-  rasterToPolygons(lc_USA, na.rm = TRUE,dissolve = TRUE) %>%
-    st_as_sf() %>%
-    st_union() %>%
-    st_as_sf() -> lc_combine
-
-  raster::extract(runoff_agg, lc_combine) %>%
-    tidyr::as_tibble(.name_repair = "universal") %>%
-    rename(values = ...1) -> runoff_df
-  runoff_df[is.na(runoff_df)] <- 0
-  runoff_df$values %>%
-    mean() * mm_to_m -> runoff_mean_meters
+  lc_combine <- sf::st_as_sf(stars::st_as_stars(lc_USA),
+                             as_points = FALSE, merge = TRUE) %>% st_make_valid() %>% st_union()
 
   lc_combine %>%
+    tmaptools::set_projection(projection = CRS("+proj=longlat +datum=WGS84 +no_defs")) %>%
+    st_as_sf() -> lc_proj
+
+  raster::crs(runoff_agg) <- "+proj=longlat +datum=WGS84 +no_defs"
+
+  exactextractr::exact_extract(runoff_agg,lc_proj) %>%
+    as.data.frame() %>%
+    filter(coverage_fraction > 0.5) %>% select(c("value")) -> runoff_df
+  runoff_df[is.na(runoff_df)] <- 0
+  runoff_df$value %>%
+    mean() * mm_to_m -> runoff_mean_meters
+
+  lc_proj %>%
     as_Spatial() %>%
     raster::area() -> area_sq_m
 
@@ -622,6 +627,25 @@ get_runoff_values <- function(cropcover_agg, runoff_agg, lc_values){
   return(runoff_m3persec)
 }
 
+#' get_wasteflow_points
+#' @details load in waste flow table and converts to Spatial Point Dataframe
+#' @importFrom vroom vroom cols
+#' @importFrom sp SpatialPointsDataFrame CRS
+#' @importFrom dplyr filter
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
+get_wasteflow_points <- function(){
+  suppressMessages(vroom(paste0(system.file("extdata", package = "teleconnect"),
+               "/waste_flow_data.csv"))) -> waste_table
 
+  waste_table %>% filter(!is.na(lon)) -> waste_table_filter
+
+  waste_table_filter[c("lon", "lat")] -> coords
+
+  SpatialPointsDataFrame(coords,
+                         data = waste_table_filter,
+                         proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs")) -> flow_points
+
+  return(flow_points)
+}
 
 
