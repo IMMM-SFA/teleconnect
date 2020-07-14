@@ -48,7 +48,8 @@ Imports:
     ggplot2,
     tmaptools,
     tmap,
-    rgeos
+    rgeos,
+    stars
 Suggests: 
     testthat (>= 2.1.0),
     knitr,
