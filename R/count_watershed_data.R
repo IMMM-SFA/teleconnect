@@ -221,9 +221,30 @@ count_watershed_data <- function(data_dir,
 
         #-------------------------------------------------------
         # TELECONNECTION - WASTE WATER TREATMENT PLANTS
-        wasteflow_points[watersheds_select, ] -> wasteflow_select
+        wasteflow_points[watersheds_select, ] %>%
+          as.data.frame() %>%
+          dplyr::select(c("FACILITY_NAME",
+                          "CWNS_NUMBER",
+                          "PRIMARY_WATERSHED_HUC",
+                          "PRIMARY_WATERSHED_NAME",
+                          "lon",
+                          "lat",
+                          "DISCHARGE_METHOD",
+                          "EXIST_TOTAL",
+                          "PROJ_TOTAL",
+                          "PRES_RES_RECEIVING_COLLCTN",
+                          "PRES_RES_ONSITE_WTS"
+          )) -> wasteflow_select
 
+        wasteflow_select[is.na(wasteflow_select)] <- 0
 
+        sum(wasteflow_select$EXIST_TOTAL) -> totalflow_thru_MGD
+
+        sum(wasteflow_select$PRES_RES_RECEIVING_COLLCTN) -> total_pop_served
+
+        totalflow_thru_MGD / total_pop_served -> wastedischarge
+
+        if_else(is.na(wastedischarge), 0, wastedischarge) -> wastedischarge_per_person
 
         #-------------------------------------------------------
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
@@ -431,7 +452,8 @@ count_watershed_data <- function(data_dir,
               "runoff from developed land",      "%",        developed_runoff_percent,
               "total irrigation consumption",    "BCM",      total_irr_bcm,
               "population",                      "people",   wtrshd_population,
-              "population water consumption",    "ltr/sqkm", pop_water_consum
+              "population water consumption",    "ltr/sqkm", pop_water_consum,
+              "waste discharge per person",      "MGD/pers", wastedischarge_per_person
             ),
             land = land_table,
             economic_sectors = nlud_table,
