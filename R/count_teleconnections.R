@@ -212,7 +212,7 @@ count_watershed_teleconnections <- function(data_dir,
         map(city_watershed_data, function(x){
           x$metrics %>% filter(metric == "population") %>%
             .[["value"]]
-        }) %>% unlist() %>% sum() -> pop
+        }) %>% unlist() %>% sum() -> watershed_pop
 
         # population water consumption
         map(city_watershed_data, function(x){
@@ -321,6 +321,11 @@ count_watershed_teleconnections <- function(data_dir,
             .[["Reclass"]] %>% unique()
         }) %>% unlist() %>% unique() %>% length() -> n_economic_sectors
 
+        # waste discharge per person
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "waste discharge per person") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> wasteMGD_per_person
 
         done(city)
 
@@ -335,7 +340,7 @@ count_watershed_teleconnections <- function(data_dir,
                  storage_BCM,
                  yield_BCM,
                  irr_cons_BCM,
-                 pop,
+                 watershed_pop,
                  n_climate_zones,
                  n_transfers_in,
                  n_transfers_out,
@@ -355,7 +360,8 @@ count_watershed_teleconnections <- function(data_dir,
                  developed_runoff_percent,
                  n_economic_sectors,
                  max_withdr_dist_km,
-                 avg_withdr_dis_km)
+                 avg_withdr_dis_km,
+                 wasteMGD_per_person)
         )
       }
 
