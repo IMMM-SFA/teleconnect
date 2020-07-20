@@ -21,3 +21,5 @@ day_to_sec <- 86400
 missing_watersheds <- c(3589, 3850, 3678, 3582, 3615, 4226, 4227, 2336, 3448, 2162, 3474) # for runoff
 
 avg_wateruse_ltr <- 333
+
+MGD_to_m3sec <- 0.0438
