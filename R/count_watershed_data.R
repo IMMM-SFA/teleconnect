@@ -236,15 +236,11 @@ count_watershed_data <- function(data_dir,
                           "PRES_RES_ONSITE_WTS"
           )) -> wasteflow_select
 
-        wasteflow_select[is.na(wasteflow_select)] <- 0
+        wasteflow_select %>%
+          filter(!is.na(EXIST_TOTAL) & !is.na(PRES_RES_RECEIVING_COLLCTN)) -> wasteflow_select_complete
 
-        sum(wasteflow_select$EXIST_TOTAL) -> totalflow_thru_MGD
-
-        sum(wasteflow_select$PRES_RES_RECEIVING_COLLCTN) -> total_pop_served
-
-        totalflow_thru_MGD / total_pop_served -> wastedischarge
-
-        if_else(is.na(wastedischarge), 0, wastedischarge) -> wastedischarge_per_person
+        wasteflow_select_complete["EXIST_TOTAL"] %>% sum(na.rm = T) * MGD_to_m3sec -> totalflow_thru_m3sec
+        wasteflow_select_complete["PRES_RES_RECEIVING_COLLCTN"] %>% sum(na.rm = T) -> total_pop_served
 
         #-------------------------------------------------------
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
@@ -453,7 +449,8 @@ count_watershed_data <- function(data_dir,
               "total irrigation consumption",    "BCM",      total_irr_bcm,
               "population",                      "people",   wtrshd_population,
               "population water consumption",    "ltr/sqkm", pop_water_consum,
-              "waste discharge per person",      "MGD/pers", wastedischarge_per_person
+              "total flow thru facility",        "m3/sec",   totalflow_thru_m3sec,
+              "total pop served by facility",    "people",   total_pop_served
             ),
             land = land_table,
             economic_sectors = nlud_table,
