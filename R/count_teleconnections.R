@@ -19,6 +19,7 @@
 #' @export
 count_watershed_teleconnections <- function(data_dir,
                                             cities = NULL,
+                                            run_all,
                                             file_paths = c(
                                               watersheds = "water/CWM_v2_2/World_Watershed8.shp",
                                               withdrawal = "water/CWM_v2_2/Snapped_Withdrawal_Points.shp",
@@ -38,6 +39,7 @@ count_watershed_teleconnections <- function(data_dir,
 
   suppressWarnings(count_watershed_data(data_dir = data_dir,
                        cities = cities,
+                       run_all = run_all,
                        file_paths = file_paths)) ->
     watershed_data
 
@@ -333,9 +335,31 @@ count_watershed_teleconnections <- function(data_dir,
             .[["value"]]
         }) %>% unlist() %>% sum() -> total_pop_served
 
+
+        # average historical runoff
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "average historical runoff") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> historical_runoff_m3sec
+
+        # driest historical runoff
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "driest_runoff_m3sec") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> driest_runoff_m3sec
+
+
         # calculate discharge
 
         totalflow_thru_m3sec / total_pop_served -> waste_per_person_m3sec
+
+        # discharge percent of runoff
+
+        totalflow_thru_m3sec / historical_runoff_m3sec -> waste_percent_historical
+
+        # discharge percent of driest month
+
+        totalflow_thru_m3sec / driest_runoff_m3sec -> waste_percent_driest_month
 
         done(city)
 
@@ -371,7 +395,9 @@ count_watershed_teleconnections <- function(data_dir,
                  n_economic_sectors,
                  max_withdr_dist_km,
                  avg_withdr_dis_km,
-                 waste_per_person_m3sec)
+                 waste_per_person_m3sec,
+                 waste_percent_historical,
+                 waste_percent_driest_month)
         )
       }
 
