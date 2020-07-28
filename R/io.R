@@ -543,12 +543,12 @@ get_population <- function(){
 #' @importFrom dplyr pull
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
 #' @export
-get_watershed_ts <- function(watershed){
+get_watershed_ts <- function(){
 
   vroom(paste0(system.file("extdata", package = "teleconnect"),
                                 "/teleconnect_runoff_bcm.csv"),
-                         delim = ",", skip = 2, col_types = cols()) %>%
-    pull(as.character(watershed))
+                         delim = ",", skip = 2, col_types = cols()) -> flow
+  return(flow)
 }
 
 #' get_irrigation_bcm
