@@ -21,6 +21,7 @@
 #' @export
 count_watershed_data <- function(data_dir,
                                  cities = NULL,
+                                 run_all,
                                  file_paths = c(
                                    watersheds = "water/CWM_v2_2/World_Watershed8.shp",
                                    withdrawal = "water/CWM_v2_2/Snapped_Withdrawal_Points.shp",
@@ -137,6 +138,9 @@ count_watershed_data <- function(data_dir,
   # read in waste flow points
   get_wasteflow_points() -> wasteflow_points
 
+  # read in watershed time series
+  sup(get_watershed_ts()) -> flow
+
   # map through all cities, computing teleconnections
   watersheds %>%
     map(function(watershed){
@@ -239,8 +243,28 @@ count_watershed_data <- function(data_dir,
         wasteflow_select %>%
           filter(!is.na(EXIST_TOTAL) & !is.na(PRES_RES_RECEIVING_COLLCTN)) -> wasteflow_select_complete
 
+
+        if(nrow(wasteflow_select_complete) == 0){
+          totalflow_thru_m3sec <- 0
+          total_pop_served <- 0
+        }else{
         wasteflow_select_complete["EXIST_TOTAL"] %>% sum(na.rm = T) * MGD_to_m3sec -> totalflow_thru_m3sec
         wasteflow_select_complete["PRES_RES_RECEIVING_COLLCTN"] %>% sum(na.rm = T) -> total_pop_served
+        }
+        as.character(watershed) -> name
+        flow[c("Monthly_Date",name)] -> select_ts
+
+        colnames(select_ts)[2] <- "runoff_vals"
+
+        select_ts %>%
+          filter(runoff_vals == min(runoff_vals)) %>% .[["Monthly_Date"]] -> driest_month
+        min(select_ts[c(2)]) * BCMmonth_to_m3sec -> driest_runoff_m3sec
+
+        select_ts %>% separate(Monthly_Date, into = c("Year", "Month"), sep = "/") %>%
+          group_by(Year) %>%
+          dplyr::summarize_at(vars(runoff_vals), sum) -> select_ts_yearly
+
+        (mean(select_ts_yearly$runoff_vals) * BCMyr_to_m3sec) -> historical_runoff_m3sec
 
         #-------------------------------------------------------
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
@@ -270,6 +294,10 @@ count_watershed_data <- function(data_dir,
         percent_area <- (100*(sum(dev_and_crop$x))) / (sum(all_land$x))
         # Assign to category based on percent area.
         get_land_category(percent_area) -> watershed_condition
+
+
+
+        if(run_all == TRUE){
 
         #--------------------------------------------------------
         # TELECONNECTION - FIND RUNOFF VALUES FOR DEVELOPED AND CULTIVATED AREAS
@@ -314,6 +342,12 @@ count_watershed_data <- function(data_dir,
 
         100 * (dev_runoff_m3persec / expec_total_runoff) -> developed_runoff_percent
         100 * (cultivated_runoff_m3persec / expec_total_runoff) -> cultivated_runoff_percent
+
+        }else{
+          expec_total_runoff <- 0
+          developed_runoff_percent <- 0
+          cultivated_runoff_percent <- 0
+        }
 
         #--------------------------------------------------------
         # TELECONNECTION - Count number of irrigated and rainfed crops in watershed.
@@ -360,6 +394,7 @@ count_watershed_data <- function(data_dir,
           get_nlud_names() -> nlud_table
 
 
+        if(run_all == TRUE){
         # -------------------------------------------------------
         # TELECONNECTION - Interbasin Transfers in Watershed
         # subset interbasin transfers for the select watershed
@@ -390,11 +425,18 @@ count_watershed_data <- function(data_dir,
           nrow() -> n_transfers_into
         nrow(inner_transfers) -> n_transfers_within
 
+        }else{
+          n_transfers_into <- 0
+          n_transfers_out <- 0
+          n_transfers_within <- 0
+        }
         #---------------------------------------------------------
         # TELECONNTECTION - Number of climate zones watershed crosses
         get_zonal_data(us_climate, watersheds_select) %>%
           filter(Group.1 != 128) %>% .[["Group.1"]] -> climate_ids
 
+
+        if(run_all == TRUE){
         #---------------------------------------------------------
         # TELECONNECTION - WATERSHED STORAGE
         sup(nid_spatial[watersheds_select, ]) %>%
@@ -405,14 +447,20 @@ count_watershed_data <- function(data_dir,
         sum(watershed_dams$normal_storage, na.rm = TRUE) * AF_to_BCM ->
           watershed_storage_BCM
 
-        sup(get_watershed_ts(watershed)) -> flow
-        sup(yield(Q = flow,
+        flow %>%
+        pull(as.character(watershed)) -> flow_ts
+
+        sup(yield(Q = flow_ts,
                   capacity = watershed_storage_BCM,
                   reliability = 1,
                   plot = FALSE,
                   double_cycle = TRUE)) %>% .[["Yield"]] * 12 ->
           watershed_yield_BCM
-
+        }else{
+          n_dams <- 0
+          watershed_storage_BCM <- 0
+          watershed_yield_BCM <- 0
+        }
         #---------------------------------------------------------
         # TELECONNECTION - POPULATION WITHIN WATERSHED
         get_zonal_data(population_raster, watersheds_select) %>%
@@ -449,6 +497,8 @@ count_watershed_data <- function(data_dir,
               "total irrigation consumption",    "BCM",      total_irr_bcm,
               "population",                      "people",   wtrshd_population,
               "population water consumption",    "ltr/sqkm", pop_water_consum,
+              "average historical runoff",       "m3/sec",   historical_runoff_m3sec,
+              "driest_runoff_m3sec",             "m3/sec",   driest_runoff_m3sec,
               "total flow thru facility",        "m3/sec",   totalflow_thru_m3sec,
               "total pop served by facility",    "people",   total_pop_served
             ),
