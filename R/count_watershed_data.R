@@ -129,11 +129,11 @@ count_watershed_data <- function(data_dir,
   stringr::str_sub(HUC4_connect$HUC4, 1, 2) -> HUC4_connect$HUC2
   HUC4_connect %>% as_Spatial() %>% sp::spTransform(CRS("+proj=longlat +datum=WGS84 +no_defs")) -> HUC2_sp
 
-  # read in population raster
-  import_raster(paste0(data_dir, file_paths["population"])) -> population_raster
-
   # read in runoff raster
   import_raster(paste0(data_dir, file_paths["runoff"])) -> runoff_raster
+
+  # read in population raster
+  import_raster(paste0(data_dir, file_paths["population"])) -> population_raster
 
   # read in waste flow points
   get_wasteflow_points() -> wasteflow_points
@@ -463,8 +463,13 @@ count_watershed_data <- function(data_dir,
         }
         #---------------------------------------------------------
         # TELECONNECTION - POPULATION WITHIN WATERSHED
-        get_zonal_data(population_raster, watersheds_select) %>%
-          .[["x"]] %>% sum() -> wtrshd_population
+        watersheds_select %>%
+          sp::spTransform(CRSobj = crs(population_raster)) -> watershed_transform
+
+        get_zonal_data(population_raster, watershed_transform) -> wtrshd_population
+
+        wtrshd_population$x %>% sum() -> list_pop
+
 
         (wtrshd_population / polygon_area) * avg_wateruse_ltr -> pop_water_consum
 
