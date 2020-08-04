@@ -468,10 +468,11 @@ count_watershed_data <- function(data_dir,
 
         get_zonal_data(population_raster, watershed_transform) -> wtrshd_population
 
-        wtrshd_population$x %>% sum() -> list_pop
+        wtrshd_population %>% mutate(converted = x / onekmsq_to_60msq) %>%
+          .[["converted"]] %>% sum() -> population_total
 
 
-        (wtrshd_population / polygon_area) * avg_wateruse_ltr -> pop_water_consum
+        population_total * avg_wateruse_ltr -> ltr_per_day
 
         #---------------------------------------------------------
 
@@ -500,12 +501,10 @@ count_watershed_data <- function(data_dir,
               "runoff from cropland",            "%",        cultivated_runoff_percent,
               "runoff from developed land",      "%",        developed_runoff_percent,
               "total irrigation consumption",    "BCM",      total_irr_bcm,
-              "population",                      "people",   wtrshd_population,
-              "population water consumption",    "ltr/sqkm", pop_water_consum,
+              "watershed population",            "people",   population_total,
+              "population water consumption",    "ltr/day",  ltr_per_day,
               "average historical runoff",       "m3/sec",   historical_runoff_m3sec,
               "driest_runoff_m3sec",             "m3/sec",   driest_runoff_m3sec,
-              "total flow thru facility",        "m3/sec",   totalflow_thru_m3sec,
-              "total pop served by facility",    "people",   total_pop_served
             ),
             land = land_table,
             economic_sectors = nlud_table,
