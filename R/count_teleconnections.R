@@ -210,9 +210,9 @@ count_watershed_teleconnections <- function(data_dir,
             .[["value"]]
         }) %>% unlist() %>% sum() -> irr_cons_BCM
 
-        # population water consumption
+        # watershed_population
         map(city_watershed_data, function(x){
-          x$metrics %>% filter(metric == "population") %>%
+          x$metrics %>% filter(metric == "watershed population") %>%
             .[["value"]]
         }) %>% unlist() %>% sum() -> watershed_pop
 
@@ -220,7 +220,7 @@ count_watershed_teleconnections <- function(data_dir,
         map(city_watershed_data, function(x){
           x$metrics %>% filter(metric == "population water consumption") %>%
             .[["value"]]
-        }) %>% unlist() %>% sum() -> pop_cons_ltr_sqkm
+        }) %>% unlist() %>% sum() -> pop_cons_ltr_day
 
         # hydro plants
         map(city_watershed_data, function(x){
@@ -323,19 +323,6 @@ count_watershed_teleconnections <- function(data_dir,
             .[["Reclass"]] %>% unique()
         }) %>% unlist() %>% unique() %>% length() -> n_economic_sectors
 
-        # total flow thru facility
-        map(city_watershed_data, function(x){
-          x$metrics %>% filter(metric == "total flow thru facility") %>%
-            .[["value"]]
-        }) %>% unlist() %>% sum() -> totalflow_thru_m3sec
-
-        # total pop served by facility
-        map(city_watershed_data, function(x){
-          x$metrics %>% filter(metric == "total pop served by facility") %>%
-            .[["value"]]
-        }) %>% unlist() %>% sum() -> total_pop_served
-
-
         # average historical runoff
         map(city_watershed_data, function(x){
           x$metrics %>% filter(metric == "average historical runoff") %>%
@@ -348,18 +335,17 @@ count_watershed_teleconnections <- function(data_dir,
             .[["value"]]
         }) %>% unlist() %>% sum() -> driest_runoff_m3sec
 
-
         # calculate discharge
 
-        totalflow_thru_m3sec / total_pop_served -> waste_per_person_m3sec
+        pop_cons_ltr_day * ltrday_to_m3sec -> pop_cons_m3sec
 
         # discharge percent of runoff
 
-        totalflow_thru_m3sec / historical_runoff_m3sec -> waste_percent_historical
+        pop_cons_m3sec / historical_runoff_m3sec -> waste_percent_historical
 
         # discharge percent of driest month
 
-        totalflow_thru_m3sec / driest_runoff_m3sec -> waste_percent_driest_month
+        pop_cons_m3sec / driest_runoff_m3sec -> waste_percent_driest_month
 
         done(city)
 
@@ -374,7 +360,6 @@ count_watershed_teleconnections <- function(data_dir,
                  storage_BCM,
                  yield_BCM,
                  irr_cons_BCM,
-                 watershed_pop,
                  n_climate_zones,
                  n_transfers_in,
                  n_transfers_out,
@@ -395,7 +380,8 @@ count_watershed_teleconnections <- function(data_dir,
                  n_economic_sectors,
                  max_withdr_dist_km,
                  avg_withdr_dis_km,
-                 waste_per_person_m3sec,
+                 watershed_pop,
+                 pop_cons_m3sec,
                  waste_percent_historical,
                  waste_percent_driest_month)
         )
