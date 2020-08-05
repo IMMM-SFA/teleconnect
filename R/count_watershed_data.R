@@ -448,7 +448,6 @@ count_watershed_data <- function(data_dir,
         mean_pop_per_sqkm * polygon_area -> population_total
 
         population_total * avg_wateruse_ltr_per_day -> ltr_per_day
-
         #---------------------------------------------------------
 
         return(
