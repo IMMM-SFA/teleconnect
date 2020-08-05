@@ -17,6 +17,7 @@
 #' @importFrom raster intersect
 #' @importFrom stringr str_remove
 #' @import rgeos
+#' @import rgdal
 #' @import dams
 #' @export
 count_watershed_data <- function(data_dir,
