@@ -439,9 +439,9 @@ count_watershed_data <- function(data_dir,
         #---------------------------------------------------------
         # TELECONNECTION - POPULATION WITHIN WATERSHED
         watersheds_select %>%
-          st_as_sf() %>%
-          st_transform(crs = crs(population_raster)) %>%
-          st_union() -> ply_union
+          sf::st_as_sf() %>%
+          sf::st_transform(crs = crs(population_raster)) %>%
+          sf::st_union() -> ply_union
         exactextractr::exact_extract(population_raster, ply_union) %>%
           .[[1]] %>% subset(coverage_fraction == 1) %>%
           .[["value"]] %>% mean() -> mean_pop_per_sqkm

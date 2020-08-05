@@ -16,6 +16,7 @@
 #' @importFrom tibble tibble
 #' @importFrom sf as_Spatial
 #' @importFrom foreign read.dbf
+#' @import rgdal
 #' @export
 count_watershed_teleconnections <- function(data_dir,
                                             cities = NULL,
