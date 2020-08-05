@@ -159,7 +159,7 @@ count_watershed_data <- function(data_dir,
 
 
         # get area of watershed IN SQUARE KILOMETERS
-        raster::area(watersheds_select) / m_to_km -> polygon_area
+        raster::area(watersheds_select) / m2_to_km2 -> polygon_area
 
         #-------------------------------------------------------
         # TELECONNECTION - NUMBER OF CITIES USING WATERSHED
@@ -224,33 +224,7 @@ count_watershed_data <- function(data_dir,
           thermal_withdr_BCM
 
         #-------------------------------------------------------
-        # TELECONNECTION - WASTE WATER TREATMENT PLANTS
-        wasteflow_points[watersheds_select, ] %>%
-          as.data.frame() %>%
-          dplyr::select(c("FACILITY_NAME",
-                          "CWNS_NUMBER",
-                          "PRIMARY_WATERSHED_HUC",
-                          "PRIMARY_WATERSHED_NAME",
-                          "lon",
-                          "lat",
-                          "DISCHARGE_METHOD",
-                          "EXIST_TOTAL",
-                          "PROJ_TOTAL",
-                          "PRES_RES_RECEIVING_COLLCTN",
-                          "PRES_RES_ONSITE_WTS"
-          )) -> wasteflow_select
-
-        wasteflow_select %>%
-          filter(!is.na(EXIST_TOTAL) & !is.na(PRES_RES_RECEIVING_COLLCTN)) -> wasteflow_select_complete
-
-
-        if(nrow(wasteflow_select_complete) == 0){
-          totalflow_thru_m3sec <- 0
-          total_pop_served <- 0
-        }else{
-        wasteflow_select_complete["EXIST_TOTAL"] %>% sum(na.rm = T) * MGD_to_m3sec -> totalflow_thru_m3sec
-        wasteflow_select_complete["PRES_RES_RECEIVING_COLLCTN"] %>% sum(na.rm = T) -> total_pop_served
-        }
+        # TELECONNECTION - WATERSHED RUNOFF VALUES
         as.character(watershed) -> name
         flow[c("Monthly_Date",name)] -> select_ts
 
@@ -464,15 +438,16 @@ count_watershed_data <- function(data_dir,
         #---------------------------------------------------------
         # TELECONNECTION - POPULATION WITHIN WATERSHED
         watersheds_select %>%
-          sp::spTransform(CRSobj = crs(population_raster)) -> watershed_transform
+          st_as_sf() %>%
+          st_transform(crs = crs(population_raster)) %>%
+          st_union() -> ply_union
+        exactextractr::exact_extract(population_raster, ply_union) %>%
+          .[[1]] %>% subset(coverage_fraction == 1) %>%
+          .[["value"]] %>% mean() -> mean_pop_per_sqkm
 
-        get_zonal_data(population_raster, watershed_transform) -> wtrshd_population
+        mean_pop_per_sqkm * polygon_area -> population_total
 
-        wtrshd_population %>% mutate(converted = x / onekmsq_to_60msq) %>%
-          .[["converted"]] %>% sum() -> population_total
-
-
-        population_total * avg_wateruse_ltr -> ltr_per_day
+        population_total * avg_wateruse_ltr_per_day -> ltr_per_day
 
         #---------------------------------------------------------
 
