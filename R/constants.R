@@ -12,6 +12,8 @@ AF_to_BCM <- 1233.48e-9
 
 Mgallons_to_BCM <- 0.00378541 * 1e-3  # Million gallons to billion cubic meters
 
+m2_to_km2 <- 1000000
+
 m_to_km <- 1000
 
 mm_to_m <- 0.001
@@ -20,7 +22,7 @@ day_to_sec <- 86400
 
 missing_watersheds <- c(3589, 3850, 3678, 3582, 3615, 4226, 4227, 2336, 3448, 2162, 3474) # for runoff
 
-avg_wateruse_ltr <- 200
+avg_wateruse_ltr_per_day <- 200
 
 MGD_to_m3sec <- 0.0438
 
@@ -30,4 +32,3 @@ BCMmonth_to_m3sec <- 373.36
 
 ltrday_to_m3sec <- 1.15741e-8
 
-onekmsq_to_60msq <- 2.78
