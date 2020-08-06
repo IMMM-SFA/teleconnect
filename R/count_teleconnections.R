@@ -336,6 +336,12 @@ count_watershed_teleconnections <- function(data_dir,
             .[["value"]]
         }) %>% unlist() %>% sum() -> driest_runoff_m3sec
 
+        # treatment plants
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "outflow treatment plants") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> n_treatment_plants
+
         # calculate discharge
 
         pop_cons_ltr_day * ltrday_to_m3sec -> pop_cons_m3sec
@@ -381,6 +387,7 @@ count_watershed_teleconnections <- function(data_dir,
                  n_economic_sectors,
                  max_withdr_dist_km,
                  avg_withdr_dis_km,
+                 n_treatment_plants,
                  watershed_pop,
                  pop_cons_m3sec,
                  waste_percent_historical,

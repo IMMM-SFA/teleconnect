@@ -450,6 +450,13 @@ count_watershed_data <- function(data_dir,
 
         population_total * avg_wateruse_ltr_per_day -> ltr_per_day
         #---------------------------------------------------------
+        # Use waste flow points as a check
+        wasteflow_points[watersheds_select, ] %>% as_tibble() %>%
+          subset(PRES_FACILITY_OVERALL_TYPE == "Wastewater") %>%
+          subset(DISCHARGE_METHOD == "Outfall To Surface Waters") %>%
+          nrow() -> n_treatment_plants
+
+        #---------------------------------------------------------
 
         return(
           list(
@@ -461,7 +468,8 @@ count_watershed_data <- function(data_dir,
               "dams",                          n_dams,
               "transfers in",                  n_transfers_into,
               "transfers out",                 n_transfers_out,
-              "transfers within",              n_transfers_within
+              "transfers within",              n_transfers_within,
+              "outlow treatment plants",       n_treatment_plants
             ),
             metrics = tribble(
               ~metric,                           ~unit,     ~value,
