@@ -287,7 +287,11 @@ count_watershed_data <- function(data_dir,
 
         raster::extent(cropcover_agg_crop) <- raster::extent(runoff_agg)
 
-        cropcover_agg <- resample(cropcover_agg_crop, runoff_agg)
+        if(identical(dim(cropcover_agg_crop), dim(runoff_agg)) == FALSE){
+          cropcover_agg <- resample(cropcover_agg_crop, runoff_agg)
+        }else{
+          cropcover_agg_crop -> cropcover_agg
+        }
 
         suppressMessages(get_runoff_values(cropcover_agg,
                                            runoff_agg,
