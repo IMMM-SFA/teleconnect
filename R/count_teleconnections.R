@@ -35,7 +35,7 @@ count_watershed_teleconnections <- function(data_dir,
                                               climate = "land/kop_climate_classes.tif",
                                               HUC4 = "water/USA_HUC4/huc4_to_huc2.shp",
                                               population = "land/pden2010_block/pden2010_60m.tif",
-                                              runoff = "water/Historical_Mean_Runoff/Historical_Mean_Runoff.tif"
+                                              runoff = "water/Historical_Mean_Runoff/USA_Mean_Runoff.tif"
                                             )){
 
   suppressWarnings(count_watershed_data(data_dir = data_dir,

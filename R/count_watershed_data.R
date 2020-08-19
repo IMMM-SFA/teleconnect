@@ -37,7 +37,7 @@ count_watershed_data <- function(data_dir,
                                    climate = "land/kop_climate_classes.tif",
                                    HUC4 = "water/USA_HUC4/huc4_to_huc2.shp",
                                    population = "land/pden2010_block/pden2010_60m.tif",
-                                   runoff = "water/Historical_Mean_Runoff/Historical_Mean_Runoff2.tif"
+                                   runoff = "water/Historical_Mean_Runoff/USA_Mean_Runoff.tif"
                                  )){
 
   all_cities <- get_cities()[["city_state"]]
