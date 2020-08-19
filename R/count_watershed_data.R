@@ -14,7 +14,7 @@
 #' @importFrom tmaptools set_projection
 #' @importFrom lwgeom st_startpoint st_endpoint
 #' @importFrom reservoir yield
-#' @importFrom raster intersect
+#' @importFrom raster intersect extent
 #' @importFrom stringr str_remove
 #' @import rgeos
 #' @import rgdal
@@ -37,7 +37,7 @@ count_watershed_data <- function(data_dir,
                                    climate = "land/kop_climate_classes.tif",
                                    HUC4 = "water/USA_HUC4/huc4_to_huc2.shp",
                                    population = "land/pden2010_block/pden2010_60m.tif",
-                                   runoff = "water/Historical_Mean_Runoff/Historical_Mean_Runoff.tif"
+                                   runoff = "water/Historical_Mean_Runoff/Historical_Mean_Runoff2.tif"
                                  )){
 
   all_cities <- get_cities()[["city_state"]]
@@ -270,32 +270,40 @@ count_watershed_data <- function(data_dir,
         # Assign to category based on percent area.
         get_land_category(percent_area) -> watershed_condition
 
-
-
         if(run_all == TRUE){
 
         #--------------------------------------------------------
         # TELECONNECTION - FIND RUNOFF VALUES FOR DEVELOPED AND CULTIVATED AREAS
         # Developed Runoff Calculation
-        raster::crs(cropcover_USA) <- "+proj=longlat +datum=WGS84 +no_defs"
         cropcover_USA %>%
-          mask_raster_to_polygon(watersheds_select) ->
-          cropcover_agg
+          crop(watersheds_select) ->
+          cropcover_agg_nonproj
 
-        raster::crs(runoff_raster) <- "+proj=longlat +datum=WGS84 +no_defs"
         runoff_raster %>%
-          mask_raster_to_polygon(watersheds_select) ->
+          crop(watersheds_select) ->
           runoff_agg
 
-        developed_values  <- c(82,121,122,123,124)
+        cropcover_agg_crop <- crop(cropcover_agg_nonproj, runoff_agg)
 
-        suppressMessages(get_runoff_values(cropcover_agg, runoff_agg, developed_values)) -> dev_runoff_m3persec
+        raster::extent(cropcover_agg_crop) <- raster::extent(runoff_agg)
+
+        cropcover_agg <- resample(cropcover_agg_crop, runoff_agg)
+
+        suppressMessages(get_runoff_values(cropcover_agg,
+                                           runoff_agg,
+                                           developed_values,
+                                           polygon_area,
+                                           land_table)) -> dev_runoff_m3persec
 
         # Crop Runoff Calculation
         crop_reclass_table %>% filter(!is.na(GCAM_Class)) %>%
           .[["CDL_ID"]] -> cultivated_values
 
-        suppressMessages(get_runoff_values(cropcover_agg, runoff_agg, cultivated_values)) -> cultivated_runoff_m3persec
+        suppressMessages(get_runoff_values(cropcover_agg,
+                                           runoff_agg,
+                                           cultivated_values,
+                                           polygon_area,
+                                           land_table)) -> cultivated_runoff_m3persec
 
         # Rest of land runoff calculation
 
@@ -306,7 +314,11 @@ count_watershed_data <- function(data_dir,
           #filter(!CDL_ID %in% non_land_cdl_classes) %>%
           .[["CDL_ID"]] -> other_vals
 
-        suppressMessages(get_runoff_values(cropcover_agg, runoff_agg, other_vals)) -> other_runoff_m3persec
+        suppressMessages(get_runoff_values(cropcover_agg,
+                                           runoff_agg,
+                                           other_vals,
+                                           polygon_area,
+                                           land_table)) -> other_runoff_m3persec
 
         # Total runoff calculation
         append(crop_dev_vals, other_vals) -> all_vals
