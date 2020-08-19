@@ -327,13 +327,10 @@ count_watershed_data <- function(data_dir,
         # Calculate fractions
         dev_runoff_m3persec + cultivated_runoff_m3persec + other_runoff_m3persec -> expec_total_runoff
 
-        100 * (dev_runoff_m3persec / expec_total_runoff) -> developed_runoff_percent
-        100 * (cultivated_runoff_m3persec / expec_total_runoff) -> cultivated_runoff_percent
-
         }else{
           expec_total_runoff <- 0
-          developed_runoff_percent <- 0
-          cultivated_runoff_percent <- 0
+          dev_runoff_m3persec <- 0
+          cultivated_runoff_m3persec <- 0
         }
 
         #--------------------------------------------------------
@@ -492,9 +489,9 @@ count_watershed_data <- function(data_dir,
               "total thermal water withdrawals", "BCM/yr",   thermal_withdr_BCM,
               "total reservoir storage",         "BCM",      watershed_storage_BCM,
               "total watershed yield",           "BCM/yr",   watershed_yield_BCM,
-              "average runoff",                  "m3/s",     expec_total_runoff,
-              "runoff from cropland",            "%",        cultivated_runoff_percent,
-              "runoff from developed land",      "%",        developed_runoff_percent,
+              "total runoff from watershed",     "m3/s",     expec_total_runoff,
+              "development runoff",              "m3/s",     dev_runoff_m3persec,
+              "cultivated runoff",               "m3/s",     cultivated_runoff_m3persec,
               "total irrigation consumption",    "BCM",      total_irr_bcm,
               "watershed population",            "people",   population_total,
               "population water consumption",    "ltr/day",  ltr_per_day,

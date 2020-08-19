@@ -259,17 +259,26 @@ count_watershed_teleconnections <- function(data_dir,
             .[["value"]]
         }) %>% unlist() %>% sum() -> thermal_with_BCM
 
-        # cultivated runoff percent
+        # total runoff
         map(city_watershed_data, function(x){
-          x$metrics %>% filter(metric == "runoff from cropland") %>%
+          x$metrics %>% filter(metric == "total runoff from watershed") %>%
             .[["value"]]
-        }) %>% unlist() %>% sum() -> cropland_runoff_percent
+        }) %>% unlist() %>% sum() -> total_runoff
 
         # developed runoff percent
         map(city_watershed_data, function(x){
-          x$metrics %>% filter(metric == "runoff from developed land") %>%
+          x$metrics %>% filter(metric == "development runoff") %>%
             .[["value"]]
-        }) %>% unlist() %>% sum() -> developed_runoff_percent
+        }) %>% unlist() %>% sum() -> developed_runoff
+
+        # cropland runoff percent
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "cultivated runoff") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> cropland_runoff
+
+        100 * (developed_runoff / total_runoff) -> developed_runoff_percent
+        100 * (cropland_runoff / total_runoff) -> cropland_runoff_percent
 
         # number of utilities
         power_plants_city %>%
