@@ -588,39 +588,31 @@ get_teleconnect_table <- function(){
 
 #' get_runoff_values
 #' @details calculate runoff volume in meters cubed per second
-#' @importFrom raster rasterToPolygons extract area values
-#' @importFrom sf st_as_sf st_union as_Spatial st_make_valid
 #' @importFrom tidyr as_tibble
 #' @importFrom dplyr rename
-#' @importFrom stars st_as_stars
+#' @importFrom raster mask getValues crop area resample
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
-get_runoff_values <- function(cropcover_agg, runoff_agg, lc_values){
+get_runoff_values <- function(cropcover_agg, runoff_agg, lc_values, polygon_area, land_table){
 
   cropcover_agg -> lc_USA
 
   lc_USA[!(cropcover_agg[] %in% lc_values)] <- NA
 
-  if(all(is.na(values(lc_USA)))) return(0)
+  mask(runoff_agg, lc_USA) %>%
+      getValues() %>%
+      as_tibble() -> runoff_values
 
-  lc_combine <- sf::st_as_sf(stars::st_as_stars(lc_USA),
-                             as_points = FALSE, merge = TRUE) %>% st_make_valid() %>% st_union()
+  mean(runoff_values$value, na.rm = T) * mm_to_m -> runoff_mean_meters
 
-  lc_combine %>%
-    tmaptools::set_projection(projection = CRS("+proj=longlat +datum=WGS84 +no_defs")) %>%
-    st_as_sf() -> lc_proj
+  land_table %>%
+    .[["cell_freq"]] %>%
+    sum(na.rm = T) -> total_land
+  land_table %>%
+    filter(CDL_ID %in% lc_values) %>%
+    .[["cell_freq"]] %>%
+    sum(na.rm = T) -> select_land
 
-  raster::crs(runoff_agg) <- "+proj=longlat +datum=WGS84 +no_defs"
-
-  exactextractr::exact_extract(runoff_agg,lc_proj) %>%
-    as.data.frame() %>%
-    filter(coverage_fraction > 0.5) %>% select(c("value")) -> runoff_df
-  runoff_df[is.na(runoff_df)] <- 0
-  runoff_df$value %>%
-    mean() * mm_to_m -> runoff_mean_meters
-
-  lc_proj %>%
-    as_Spatial() %>%
-    raster::area() -> area_sq_m
+  ((select_land / total_land) * polygon_area) * m2_to_km2 -> area_sq_m
 
   (runoff_mean_meters * area_sq_m) / day_to_sec -> runoff_m3persec
 
