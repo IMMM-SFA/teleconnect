@@ -19,7 +19,7 @@ Imports:
     purrr,
     raster,
     readxl,
-    rgdal (== 1.5-12),
+    rgdal,
     smoothr,
     sf,
     sp,
