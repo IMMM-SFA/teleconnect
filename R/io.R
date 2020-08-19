@@ -602,6 +602,8 @@ get_runoff_values <- function(cropcover_agg, runoff_agg, lc_values, polygon_area
       getValues() %>%
       as_tibble() -> runoff_values
 
+  runoff_values[is.na(runoff_values)] <- 0
+
   mean(runoff_values$value, na.rm = T) * mm_to_m -> runoff_mean_meters
 
   land_table %>%

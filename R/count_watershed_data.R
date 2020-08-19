@@ -276,11 +276,11 @@ count_watershed_data <- function(data_dir,
         # TELECONNECTION - FIND RUNOFF VALUES FOR DEVELOPED AND CULTIVATED AREAS
         # Developed Runoff Calculation
         cropcover_USA %>%
-          crop(watersheds_select) ->
+          mask_raster_to_polygon(watersheds_select) ->
           cropcover_agg_nonproj
 
         runoff_raster %>%
-          crop(watersheds_select) ->
+          mask_raster_to_polygon(watersheds_select) ->
           runoff_agg
 
         cropcover_agg_crop <- crop(cropcover_agg_nonproj, runoff_agg)
