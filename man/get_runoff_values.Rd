@@ -4,7 +4,13 @@
 \alias{get_runoff_values}
 \title{get_runoff_values}
 \usage{
-get_runoff_values(cropcover_agg, runoff_agg, lc_values)
+get_runoff_values(
+  cropcover_agg,
+  runoff_agg,
+  lc_values,
+  polygon_area,
+  land_table
+)
 }
 \description{
 get_runoff_values
