@@ -22,7 +22,7 @@
 #' @export
 count_watershed_data <- function(data_dir,
                                  cities = NULL,
-                                 run_all,
+                                 run_all = TRUE,
                                  file_paths = c(
                                    watersheds = "water/CWM_v2_2/World_Watershed8.shp",
                                    withdrawal = "water/CWM_v2_2/Snapped_Withdrawal_Points.shp",
@@ -145,6 +145,8 @@ count_watershed_data <- function(data_dir,
   # map through all cities, computing teleconnections
   watersheds %>%
     map(function(watershed){
+
+      message(watershed)
 
       # subset watersheds shapefile for target watershed
       sup(subset(catchment_shapes, DVSN_ID %in% watershed)) -> watersheds_select
@@ -382,42 +384,43 @@ count_watershed_data <- function(data_dir,
           get_nlud_names() -> nlud_table
 
 
-        if(run_all == TRUE){
-        # -------------------------------------------------------
-        # TELECONNECTION - Interbasin Transfers in Watershed
-        # subset interbasin transfers for the select watershed
-        st_as_sf(watersheds_select) -> sf_watershed
-        sup(interbasin_transfers[sf_watershed, ]) -> watershed_transfers
+        # if(run_all == TRUE){
+        # # -------------------------------------------------------
+        # # TELECONNECTION - Interbasin Transfers in Watershed
+        # TEMPORARILY REMOVED DUE TO RUN PROBLEMS LIKELY DUE TO RGDAL UPDATE - ST
+        # # subset interbasin transfers for the select watershed
+        # st_as_sf(watersheds_select) -> sf_watershed
+        # sup(interbasin_transfers[sf_watershed, ]) -> watershed_transfers
+        #
+        # # add a row.id and +1 so that it equals the the row number starting from 1
+        # watershed_transfers$row.id <- as.numeric(rownames(watershed_transfers))
+        # watershed_transfers$row.id <- watershed_transfers$row.id + 1
+        #
+        # # find all the transfers that are fully within the watershed shape, then join by row.id
+        # sup(st_within(interbasin_transfers, sf_watershed)) %>% as_tibble() %>%
+        #   left_join(watershed_transfers, by = "row.id") -> transfers_within
+        #
+        # # subset the interbasin transfers by those that are with in and those that are outward
+        # subset(interbasin_transfers, OBJECTID %in% transfers_within$OBJECTID) -> inner_transfers
+        #
+        # subset(watershed_transfers, !(OBJECTID %in% inner_transfers$OBJECTID)) -> outer_transfers
+        #
+        # # get start and endpoints of the outer transfers to determine inflow/outflow
+        # get_startpoints(outer_transfers) -> transfer_start
+        # get_endpoints(outer_transfers) -> transfer_end
+        #
+        # # find transfers that start within the watershed and transfers that start outside of the watershed
+        # sup(transfer_start[sf_watershed, ]) %>%
+        #   nrow() -> n_transfers_out
+        # sup(transfer_end[sf_watershed, ]) %>%
+        #   nrow() -> n_transfers_into
+        # nrow(inner_transfers) -> n_transfers_within
 
-        # add a row.id and +1 so that it equals the the row number starting from 1
-        watershed_transfers$row.id <- as.numeric(rownames(watershed_transfers))
-        watershed_transfers$row.id <- watershed_transfers$row.id + 1
-
-        # find all the transfers that are fully within the watershed shape, then join by row.id
-        sup(st_within(interbasin_transfers, sf_watershed)) %>% as_tibble() %>%
-          left_join(watershed_transfers, by = "row.id") -> transfers_within
-
-        # subset the interbasin transfers by those that are with in and those that are outward
-        subset(interbasin_transfers, OBJECTID %in% transfers_within$OBJECTID) -> inner_transfers
-
-        subset(watershed_transfers, !(OBJECTID %in% inner_transfers$OBJECTID)) -> outer_transfers
-
-        # get start and endpoints of the outer transfers to determine inflow/outflow
-        get_startpoints(outer_transfers) -> transfer_start
-        get_endpoints(outer_transfers) -> transfer_end
-
-        # find transfers that start within the watershed and transfers that start outside of the watershed
-        sup(transfer_start[sf_watershed, ]) %>%
-          nrow() -> n_transfers_out
-        sup(transfer_end[sf_watershed, ]) %>%
-          nrow() -> n_transfers_into
-        nrow(inner_transfers) -> n_transfers_within
-
-        }else{
-          n_transfers_into <- 0
-          n_transfers_out <- 0
-          n_transfers_within <- 0
-        }
+        #}else{
+          n_transfers_into <- NA_integer_
+          n_transfers_out <- NA_integer_
+          n_transfers_within <- NA_integer_
+        #}
         #---------------------------------------------------------
         # TELECONNTECTION - Number of climate zones watershed crosses
         get_zonal_data(us_climate, watersheds_select) %>%
