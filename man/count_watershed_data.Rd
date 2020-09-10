@@ -7,7 +7,7 @@
 count_watershed_data(
   data_dir,
   cities = NULL,
-  run_all,
+  run_all = TRUE,
   file_paths = c(watersheds = "water/CWM_v2_2/World_Watershed8.shp", withdrawal =
     "water/CWM_v2_2/Snapped_Withdrawal_Points.shp", citypoint =
     "water/CWM_v2_2/City_Centroid.shp", powerplants =

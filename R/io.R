@@ -540,15 +540,19 @@ get_population <- function(){
 #' @param watershed select watershed
 #' @details Load in runoff time series and select the watershed being analyzed and its time series
 #' @importFrom vroom vroom cols
-#' @importFrom dplyr pull
+#' @importFrom dplyr select one_of
+#' @importFrom tidyr gather separate
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
 #' @export
-get_watershed_ts <- function(){
+get_watershed_ts <- function(watersheds){
 
   vroom(paste0(system.file("extdata", package = "teleconnect"),
                                 "/teleconnect_runoff_bcm.csv"),
-                         delim = ",", skip = 2, col_types = cols()) -> flow
-  return(flow)
+                         delim = ",", skip = 2, col_types = cols()) %>%
+    select(Monthly_Date, one_of(as.character(watersheds))) %>%
+    separate(Monthly_Date, into = c("year", "month")) %>%
+    gather(watershed, flow_BCM, -year, -month) %>%
+    mutate(watershed = as.integer(watershed))
 }
 
 #' get_irrigation_bcm
@@ -628,18 +632,25 @@ get_runoff_values <- function(cropcover_agg, runoff_agg, lc_values, polygon_area
 #' @importFrom dplyr filter
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
 get_wasteflow_points <- function(){
-  suppressMessages(vroom(paste0(system.file("extdata", package = "teleconnect"),
-               "/waste_flow_data.csv"))) -> waste_table
+  vroom(paste0(system.file("extdata", package = "teleconnect"),
+               "/CWNS_2012.csv"), col_types = cols()) ->
+    wwtp_table
 
-  waste_table %>% filter(!is.na(lon)) -> waste_table_filter
+  wwtp_table %>%
+    filter(discharge_method == "Outfall To Surface Waters") %>%
+    select(cwns_id, lon, lat, flow_MGD) %>%
+    filter(!is.na(flow_MGD)) %>%
+    filter(!is.na(lon), !is.na(lat)) %>%
+    mutate(flow_cumecs = flow_MGD * MGD_to_m3sec) %>%
+    select(lon, lat, flow_cumecs) ->
+    wwtp_surface_discharge_data
 
-  waste_table_filter[c("lon", "lat")] -> coords
+  SpatialPointsDataFrame(wwtp_surface_discharge_data[c("lon", "lat")],
+                         data = wwtp_surface_discharge_data,
+                         proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs")) ->
+    wwtp_surface_discharge_points
 
-  SpatialPointsDataFrame(coords,
-                         data = waste_table_filter,
-                         proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs")) -> flow_points
-
-  return(flow_points)
+  return(wwtp_surface_discharge_points)
 }
 
 

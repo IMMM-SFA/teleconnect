@@ -341,7 +341,7 @@ count_watershed_teleconnections <- function(data_dir,
 
         # driest historical runoff
         map(city_watershed_data, function(x){
-          x$metrics %>% filter(metric == "driest_runoff_m3sec") %>%
+          x$metrics %>% filter(metric == "driest month average runoff") %>%
             .[["value"]]
         }) %>% unlist() %>% sum() -> driest_runoff_m3sec
 
@@ -351,17 +351,23 @@ count_watershed_teleconnections <- function(data_dir,
             .[["value"]]
         }) %>% unlist() %>% sum() -> n_treatment_plants
 
+        # wastewater plant discharge
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "wastewater discharge") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> wastewater_discharge_m3sec
+
         # calculate discharge
 
         pop_cons_ltr_day * ltrday_to_m3sec -> pop_cons_m3sec
 
         # discharge percent of runoff
 
-        pop_cons_m3sec / historical_runoff_m3sec -> waste_percent_historical
+        100 * (wastewater_discharge_m3sec / historical_runoff_m3sec) -> waste_percent_historical
 
         # discharge percent of driest month
 
-        pop_cons_m3sec / driest_runoff_m3sec -> waste_percent_driest_month
+        100 * (wastewater_discharge_m3sec / driest_runoff_m3sec) -> waste_percent_driest_month
 
         done(city)
 

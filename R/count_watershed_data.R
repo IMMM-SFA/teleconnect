@@ -16,6 +16,7 @@
 #' @importFrom reservoir yield
 #' @importFrom raster intersect extent
 #' @importFrom stringr str_remove
+#' @importFrom tidyr separate
 #' @import rgeos
 #' @import rgdal
 #' @import dams
@@ -140,7 +141,7 @@ count_watershed_data <- function(data_dir,
   get_wasteflow_points() -> wasteflow_points
 
   # read in watershed time series
-  sup(get_watershed_ts()) -> flow
+  get_watershed_ts(watersheds) -> flow
 
   # map through all cities, computing teleconnections
   watersheds %>%
@@ -228,20 +229,17 @@ count_watershed_data <- function(data_dir,
 
         #-------------------------------------------------------
         # TELECONNECTION - WATERSHED RUNOFF VALUES
-        as.character(watershed) -> name
-        flow[c("Monthly_Date",name)] -> select_ts
+        flow %>%
+          filter(watershed == !!watershed) ->
+          watershed_flow
 
-        colnames(select_ts)[2] <- "runoff_vals"
+        watershed_flow[["flow_BCM"]] %>% mean() * BCMmonth_to_m3sec ->
+          historical_runoff_m3sec
 
-        select_ts %>%
-          filter(runoff_vals == min(runoff_vals)) %>% .[["Monthly_Date"]] -> driest_month
-        min(select_ts[c(2)]) * BCMmonth_to_m3sec -> driest_runoff_m3sec
-
-        select_ts %>% separate(Monthly_Date, into = c("Year", "Month"), sep = "/") %>%
-          group_by(Year) %>%
-          dplyr::summarize_at(vars(runoff_vals), sum) -> select_ts_yearly
-
-        (mean(select_ts_yearly$runoff_vals) * BCMyr_to_m3sec) -> historical_runoff_m3sec
+        watershed_flow %>%
+          group_by(month) %>% summarise(flow = mean(flow_BCM)) %>%
+          .[["flow"]] %>% min() * BCMmonth_to_m3sec ->
+          driest_runoff_m3sec
 
         #-------------------------------------------------------
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
@@ -439,7 +437,7 @@ count_watershed_data <- function(data_dir,
           watershed_storage_BCM
 
         flow %>%
-        pull(as.character(watershed)) -> flow_ts
+          .[["flow_BCM"]] -> flow_ts
 
         sup(yield(Q = flow_ts,
                   capacity = watershed_storage_BCM,
@@ -467,10 +465,11 @@ count_watershed_data <- function(data_dir,
         population_total * avg_wateruse_ltr_per_day -> ltr_per_day
         #---------------------------------------------------------
         # Use waste flow points as a check
-        wasteflow_points[watersheds_select, ] %>% as_tibble() %>%
-          subset(PRES_FACILITY_OVERALL_TYPE == "Wastewater") %>%
-          subset(DISCHARGE_METHOD == "Outfall To Surface Waters") %>%
-          nrow() -> n_treatment_plants
+        wasteflow_points[watersheds_select, ] %>% .@data %>% as_tibble() ->
+          wwtp_points
+
+        wwtp_points[["flow_cumecs"]] %>% sum() -> wastewater_outflow_m3persec
+        nrow(wwtp_points %>% unique()) -> n_treatment_plants
 
         #---------------------------------------------------------
 
@@ -503,7 +502,8 @@ count_watershed_data <- function(data_dir,
               "watershed population",            "people",   population_total,
               "population water consumption",    "ltr/day",  ltr_per_day,
               "average historical runoff",       "m3/sec",   historical_runoff_m3sec,
-              "driest_runoff_m3sec",             "m3/sec",   driest_runoff_m3sec,
+              "driest month average runoff",     "m3/sec",   driest_runoff_m3sec,
+              "wastewater discharge",            "m3/sec",   wastewater_outflow_m3persec
             ),
             land = land_table,
             economic_sectors = nlud_table,
