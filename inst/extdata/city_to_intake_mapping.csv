@@ -299,8 +299,8 @@ Indianapolis,IN,165,Geist Reservoir,2276,1039,Indianapolis | IN,FALSE
 Indianapolis,IN,165,Fall Creek - Fall Creek Plant,2277,1039,Indianapolis | IN,FALSE
 Indianapolis,IN,165,Eagle Creek Reservoir,2278,1039,Indianapolis | IN,TRUE
 Indianapolis,IN,165,NA,2279,1039,Indianapolis | IN,FALSE
-Jackson,MS,381,Ross Barnett Reservoir,3743,1326,Jackson | MS,FALSE
-Jackson,MS,381,Pearl River,3683,1326,Jackson | MS,TRUE
+Jackson,MS,381,Ross Barnett Reservoir,3743,1326,Jackson | MS,TRUE
+Jackson,MS,381,Pearl River,3683,1326,Jackson | MS,FALSE
 Jacksonville,FL,164,NA,2273,1038,Jacksonville | FL,TRUE
 Johnson City,TN,434,NA,3848,1379,Johnson City | TN,FALSE
 Johnson City,TN,434,Watauga River,3861,1379,Johnson City | TN,TRUE
