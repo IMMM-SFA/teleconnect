@@ -7,6 +7,7 @@
 count_watershed_teleconnections(
   data_dir,
   cities = NULL,
+  run_all = TRUE,
   file_paths = c(watersheds = "water/CWM_v2_2/World_Watershed8.shp", withdrawal =
     "water/CWM_v2_2/Snapped_Withdrawal_Points.shp", citypoint =
     "water/CWM_v2_2/City_Centroid.shp", powerplants =
@@ -18,7 +19,7 @@ count_watershed_teleconnections(
     transfers = "water/transfers/USIBTsHUC6_Dickson.shp", climate =
     "land/kop_climate_classes.tif", HUC4 = "water/USA_HUC4/huc4_to_huc2.shp", population
     = "land/pden2010_block/pden2010_60m.tif", runoff =
-    "water/Historical_Mean_Runoff/Historical_Mean_Runoff.tif")
+    "water/Historical_Mean_Runoff/USA_Mean_Runoff.tif")
 )
 }
 \arguments{

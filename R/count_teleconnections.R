@@ -16,9 +16,11 @@
 #' @importFrom tibble tibble
 #' @importFrom sf as_Spatial
 #' @importFrom foreign read.dbf
+#' @import rgdal
 #' @export
 count_watershed_teleconnections <- function(data_dir,
                                             cities = NULL,
+                                            run_all = TRUE,
                                             file_paths = c(
                                               watersheds = "water/CWM_v2_2/World_Watershed8.shp",
                                               withdrawal = "water/CWM_v2_2/Snapped_Withdrawal_Points.shp",
@@ -33,11 +35,12 @@ count_watershed_teleconnections <- function(data_dir,
                                               climate = "land/kop_climate_classes.tif",
                                               HUC4 = "water/USA_HUC4/huc4_to_huc2.shp",
                                               population = "land/pden2010_block/pden2010_60m.tif",
-                                              runoff = "water/Historical_Mean_Runoff/Historical_Mean_Runoff.tif"
+                                              runoff = "water/Historical_Mean_Runoff/USA_Mean_Runoff.tif"
                                             )){
 
   suppressWarnings(count_watershed_data(data_dir = data_dir,
                        cities = cities,
+                       run_all = run_all,
                        file_paths = file_paths)) ->
     watershed_data
 
@@ -208,17 +211,17 @@ count_watershed_teleconnections <- function(data_dir,
             .[["value"]]
         }) %>% unlist() %>% sum() -> irr_cons_BCM
 
-        # population water consumption
+        # watershed_population
         map(city_watershed_data, function(x){
-          x$metrics %>% filter(metric == "population") %>%
+          x$metrics %>% filter(metric == "watershed population") %>%
             .[["value"]]
-        }) %>% unlist() %>% sum() -> pop
+        }) %>% unlist() %>% sum() -> watershed_pop
 
         # population water consumption
         map(city_watershed_data, function(x){
           x$metrics %>% filter(metric == "population water consumption") %>%
             .[["value"]]
-        }) %>% unlist() %>% sum() -> pop_cons_ltr_sqkm
+        }) %>% unlist() %>% sum() -> pop_cons_ltr_day
 
         # hydro plants
         map(city_watershed_data, function(x){
@@ -256,17 +259,26 @@ count_watershed_teleconnections <- function(data_dir,
             .[["value"]]
         }) %>% unlist() %>% sum() -> thermal_with_BCM
 
-        # cultivated runoff percent
+        # total runoff
         map(city_watershed_data, function(x){
-          x$metrics %>% filter(metric == "runoff from cropland") %>%
+          x$metrics %>% filter(metric == "total runoff from watershed") %>%
             .[["value"]]
-        }) %>% unlist() %>% sum() -> cropland_runoff_percent
+        }) %>% unlist() %>% sum() -> total_runoff
 
         # developed runoff percent
         map(city_watershed_data, function(x){
-          x$metrics %>% filter(metric == "runoff from developed land") %>%
+          x$metrics %>% filter(metric == "development runoff") %>%
             .[["value"]]
-        }) %>% unlist() %>% sum() -> developed_runoff_percent
+        }) %>% unlist() %>% sum() -> developed_runoff
+
+        # cropland runoff percent
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "cultivated runoff") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> cropland_runoff
+
+        100 * (developed_runoff / total_runoff) -> developed_runoff_percent
+        100 * (cropland_runoff / total_runoff) -> cropland_runoff_percent
 
         # number of utilities
         power_plants_city %>%
@@ -321,6 +333,41 @@ count_watershed_teleconnections <- function(data_dir,
             .[["Reclass"]] %>% unique()
         }) %>% unlist() %>% unique() %>% length() -> n_economic_sectors
 
+        # average historical runoff
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "average historical runoff") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> historical_runoff_m3sec
+
+        # driest historical runoff
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "driest month average runoff") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> driest_runoff_m3sec
+
+        # treatment plants
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "outflow treatment plants") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> n_treatment_plants
+
+        # wastewater plant discharge
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "wastewater discharge") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> wastewater_discharge_m3sec
+
+        # calculate discharge
+
+        pop_cons_ltr_day * ltrday_to_m3sec -> pop_cons_m3sec
+
+        # discharge percent of runoff
+
+        100 * (wastewater_discharge_m3sec / historical_runoff_m3sec) -> waste_percent_historical
+
+        # discharge percent of driest month
+
+        100 * (wastewater_discharge_m3sec / driest_runoff_m3sec) -> waste_percent_driest_month
 
         done(city)
 
@@ -335,7 +382,6 @@ count_watershed_teleconnections <- function(data_dir,
                  storage_BCM,
                  yield_BCM,
                  irr_cons_BCM,
-                 pop,
                  n_climate_zones,
                  n_transfers_in,
                  n_transfers_out,
@@ -355,7 +401,12 @@ count_watershed_teleconnections <- function(data_dir,
                  developed_runoff_percent,
                  n_economic_sectors,
                  max_withdr_dist_km,
-                 avg_withdr_dis_km)
+                 avg_withdr_dis_km,
+                 n_treatment_plants,
+                 watershed_pop,
+                 pop_cons_m3sec,
+                 waste_percent_historical,
+                 waste_percent_driest_month)
         )
       }
 

@@ -4,7 +4,7 @@
 \alias{get_watershed_ts}
 \title{get_watershed_ts}
 \usage{
-get_watershed_ts(watershed)
+get_watershed_ts(watersheds)
 }
 \arguments{
 \item{watershed}{select watershed}
