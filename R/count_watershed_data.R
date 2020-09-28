@@ -141,7 +141,7 @@ count_watershed_data <- function(data_dir,
   get_wasteflow_points() -> wasteflow_points
 
   # read in watershed time series
-  get_watershed_ts(watersheds) -> flow
+  get_watershed_ts(watersheds) -> runoff_totals
 
   # map through all cities, computing teleconnections
   watersheds %>%
@@ -228,18 +228,28 @@ count_watershed_data <- function(data_dir,
           thermal_withdr_BCM
 
         #-------------------------------------------------------
-        # TELECONNECTION - WATERSHED RUNOFF VALUES
-        flow %>%
+        # TELECONNECTION - WATERSHED RUNOFF AND FLOW VALUES
+        runoff_totals %>%
           filter(watershed == !!watershed) ->
-          watershed_flow
+          watershed_runoff
 
-        watershed_flow[["flow_BCM"]] %>% mean() * BCMmonth_to_m3sec ->
-          historical_runoff_m3sec
+        watershed_runoff[["flow_BCM"]] %>% mean() * BCMmonth_to_m3sec ->
+          historical_runoff_mean_m3sec
 
-        watershed_flow %>%
+        watershed_runoff %>%
           group_by(month) %>% summarise(flow = mean(flow_BCM)) %>%
           .[["flow"]] %>% min() * BCMmonth_to_m3sec ->
-          driest_runoff_m3sec
+          historical_runoff_dry_m3sec
+
+        get_usgs_flows(watershed) -> watershed_flow
+
+        watershed_flow %>% .[["flow_m3sec"]] %>% mean() ->
+          historical_flow_mean_m3sec
+
+        watershed_flow %>%
+          group_by(month) %>% summarise(flow = mean(flow_m3sec)) %>%
+          .[["flow"]] %>% min() ->
+          historical_flow_dry_m3sec
 
         #-------------------------------------------------------
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
@@ -436,10 +446,10 @@ count_watershed_data <- function(data_dir,
         sum(watershed_dams$normal_storage, na.rm = TRUE) * AF_to_BCM ->
           watershed_storage_BCM
 
-        flow %>%
-          .[["flow_BCM"]] -> flow_ts
+        runoff_totals %>%
+          .[["flow_BCM"]] -> runoff_total_ts
 
-        sup(yield(Q = flow_ts,
+        sup(yield(Q = runoff_total_ts,
                   capacity = watershed_storage_BCM,
                   reliability = 1,
                   plot = FALSE,
@@ -501,8 +511,10 @@ count_watershed_data <- function(data_dir,
               "total irrigation consumption",    "BCM",      total_irr_bcm,
               "watershed population",            "people",   population_total,
               "population water consumption",    "ltr/day",  ltr_per_day,
-              "average historical runoff",       "m3/sec",   historical_runoff_m3sec,
-              "driest month average runoff",     "m3/sec",   driest_runoff_m3sec,
+              "average historical runoff",       "m3/sec",   historical_runoff_mean_m3sec,
+              "average historical flow",         "m3/sec",   historical_flow_mean_m3sec,
+              "driest month average runoff",     "m3/sec",   historical_runoff_dry_m3sec,
+              "driest month average flow",       "m3/sec",   historical_flow_dry_m3sec,
               "wastewater discharge",            "m3/sec",   wastewater_outflow_m3persec
             ),
             land = land_table,
