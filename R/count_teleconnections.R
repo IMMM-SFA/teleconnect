@@ -333,17 +333,99 @@ count_watershed_teleconnections <- function(data_dir,
             .[["Reclass"]] %>% unique()
         }) %>% unlist() %>% unique() %>% length() -> n_economic_sectors
 
+        # wastewater plant discharge
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "wastewater discharge") %>%
+            .[["value"]]
+        }) %>% as_tibble() %>% gather(DVSN_ID, wastewater_discharge_m3sec) ->
+          wastewater_discharge_m3sec
+
+        # get contribution of different source watersheds to city supply
+        get_source_contribution(city) %>%
+          mutate(DVSN_ID = as.character(DVSN_ID)) -> source_contributions
+
         # average historical runoff
         map(city_watershed_data, function(x){
           x$metrics %>% filter(metric == "average historical runoff") %>%
             .[["value"]]
-        }) %>% unlist() %>% sum() -> historical_runoff_m3sec
+        }) %>% as_tibble() %>%
+          gather(DVSN_ID, average_runoff_m3sec) ->
+          historical_runoff_m3sec
 
         # driest historical runoff
         map(city_watershed_data, function(x){
           x$metrics %>% filter(metric == "driest month average runoff") %>%
             .[["value"]]
-        }) %>% unlist() %>% sum() -> driest_runoff_m3sec
+        }) %>% as_tibble() %>%
+          gather(DVSN_ID, dry_month_runoff_m3sec) ->
+          driest_runoff_m3sec
+
+        # average historical streamflow (USGS)
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "average historical flow") %>%
+            .[["value"]]
+        }) %>% as_tibble() %>%
+          gather(DVSN_ID, average_flow_m3sec) ->
+          historical_flow_m3sec
+
+        # driest historical streamflow (USGS)
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "driest month average flow") %>%
+            .[["value"]]
+        }) %>% as_tibble() %>%
+          gather(DVSN_ID, dry_month_flow_m3sec) ->
+          driest_flow_m3sec
+
+        # compute wastewater discharge concentrations
+        left_join(source_contributions,
+                  left_join(historical_runoff_m3sec,
+                            driest_runoff_m3sec, by = "DVSN_ID"),
+                  by = "DVSN_ID") %>%
+          left_join(wastewater_discharge_m3sec, by = "DVSN_ID") %>%
+          left_join(historical_flow_m3sec, by = "DVSN_ID") %>%
+          left_join(driest_flow_m3sec, by = "DVSN_ID") %>%
+          mutate(conc_av_ro = wastewater_discharge_m3sec / average_runoff_m3sec,
+                 conc_dry_ro = wastewater_discharge_m3sec / dry_month_runoff_m3sec,
+                 conc_av_fl = wastewater_discharge_m3sec / average_flow_m3sec,
+                 conc_dry_fl = wastewater_discharge_m3sec / dry_month_flow_m3sec
+                 ) %>%
+          select(type, contribution_to_supply, conc_av_ro, conc_dry_ro, conc_av_fl, conc_dry_fl) %>%
+          filter(contribution_to_supply > 0) ->
+          # tidyr::replace_na(list(conc_av_ro = 0, conc_dry_ro = 0, conc_av_fl = 0 , conc_dry_fl = 0)) %>%
+          # mutate(conc_av_fl = if_else(any(is.na(historical_flow_m3sec[["average_flow_m3sec"]]))
+          wastewater_concentrations
+
+        # get surface ww concentration
+        wastewater_concentrations %>%
+          filter(type == "surface water") %>%
+          mutate(av_ro = contribution_to_supply * conc_av_ro,
+                 dr_ro = contribution_to_supply * conc_dry_ro,
+                 av_fl = contribution_to_supply * conc_av_fl,
+                 dr_fl = contribution_to_supply * conc_dry_fl) ->
+          surface_conc
+
+        surface_contribution <- sum(surface_conc[["contribution_to_supply"]])
+
+        # get total w concentration
+        wastewater_concentrations %>% filter(type != "surface water") %>%
+          tidyr::replace_na(list(conc_av_ro = 0, conc_dry_ro = 0, conc_av_fl = 0 , conc_dry_fl = 0)) %>%
+          mutate(av_ro = contribution_to_supply * conc_av_ro,
+                 dr_ro = contribution_to_supply * conc_dry_ro,
+                 av_fl = contribution_to_supply * conc_av_fl,
+                 dr_fl = contribution_to_supply * conc_dry_fl) %>%
+          bind_rows(surface_conc, .) -> all_conc
+
+        # runoff based
+        sum(surface_conc[["av_ro"]]) / surface_contribution * 100 -> ww_surf_av_ro_pct
+        sum(surface_conc[["dr_ro"]]) / surface_contribution * 100 -> ww_surf_dr_ro_pct
+        all_conc[["av_ro"]] %>% sum() * 100 -> ww_all_av_ro_pct
+        all_conc[["dr_ro"]] %>% sum() * 100 -> ww_all_dr_ro_pct
+
+        # flow based
+        sum(surface_conc[["av_fl"]]) / surface_contribution * 100 -> ww_surf_av_fl_pct
+        sum(surface_conc[["dr_fl"]]) / surface_contribution * 100 -> ww_surf_dr_fl_pct
+        all_conc[["av_fl"]] %>% sum() * 100 -> ww_all_av_fl_pct
+        all_conc[["dr_fl"]] %>% sum() * 100 -> ww_all_dr_fl_pct
 
         # treatment plants
         map(city_watershed_data, function(x){
@@ -351,23 +433,10 @@ count_watershed_teleconnections <- function(data_dir,
             .[["value"]]
         }) %>% unlist() %>% sum() -> n_treatment_plants
 
-        # wastewater plant discharge
-        map(city_watershed_data, function(x){
-          x$metrics %>% filter(metric == "wastewater discharge") %>%
-            .[["value"]]
-        }) %>% unlist() %>% sum() -> wastewater_discharge_m3sec
 
-        # calculate discharge
-
+        # population-based discharge
         pop_cons_ltr_day * ltrday_to_m3sec -> pop_cons_m3sec
 
-        # discharge percent of runoff
-
-        100 * (wastewater_discharge_m3sec / historical_runoff_m3sec) -> waste_percent_historical
-
-        # discharge percent of driest month
-
-        100 * (wastewater_discharge_m3sec / driest_runoff_m3sec) -> waste_percent_driest_month
 
         done(city)
 
@@ -405,8 +474,10 @@ count_watershed_teleconnections <- function(data_dir,
                  n_treatment_plants,
                  watershed_pop,
                  pop_cons_m3sec,
-                 waste_percent_historical,
-                 waste_percent_driest_month)
+                 ww_surf_av_ro_pct, ww_surf_dr_ro_pct,
+                 ww_all_av_ro_pct, ww_all_dr_ro_pct,
+                 ww_surf_av_fl_pct, ww_surf_dr_fl_pct,
+                 ww_all_av_fl_pct, ww_all_dr_fl_pct)
         )
       }
 

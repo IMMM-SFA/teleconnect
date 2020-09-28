@@ -653,4 +653,40 @@ get_wasteflow_points <- function(){
   return(wwtp_surface_discharge_points)
 }
 
+#' get_source_contribution
+#' @details get a city's water source contribution breakdown
+#' @importFrom vroom vroom cols
+#' @importFrom dplyr filter
+#' @author Sean Turner (sean.turner@pnnl.gov)
+get_source_contribution <- function(city){
+  vroom(paste0(system.file("extdata", package = "teleconnect"),
+               "/source_water_contributions.csv"), col_types = cols()) %>%
+    filter(city_state == city)
+}
+
+#' get_usgs_flows
+#' @details get usgs inflow associated with a DVSN
+#' @importFrom vroom vroom cols
+#' @importFrom dplyr filter one_of mutate
+#' @author Sean Turner (sean.turner@pnnl.gov)
+get_usgs_flows <- function(DVSN){
+
+    vroom(paste0(system.file("extdata", package = "teleconnect"),
+               "/teleconnect_flows_USGS_cfs.csv"), col_types = cols()) ->
+    all_flows
+
+  if(as.character(DVSN) %in% names(all_flows)){
+    return(
+      all_flows %>%
+        select(year, month, flow_cfs = one_of(as.character(DVSN))) %>%
+        mutate(flow_m3sec = cfs_to_m3sec * flow_cfs) %>%
+        select(year, month, flow_m3sec)
+    )
+  }
+
+  all_flows %>%
+    select(year, month) %>%
+    mutate(flow_m3sec = NA_real_)
+
+}
 
