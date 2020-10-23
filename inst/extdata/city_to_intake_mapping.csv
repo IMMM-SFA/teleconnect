@@ -518,8 +518,8 @@ Norfolk,VA,556,Lake Burnt Mills,3457,1498,Norfolk | VA,FALSE
 Norfolk,VA,556,Western Branch Reservoir-VA,3868,1498,Norfolk | VA,TRUE
 Norfolk,VA,556,Lake Prince,3520,1498,Norfolk | VA,FALSE
 Norfolk,VA,556,Lake Whitehurst,4224,1498,Norfolk | VA,TRUE
-Norfolk,VA,556,Little Creek Reservoir,4225,1498,Norfolk | VA,TRUE
-Norfolk,VA,556,Lake Lawson,4226,1498,Norfolk | VA,TRUE
+Norfolk,VA,556,Little Creek Reservoir,4225,1498,Norfolk | VA,FALSE
+Norfolk,VA,556,Lake Lawson,4226,1498,Norfolk | VA,FALSE
 Norfolk,VA,556,Lake Smith,4227,1498,Norfolk | VA,TRUE
 Norfolk,VA,556,Lake Wright,4228,1498,Norfolk | VA,FALSE
 Oakland,CA,184,San Pablo Reservoir,2334,1058,Oakland | CA,TRUE
