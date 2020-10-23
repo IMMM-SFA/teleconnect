@@ -245,11 +245,9 @@ New York | NY,Other - New York | NY,NA,groundwater or nonconventional water,0
 Newark | NJ,Pompton River,2371,surface water,0.6
 Newark | NJ,Other - Newark | NJ,NA,groundwater or nonconventional water,0.4
 Norfolk | VA,Western Branch Reservoir-VA,3868,surface water,0.5
-Norfolk | VA,Lake Whitehurst,4224,surface water,0.125
-Norfolk | VA,Little Creek Reservoir,4225,surface water,0.125
-Norfolk | VA,Lake Lawson,4226,surface water,0.125
-Norfolk | VA,Lake Smith,4227,surface water,0.125
-Norfolk | VA,Other - Norfolk | VA,NA,groundwater or nonconventional water,0
+Norfolk | VA,Lake Whitehurst,4224,surface water,0.2
+Norfolk | VA,Lake Smith,4227,surface water,0.2
+Norfolk | VA,Other - Norfolk | VA,NA,groundwater or nonconventional water,0.1
 Oakland | CA,San Pablo Reservoir,2334,surface water,0.033
 Oakland | CA,Lafayette Reservoir,2336,surface water,0.033
 Oakland | CA,Lake Chabot,2338,surface water,0.034

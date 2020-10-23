@@ -333,6 +333,25 @@ count_watershed_teleconnections <- function(data_dir,
             .[["Reclass"]] %>% unique()
         }) %>% unlist() %>% unique() %>% length() -> n_economic_sectors
 
+        # get contribution of different source watersheds to city supply
+        get_source_contribution(city) %>%
+          mutate(DVSN_ID = as.character(DVSN_ID)) -> source_contributions
+
+        source_contributions %>%
+          filter(type == "surface water") %>%
+          .[["contribution_to_supply"]] %>% sum() * 100 -> surface_contribution_pct
+
+
+        # runoff, flow, and wastewater plant discharge
+        map(city_watershed_data, function(x){
+          x$metrics %>%
+            filter(metric %in% c("average historical runoff",
+                                 "average historical flow",
+                                 "driest month average runoff",
+                                 "driest month average flow")) %>%
+            select(-unit)
+        }) -> runoff_and_flows
+
         # wastewater plant discharge
         map(city_watershed_data, function(x){
           x$metrics %>% filter(metric == "wastewater discharge") %>%
@@ -340,92 +359,47 @@ count_watershed_teleconnections <- function(data_dir,
         }) %>% as_tibble() %>% gather(DVSN_ID, wastewater_discharge_m3sec) ->
           wastewater_discharge_m3sec
 
-        # get contribution of different source watersheds to city supply
-        get_source_contribution(city) %>%
-          mutate(DVSN_ID = as.character(DVSN_ID)) -> source_contributions
+        names(runoff_and_flows) %>%
+          map_dfr(function(DVSN){
+            runoff_and_flows[[DVSN]] %>%
+              mutate(DVSN_ID = !! DVSN) %>%
+              left_join(wastewater_discharge_m3sec, by = "DVSN_ID")
+          }) %>% mutate(conc_pct = 100 * (wastewater_discharge_m3sec / value)) %>%
+          select(DVSN_ID, metric, conc_pct) %>%
+          split(.$metric) %>%
+          map(function(x) right_join(x, source_contributions, by = "DVSN_ID")) ->
+          flow_and_runoff_metrics_and_contributions
 
-        # average historical runoff
-        map(city_watershed_data, function(x){
-          x$metrics %>% filter(metric == "average historical runoff") %>%
-            .[["value"]]
-        }) %>% as_tibble() %>%
-          gather(DVSN_ID, average_runoff_m3sec) ->
-          historical_runoff_m3sec
+        # mean concentration of surface water supply
+        flow_and_runoff_metrics_and_contributions %>%
+          map(function(x){
+            x %>% filter(type == "surface water") %>%
+              summarise(conc = sum(conc_pct * contribution_to_supply) / sum(contribution_to_supply)) %>%
+              .[["conc"]]
+          }) -> surface_water_concentrations
 
-        # driest historical runoff
-        map(city_watershed_data, function(x){
-          x$metrics %>% filter(metric == "driest month average runoff") %>%
-            .[["value"]]
-        }) %>% as_tibble() %>%
-          gather(DVSN_ID, dry_month_runoff_m3sec) ->
-          driest_runoff_m3sec
+        # mean concentration of all water supply
+        flow_and_runoff_metrics_and_contributions %>%
+          map(function(x){
+            x %>%
+              mutate(conc_pct = if_else(is.na(conc_pct) & type != "surface water", 0, conc_pct)) %>%
+              summarise(conc = sum(conc_pct * contribution_to_supply) / sum(contribution_to_supply)) %>%
+              .[["conc"]]
+          }) -> all_water_concentrations
 
-        # average historical streamflow (USGS)
-        map(city_watershed_data, function(x){
-          x$metrics %>% filter(metric == "average historical flow") %>%
-            .[["value"]]
-        }) %>% as_tibble() %>%
-          gather(DVSN_ID, average_flow_m3sec) ->
-          historical_flow_m3sec
+      # concentration from worst-case surface water supply
+        flow_and_runoff_metrics_and_contributions %>%
+          map(function(x){
+            x %>% filter(type == "surface water") %>%
+              summarise(conc = max(conc_pct)) %>% .[["conc"]]
+          }) -> surface_water_concentration_worst
 
-        # driest historical streamflow (USGS)
-        map(city_watershed_data, function(x){
-          x$metrics %>% filter(metric == "driest month average flow") %>%
-            .[["value"]]
-        }) %>% as_tibble() %>%
-          gather(DVSN_ID, dry_month_flow_m3sec) ->
-          driest_flow_m3sec
-
-        # compute wastewater discharge concentrations
-        left_join(source_contributions,
-                  left_join(historical_runoff_m3sec,
-                            driest_runoff_m3sec, by = "DVSN_ID"),
-                  by = "DVSN_ID") %>%
-          left_join(wastewater_discharge_m3sec, by = "DVSN_ID") %>%
-          left_join(historical_flow_m3sec, by = "DVSN_ID") %>%
-          left_join(driest_flow_m3sec, by = "DVSN_ID") %>%
-          mutate(conc_av_ro = wastewater_discharge_m3sec / average_runoff_m3sec,
-                 conc_dry_ro = wastewater_discharge_m3sec / dry_month_runoff_m3sec,
-                 conc_av_fl = wastewater_discharge_m3sec / average_flow_m3sec,
-                 conc_dry_fl = wastewater_discharge_m3sec / dry_month_flow_m3sec
-                 ) %>%
-          select(type, contribution_to_supply, conc_av_ro, conc_dry_ro, conc_av_fl, conc_dry_fl) %>%
-          filter(contribution_to_supply > 0) ->
-          # tidyr::replace_na(list(conc_av_ro = 0, conc_dry_ro = 0, conc_av_fl = 0 , conc_dry_fl = 0)) %>%
-          # mutate(conc_av_fl = if_else(any(is.na(historical_flow_m3sec[["average_flow_m3sec"]]))
-          wastewater_concentrations
-
-        # get surface ww concentration
-        wastewater_concentrations %>%
+        # importance of worst-case surface water supply DVSN
+        flow_and_runoff_metrics_and_contributions$`average historical runoff` %>%
           filter(type == "surface water") %>%
-          mutate(av_ro = contribution_to_supply * conc_av_ro,
-                 dr_ro = contribution_to_supply * conc_dry_ro,
-                 av_fl = contribution_to_supply * conc_av_fl,
-                 dr_fl = contribution_to_supply * conc_dry_fl) ->
-          surface_conc
-
-        surface_contribution <- sum(surface_conc[["contribution_to_supply"]])
-
-        # get total w concentration
-        wastewater_concentrations %>% filter(type != "surface water") %>%
-          tidyr::replace_na(list(conc_av_ro = 0, conc_dry_ro = 0, conc_av_fl = 0 , conc_dry_fl = 0)) %>%
-          mutate(av_ro = contribution_to_supply * conc_av_ro,
-                 dr_ro = contribution_to_supply * conc_dry_ro,
-                 av_fl = contribution_to_supply * conc_av_fl,
-                 dr_fl = contribution_to_supply * conc_dry_fl) %>%
-          bind_rows(surface_conc, .) -> all_conc
-
-        # runoff based
-        sum(surface_conc[["av_ro"]]) / surface_contribution * 100 -> ww_surf_av_ro_pct
-        sum(surface_conc[["dr_ro"]]) / surface_contribution * 100 -> ww_surf_dr_ro_pct
-        all_conc[["av_ro"]] %>% sum() * 100 -> ww_all_av_ro_pct
-        all_conc[["dr_ro"]] %>% sum() * 100 -> ww_all_dr_ro_pct
-
-        # flow based
-        sum(surface_conc[["av_fl"]]) / surface_contribution * 100 -> ww_surf_av_fl_pct
-        sum(surface_conc[["dr_fl"]]) / surface_contribution * 100 -> ww_surf_dr_fl_pct
-        all_conc[["av_fl"]] %>% sum() * 100 -> ww_all_av_fl_pct
-        all_conc[["dr_fl"]] %>% sum() * 100 -> ww_all_dr_fl_pct
+          filter(conc_pct == max(conc_pct)) %>%
+          .[["contribution_to_supply"]] %>% dplyr::first() * 100 ->
+          importance_of_worst_watershed_pct
 
         # treatment plants
         map(city_watershed_data, function(x){
@@ -433,10 +407,8 @@ count_watershed_teleconnections <- function(data_dir,
             .[["value"]]
         }) %>% unlist() %>% sum() -> n_treatment_plants
 
-
         # population-based discharge
         pop_cons_ltr_day * ltrday_to_m3sec -> pop_cons_m3sec
-
 
         done(city)
 
@@ -474,10 +446,20 @@ count_watershed_teleconnections <- function(data_dir,
                  n_treatment_plants,
                  watershed_pop,
                  pop_cons_m3sec,
-                 ww_surf_av_ro_pct, ww_surf_dr_ro_pct,
-                 ww_all_av_ro_pct, ww_all_dr_ro_pct,
-                 ww_surf_av_fl_pct, ww_surf_dr_fl_pct,
-                 ww_all_av_fl_pct, ww_all_dr_fl_pct)
+                 av_fl_sur_conc_pct = surface_water_concentrations[["average historical flow"]],
+                 dr_fl_sur_conc_pct = surface_water_concentrations[["driest month average flow"]],
+                 av_ro_sur_conc_pct = surface_water_concentrations[["average historical runoff"]],
+                 dr_ro_sur_conc_pct = surface_water_concentrations[["driest month average runoff"]],
+                 av_fl_all_conc_pct = all_water_concentrations[["average historical flow"]],
+                 dr_fl_all_conc_pct = all_water_concentrations[["driest month average flow"]],
+                 av_ro_all_conc_pct = all_water_concentrations[["average historical runoff"]],
+                 dr_ro_all_conc_pct = all_water_concentrations[["driest month average runoff"]],
+                 av_fl_max_conc_pct = surface_water_concentration_worst[["average historical flow"]],
+                 dr_fl_max_conc_pct = surface_water_concentration_worst[["driest month average flow"]],
+                 av_ro_max_conc_pct = surface_water_concentration_worst[["average historical runoff"]],
+                 dr_ro_max_conc_pct = surface_water_concentration_worst[["driest month average runoff"]],
+                 surface_contribution_pct,
+                 importance_of_worst_watershed_pct)
         )
       }
 
