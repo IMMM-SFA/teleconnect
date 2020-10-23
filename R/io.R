@@ -551,8 +551,7 @@ get_watershed_ts <- function(watersheds){
                          delim = ",", skip = 2, col_types = cols()) %>%
     select(Monthly_Date, one_of(as.character(watersheds))) %>%
     separate(Monthly_Date, into = c("year", "month")) %>%
-    gather(watershed, flow_BCM, -year, -month) %>%
-    mutate(watershed = as.integer(watershed))
+    gather(watershed, flow_BCM, -year, -month)
 }
 
 #' get_irrigation_bcm

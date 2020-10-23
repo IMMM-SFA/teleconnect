@@ -143,6 +143,11 @@ count_watershed_data <- function(data_dir,
   # read in watershed time series
   get_watershed_ts(watersheds) -> runoff_totals
 
+  # temporary fix for Jackson MS
+  if(watersheds == 3743){
+    runoff_totals <- get_watershed_ts(3683) %>% mutate(watershed = 3743)
+  }
+
   # map through all cities, computing teleconnections
   watersheds %>%
     map(function(watershed){
@@ -154,7 +159,7 @@ count_watershed_data <- function(data_dir,
 
       # deal with groundwater cases by returning blank result
       if(nrow(watersheds_select) == 0){
-        done(watershed)
+        done(paste0(watershed, " (groundwater)"))
         return(list(counts = tibble(item = as.character(), counts = as.integer()),
                     metrics = tibble(),
                     land_table = tibble(),
@@ -477,6 +482,12 @@ count_watershed_data <- function(data_dir,
         # Use waste flow points as a check
         wasteflow_points[watersheds_select, ] %>% .@data %>% as_tibble() ->
           wwtp_points
+
+        ## manual catch for Norfolk | VA (WWTP falls outside of watershed 4227),
+        ## and Aurora | IL (WWTP falls outside of 2349)
+
+        if(watershed %in% c(4227, 2349)) wwtp_points <- tibble()
+
 
         wwtp_points[["flow_cumecs"]] %>% sum() -> wastewater_outflow_m3persec
         nrow(wwtp_points %>% unique()) -> n_treatment_plants
