@@ -187,6 +187,23 @@ count_watershed_teleconnections <- function(data_dir,
             .[["count"]]
         }) %>% unlist() %>% sum() -> n_transfers_out
 
+        # get facility counts per unit area
+        map(city_watershed_data, function(x){
+          x$counts %>% filter(item %in% c("ag_crops_facilities",
+                                          "ag_livestock_facilities",
+                                          "construction_and_manufacturing",
+                                          "mining",
+                                          "oil_and_gas",
+                                          "facilities_total"))
+        }) %>% bind_rows() %>% group_by(item) %>% summarise(n = sum(count)) ->
+          total_facility_counts
+        filter(total_facility_counts, item == "ag_crops_facilities") %>% .[["n"]] -> n_fac_agcrop
+        filter(total_facility_counts, item == "ag_livestock_facilities") %>% .[["n"]] -> n_fac_aglivestock
+        filter(total_facility_counts, item == "construction_and_manufacturing") %>% .[["n"]] -> n_fac_cnsmnf
+        filter(total_facility_counts, item == "mining") %>% .[["n"]] -> n_fac_mining
+        filter(total_facility_counts, item == "oil_and_gas") %>% .[["n"]] -> n_fac_oilgas
+        filter(total_facility_counts, item == "facilities_total") %>% .[["n"]] -> n_fac_total
+
         # total_watershed_area
         map(city_watershed_data, function(x){
           x$metrics %>% filter(metric == "watershed area") %>%
@@ -429,6 +446,12 @@ count_watershed_teleconnections <- function(data_dir,
                  n_transfers_within,
                  n_hydro_plants,
                  n_thermal_plants,
+                 n_fac_agcrop,
+                 n_fac_aglivestock,
+                 n_fac_cnsmnf,
+                 n_fac_mining,
+                 n_fac_oilgas,
+                 n_fac_total,
                  hydro_gen_MWh,
                  thermal_gen_MWh,
                  thermal_cons_BCM,

@@ -140,6 +140,9 @@ count_watershed_data <- function(data_dir,
   # read in waste flow points
   get_wasteflow_points() -> wasteflow_points
 
+  # read in EPA facilities
+  get_epa_facilities() -> epa_facilities
+
   # read in watershed time series
   get_watershed_ts(watersheds) -> runoff_totals
 
@@ -493,6 +496,19 @@ count_watershed_data <- function(data_dir,
         nrow(wwtp_points %>% unique()) -> n_treatment_plants
 
         #---------------------------------------------------------
+        # count the facilities present in the watershed
+        epa_facilities[watersheds_select, ] %>% .@data -> facilities_present
+        n_ag_crops <- facilities_present %>% filter(sector == "ag_crops") %>% nrow()
+        n_ag_livestock <- facilities_present %>% filter(sector == "ag_livestock") %>% nrow()
+        n_construction_and_manufacturing <- facilities_present %>% filter(sector == "construction_and_manufacturing") %>% nrow()
+        n_mining <- facilities_present %>% filter(sector == "mining") %>% nrow()
+        n_other <- facilities_present %>% filter(sector == "other") %>% nrow()
+        n_transport_and_utilities <- facilities_present %>% filter(sector == "transport_and_utilities") %>% nrow()
+        n_oil_and_gas_extraction <- facilities_present %>% filter(sector == "oil_and_gas_extraction") %>% nrow()
+        n_unspecified <- facilities_present %>% filter(sector == "unspecified") %>% nrow()
+        n_facilities_total <- facilities_present %>% nrow()
+
+        #---------------------------------------------------------
 
         return(
           list(
@@ -505,7 +521,13 @@ count_watershed_data <- function(data_dir,
               "transfers in",                  n_transfers_into,
               "transfers out",                 n_transfers_out,
               "transfers within",              n_transfers_within,
-              "outlow treatment plants",       n_treatment_plants
+              "outlow treatment plants",       n_treatment_plants,
+              "ag_crops_facilities",           n_ag_crops,
+              "ag_livestock_facilities",       n_ag_livestock,
+              "construction_and_manufacturing",n_construction_and_manufacturing,
+              "mining",                        n_mining,
+              "oil_and_gas",                   n_oil_and_gas_extraction,
+              "facilities_total",              n_facilities_total
             ),
             metrics = tribble(
               ~metric,                           ~unit,     ~value,

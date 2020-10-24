@@ -629,6 +629,7 @@ get_runoff_values <- function(cropcover_agg, runoff_agg, lc_values, polygon_area
 #' @importFrom vroom vroom cols
 #' @importFrom sp SpatialPointsDataFrame CRS
 #' @importFrom dplyr filter
+#' @importFrom tidyr replace_na
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
 get_wasteflow_points <- function(){
   vroom(paste0(system.file("extdata", package = "teleconnect"),
@@ -637,8 +638,10 @@ get_wasteflow_points <- function(){
 
   wwtp_table %>%
     filter(discharge_method == "Outfall To Surface Waters") %>%
-    select(cwns_id, lon, lat, flow_MGD) %>%
-    filter(!is.na(flow_MGD)) %>%
+    select(cwns_id, lon, lat, flow_mun_MGD, flow_ind_MGD, pop) %>%
+    replace_na(list(flow_mun_MGD = 0, flow_ind_MGD = 0)) %>%
+    mutate(flow_MGD = flow_mun_MGD + flow_ind_MGD) %>%
+    filter(flow_MGD > 0) %>%
     filter(!is.na(lon), !is.na(lat)) %>%
     mutate(flow_cumecs = flow_MGD * MGD_to_m3sec) %>%
     select(lon, lat, flow_cumecs) ->
@@ -686,6 +689,62 @@ get_usgs_flows <- function(DVSN){
   all_flows %>%
     select(year, month) %>%
     mutate(flow_m3sec = NA_real_)
+
+}
+
+#' get_epa_facilities
+#' @details import EPA facilities data
+#' @importFrom sf st_as_sf
+#' @importFrom vroom vroom cols
+#' @importFrom dplyr filter select mutate case_when
+#' @author Sean Turner (sean.turner@pnnl.gov)
+#'
+get_epa_facilities <- function(){
+
+  suppressWarnings(
+    vroom(paste0(system.file("extdata", package = "teleconnect"),
+                 "/EPA_facilities_water_NPDES_TRI.csv"), col_types = cols(),
+          comment = "##") %>%
+      mutate(SIC_CODES = gsub("0000, ", "", SIC_CODES)) %>%
+      mutate(SIC_CAT = as.integer(substr(SIC_CODES, 1, 2)),
+             NAICS_CAT = as.integer(substr(NAICS_CODES, 1, 4))) %>%
+      mutate(SIC = case_when(
+        SIC_CAT == 1 ~ "ag_crops",
+        SIC_CAT == 2 ~ "ag_livestock",
+        SIC_CAT == 13 ~ "oil_and_gas_extraction",
+        SIC_CAT %in% c(10, 11, 12, 14) ~ "mining",
+        SIC_CAT %in% 15:39 ~ "construction_and_manufacturing",
+        SIC_CAT %in% 40:49 ~ "transport_and_utilities",
+        is.na(SIC_CAT) | SIC_CAT == 0 ~ "unspecified",
+        TRUE ~ "other"
+      )) %>%
+      mutate(NAICS = case_when(
+        NAICS_CAT %in% 1111:1120 ~ "ag_crops",
+        NAICS_CAT %in% 1121:1124 ~ "ag_livestock",
+        NAICS_CAT == 2111 ~ "oil_and_gas_extraction",
+        NAICS_CAT %in% 2121:2131 ~ "mining",
+        NAICS_CAT %in% 2361:3399 ~ "construction_and_manufacturing",
+        NAICS_CAT %in% 4811:4931 ~ "transport_and_utilities",
+        is.na(NAICS_CAT) ~ "unspecified",
+        TRUE ~ "other"
+      )) %>%
+      mutate(sector = if_else(!is.na(SIC_CAT), SIC, NAICS)) %>%
+      select(id = REGISTRY_ID, lat = LATITUDE83, lon = LONGITUDE83, sector,
+             TRI_REPORTER, NPDES_REPORTER, NPDES_MAJOR)->
+      epa_facilities_data
+  )
+
+  epa_facilities_data %>%
+    filter(!is.na(lon)) %>%
+    filter(!is.na(lat)) %>%
+    # correction for +ve lon values
+    mutate(lon = if_else(lon > 0, lon * -1, lon)) -> epa_facilities
+
+  SpatialPointsDataFrame(
+    epa_facilities[c("lon", "lat")],
+    data = epa_facilities,
+    proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs")
+    )
 
 }
 
