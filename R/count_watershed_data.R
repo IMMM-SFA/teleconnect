@@ -487,9 +487,14 @@ count_watershed_data <- function(data_dir,
           wwtp_points
 
         ## manual catch for Norfolk | VA (WWTP falls outside of watershed 4227),
-        ## and Aurora | IL (WWTP falls outside of 2349)
+        ## and Aurora | CO (WWTP falls outside of 2349)
+        ## and Colorado Springs | CO (WWTP just below dam crest for watershed 3689)
 
         if(watershed %in% c(4227, 2349)) wwtp_points <- tibble()
+        if(watershed == 3689){
+          wwtp_points <-
+            wwtp_points %>% filter(lat > 39)
+        }
 
 
         wwtp_points[["flow_cumecs"]] %>% sum() -> wastewater_outflow_m3persec

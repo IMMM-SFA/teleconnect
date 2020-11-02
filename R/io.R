@@ -730,7 +730,7 @@ get_epa_facilities <- function(){
       )) %>%
       mutate(sector = if_else(!is.na(SIC_CAT), SIC, NAICS)) %>%
       select(id = REGISTRY_ID, lat = LATITUDE83, lon = LONGITUDE83, sector,
-             TRI_REPORTER, NPDES_REPORTER, NPDES_MAJOR)->
+             TRI_REPORTER, NPDES_REPORTER, NPDES_MAJOR, SIC_CODES)->
       epa_facilities_data
   )
 
