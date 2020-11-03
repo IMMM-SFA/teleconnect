@@ -187,6 +187,23 @@ count_watershed_teleconnections <- function(data_dir,
             .[["count"]]
         }) %>% unlist() %>% sum() -> n_transfers_out
 
+        # get facility counts per unit area
+        map(city_watershed_data, function(x){
+          x$counts %>% filter(item %in% c("ag_crops_facilities",
+                                          "ag_livestock_facilities",
+                                          "construction_and_manufacturing",
+                                          "mining",
+                                          "oil_and_gas",
+                                          "facilities_total"))
+        }) %>% bind_rows() %>% group_by(item) %>% summarise(n = sum(count)) ->
+          total_facility_counts
+        filter(total_facility_counts, item == "ag_crops_facilities") %>% .[["n"]] -> n_fac_agcrop
+        filter(total_facility_counts, item == "ag_livestock_facilities") %>% .[["n"]] -> n_fac_aglivestock
+        filter(total_facility_counts, item == "construction_and_manufacturing") %>% .[["n"]] -> n_fac_cnsmnf
+        filter(total_facility_counts, item == "mining") %>% .[["n"]] -> n_fac_mining
+        filter(total_facility_counts, item == "oil_and_gas") %>% .[["n"]] -> n_fac_oilgas
+        filter(total_facility_counts, item == "facilities_total") %>% .[["n"]] -> n_fac_total
+
         # total_watershed_area
         map(city_watershed_data, function(x){
           x$metrics %>% filter(metric == "watershed area") %>%
@@ -259,26 +276,87 @@ count_watershed_teleconnections <- function(data_dir,
             .[["value"]]
         }) %>% unlist() %>% sum() -> thermal_with_BCM
 
-        # total runoff
+        # get contribution of different source watersheds to city supply
+        get_source_contribution(city) %>%
+          mutate(DVSN_ID = as.character(DVSN_ID)) -> source_contributions
+
+        # runoff contaminant concentrations
         map(city_watershed_data, function(x){
           x$metrics %>% filter(metric == "total runoff from watershed") %>%
-            .[["value"]]
-        }) %>% unlist() %>% sum() -> total_runoff
-
-        # developed runoff percent
-        map(city_watershed_data, function(x){
+            .[["value"]] -> total_runoff
           x$metrics %>% filter(metric == "development runoff") %>%
-            .[["value"]]
-        }) %>% unlist() %>% sum() -> developed_runoff
-
-        # cropland runoff percent
-        map(city_watershed_data, function(x){
+            .[["value"]] -> dev_runoff
           x$metrics %>% filter(metric == "cultivated runoff") %>%
-            .[["value"]]
-        }) %>% unlist() %>% sum() -> cropland_runoff
+            .[["value"]] -> cropland_runoff
 
-        100 * (developed_runoff / total_runoff) -> developed_runoff_percent
-        100 * (cropland_runoff / total_runoff) -> cropland_runoff_percent
+          tibble(total_runoff, dev_runoff, cropland_runoff) %>%
+            mutate(nonpristine_conc = (dev_runoff + cropland_runoff) / total_runoff,
+                   ag_conc = cropland_runoff / total_runoff,
+                   dev_conc = dev_runoff / total_runoff) %>%
+            select(nonpristine_conc, ag_conc, dev_conc)
+        }) -> runoff_contaminant_concentrations
+
+        names(runoff_contaminant_concentrations) %>%
+          map(function(ws){
+            runoff_contaminant_concentrations[[ws]] %>%
+              mutate(DVSN_ID = ws)
+          }) %>% bind_rows() %>%
+          right_join(source_contributions, by = "DVSN_ID") ->
+          runoff_contaminant_and_contributions
+
+        get_average_runoff_conc <- function(metric){
+          runoff_contaminant_and_contributions %>%
+            select(x = one_of(metric), contribution_to_supply) %>%
+            tidyr::replace_na(list(x = 0)) %>%
+            mutate(conc = x * contribution_to_supply) %>% .[["conc"]] %>% sum()
+        }
+
+        get_average_runoff_conc_exgw <- function(metric){
+          runoff_contaminant_and_contributions %>%
+            select(x = one_of(metric), contribution_to_supply) %>%
+            filter(!is.na(x)) %>%
+            mutate(conc = x * contribution_to_supply) -> concs
+          sum(concs[["conc"]]) / sum(concs[["contribution_to_supply"]])
+        }
+
+        get_max_runoff_conc <- function(metric){
+          runoff_contaminant_and_contributions %>%
+            select(x = one_of(metric)) %>%
+            .[["x"]] %>% max(na.rm = T)
+        }
+
+        ag_runoff_max <- get_max_runoff_conc("ag_conc")
+        ag_runoff_av_exgw <- get_average_runoff_conc_exgw("ag_conc")
+        ag_runoff_av <- get_average_runoff_conc("ag_conc")
+
+        dev_runoff_max <- get_max_runoff_conc("dev_conc")
+        dev_runoff_av_exgw <- get_average_runoff_conc_exgw("dev_conc")
+        dev_runoff_av <- get_average_runoff_conc("dev_conc")
+
+        np_runoff_max <- get_max_runoff_conc("nonpristine_conc")
+        np_runoff_av_exgw <- get_average_runoff_conc_exgw("nonpristine_conc")
+        np_runoff_av <- get_average_runoff_conc("nonpristine_conc")
+
+        # # total runoff
+        # map(city_watershed_data, function(x){
+        #   x$metrics %>% filter(metric == "total runoff from watershed") %>%
+        #     .[["value"]]
+        # }) %>% unlist() %>% sum() -> total_runoff
+        #
+        # # developed runoff percent
+        # map(city_watershed_data, function(x){
+        #   x$metrics %>% filter(metric == "development runoff") %>%
+        #     .[["value"]]
+        # }) %>% unlist() %>% sum() -> developed_runoff
+        #
+        # # cropland runoff percent
+        # map(city_watershed_data, function(x){
+        #   x$metrics %>% filter(metric == "cultivated runoff") %>%
+        #     .[["value"]]
+        # }) %>% unlist() %>% sum() -> cropland_runoff
+        #
+        # 100 * (developed_runoff / total_runoff) -> developed_runoff_percent
+        # 100 * (cropland_runoff / total_runoff) -> cropland_runoff_percent
 
         # number of utilities
         power_plants_city %>%
@@ -307,6 +385,7 @@ count_watershed_teleconnections <- function(data_dir,
             .[["GCAM_ID"]]
         }) %>% unlist() %>% unique() %>% length() -> n_crop_classes
 
+
         # area of crop land as fraction of total land area
         map(city_watershed_data, function(x){
           x$land %>% .[["cell_freq"]] %>% sum(na.rm = T)
@@ -333,9 +412,6 @@ count_watershed_teleconnections <- function(data_dir,
             .[["Reclass"]] %>% unique()
         }) %>% unlist() %>% unique() %>% length() -> n_economic_sectors
 
-        # get contribution of different source watersheds to city supply
-        get_source_contribution(city) %>%
-          mutate(DVSN_ID = as.character(DVSN_ID)) -> source_contributions
 
         source_contributions %>%
           filter(type == "surface water") %>%
@@ -429,6 +505,12 @@ count_watershed_teleconnections <- function(data_dir,
                  n_transfers_within,
                  n_hydro_plants,
                  n_thermal_plants,
+                 n_fac_agcrop,
+                 n_fac_aglivestock,
+                 n_fac_cnsmnf,
+                 n_fac_mining,
+                 n_fac_oilgas,
+                 n_fac_total,
                  hydro_gen_MWh,
                  thermal_gen_MWh,
                  thermal_cons_BCM,
@@ -437,9 +519,18 @@ count_watershed_teleconnections <- function(data_dir,
                  n_ba,
                  n_crop_classes,
                  cropland_fraction,
-                 cropland_runoff_percent,
+                 #cropland_runoff_percent,
                  developed_fraction,
-                 developed_runoff_percent,
+                 #developed_runoff_percent,
+                 ag_runoff_max,
+                 ag_runoff_av_exgw,
+                 ag_runoff_av,
+                 dev_runoff_max,
+                 dev_runoff_av_exgw,
+                 dev_runoff_av,
+                 np_runoff_max,
+                 np_runoff_av_exgw,
+                 np_runoff_av,
                  n_economic_sectors,
                  max_withdr_dist_km,
                  avg_withdr_dis_km,
