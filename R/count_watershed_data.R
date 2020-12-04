@@ -38,7 +38,8 @@ count_watershed_data <- function(data_dir,
                                    climate = "land/kop_climate_classes.tif",
                                    HUC4 = "water/USA_HUC4/huc4_to_huc2.shp",
                                    population = "land/pden2010_block/pden2010_60m.tif",
-                                   runoff = "water/Historical_Mean_Runoff/USA_Mean_Runoff.tif"
+                                   runoff = "water/Historical_Mean_Runoff/USA_Mean_Runoff.tif",
+                                   nhd_flow = "water/Watershed_Flow_Contributions/UWB_Intake_Flows.shp"
                                  )){
 
   all_cities <- get_cities()[["city_state"]]
@@ -146,6 +147,9 @@ count_watershed_data <- function(data_dir,
   # read in watershed time series
   get_watershed_ts(watersheds) -> runoff_totals
 
+  # read in NHD flow shapefile
+  import_shapefile(paste0(data_dir, file_paths["nhd_flow"])) %>% st_as_sf() -> watershed_nhd_flows
+
   # temporary fix for Jackson MS
   if(watersheds == 3743){
     runoff_totals <- get_watershed_ts(3683) %>% mutate(watershed = 3743)
@@ -249,6 +253,8 @@ count_watershed_data <- function(data_dir,
           .[["flow"]] %>% min() * BCMmonth_to_m3sec ->
           historical_runoff_dry_m3sec
 
+        # Caclulate flow from USGS Gages
+
         get_usgs_flows(watershed) -> watershed_flow
 
         watershed_flow %>% .[["flow_m3sec"]] %>% mean() ->
@@ -258,6 +264,13 @@ count_watershed_data <- function(data_dir,
           group_by(month) %>% summarise(flow = mean(flow_m3sec)) %>%
           .[["flow"]] %>% min() ->
           historical_flow_dry_m3sec
+
+        # Calculate flow from NHD flowline
+
+        watershed_nhd_flows %>%
+          filter(DVSN_ID %in% watershed) -> nhd_flow
+
+        if_else(length(nhd_flow$.[1]) == 0, historical_runoff_mean_m3sec, nhd_flow$Q0001E[1]) -> nhd_mean_flow_m3sec
 
         #-------------------------------------------------------
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
@@ -551,6 +564,7 @@ count_watershed_data <- function(data_dir,
               "population water consumption",    "ltr/day",  ltr_per_day,
               "average historical runoff",       "m3/sec",   historical_runoff_mean_m3sec,
               "average historical flow",         "m3/sec",   historical_flow_mean_m3sec,
+              "nhd flow",                        "m3/sec",   nhd_mean_flow_m3sec,
               "driest month average runoff",     "m3/sec",   historical_runoff_dry_m3sec,
               "driest month average flow",       "m3/sec",   historical_flow_dry_m3sec,
               "wastewater discharge",            "m3/sec",   wastewater_outflow_m3persec
