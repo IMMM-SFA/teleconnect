@@ -35,7 +35,8 @@ count_watershed_teleconnections <- function(data_dir,
                                               climate = "land/kop_climate_classes.tif",
                                               HUC4 = "water/USA_HUC4/huc4_to_huc2.shp",
                                               population = "land/pden2010_block/pden2010_60m.tif",
-                                              runoff = "water/Historical_Mean_Runoff/USA_Mean_Runoff.tif"
+                                              runoff = "water/Historical_Mean_Runoff/USA_Mean_Runoff.tif",
+                                              nhd_flow = "water/Watershed_Flow_Contributions/UWB_Intake_Flows.shp"
                                             )){
 
   suppressWarnings(count_watershed_data(data_dir = data_dir,
@@ -289,11 +290,16 @@ count_watershed_teleconnections <- function(data_dir,
           x$metrics %>% filter(metric == "cultivated runoff") %>%
             .[["value"]] -> cropland_runoff
 
-          tibble(total_runoff, dev_runoff, cropland_runoff) %>%
-            mutate(nonpristine_conc = (dev_runoff + cropland_runoff) / total_runoff,
-                   ag_conc = cropland_runoff / total_runoff,
-                   dev_conc = dev_runoff / total_runoff) %>%
-            select(nonpristine_conc, ag_conc, dev_conc)
+          as.numeric(total_runoff) -> total_runoff_num
+          as.numeric(dev_runoff) -> dev_runoff_num
+          as.numeric(cropland_runoff) -> cropland_runoff_num
+
+          tibble(total_runoff, dev_runoff, cropland_runoff) -> runoff_df
+          runoff_df %>%
+            mutate(nonpristine_conc = (dev_runoff_num + cropland_runoff_num) / total_runoff_num,
+                   ag_conc = (cropland_runoff_num / total_runoff_num),
+                   dev_conc = (dev_runoff_num / total_runoff_num)) %>%
+            select(nonpristine_conc, ag_conc, dev_conc) -> test2
         }) -> runoff_contaminant_concentrations
 
         names(runoff_contaminant_concentrations) %>%
@@ -421,8 +427,9 @@ count_watershed_teleconnections <- function(data_dir,
         # runoff, flow, and wastewater plant discharge
         map(city_watershed_data, function(x){
           x$metrics %>%
-            filter(metric %in% c("average historical runoff",
+            filter(metric %in% c(#"average historical runoff",
                                  "average historical flow",
+                                 "nhd flow",
                                  "driest month average runoff",
                                  "driest month average flow")) %>%
             select(-unit)
@@ -440,7 +447,13 @@ count_watershed_teleconnections <- function(data_dir,
             runoff_and_flows[[DVSN]] %>%
               mutate(DVSN_ID = !! DVSN) %>%
               left_join(wastewater_discharge_m3sec, by = "DVSN_ID")
-          }) %>% mutate(conc_pct = 100 * (wastewater_discharge_m3sec / value)) %>%
+          }) -> discharge_df
+
+          as.numeric(discharge_df$value) -> discharge_df$value
+          as.numeric(discharge_df$wastewater_discharge_m3sec) -> discharge_df$wastewater_discharge_m3sec
+
+          discharge_df %>%
+          dplyr::mutate(conc_pct = 100 * (wastewater_discharge_m3sec / value)) %>%
           select(DVSN_ID, metric, conc_pct) %>%
           split(.$metric) %>%
           map(function(x) right_join(x, source_contributions, by = "DVSN_ID")) ->
@@ -471,7 +484,8 @@ count_watershed_teleconnections <- function(data_dir,
           }) -> surface_water_concentration_worst
 
         # importance of worst-case surface water supply DVSN
-        flow_and_runoff_metrics_and_contributions$`average historical runoff` %>%
+        #flow_and_runoff_metrics_and_contributions$`average historical runoff` %>%
+        flow_and_runoff_metrics_and_contributions$`nhd flow` %>%
           filter(type == "surface water") %>%
           filter(conc_pct == max(conc_pct)) %>%
           .[["contribution_to_supply"]] %>% dplyr::first() * 100 ->
@@ -485,6 +499,13 @@ count_watershed_teleconnections <- function(data_dir,
 
         # population-based discharge
         pop_cons_ltr_day * ltrday_to_m3sec -> pop_cons_m3sec
+
+        # nhd flow
+        map(city_watershed_data, function(x){
+          x$metrics %>% filter(metric == "nhd flow") %>%
+            .[["value"]]
+        }) %>% unlist() %>% sum() -> nhd_average_flow
+
 
         done(city)
 
@@ -537,17 +558,21 @@ count_watershed_teleconnections <- function(data_dir,
                  n_treatment_plants,
                  watershed_pop,
                  pop_cons_m3sec,
+                 nhd_average_flow,
                  av_fl_sur_conc_pct = surface_water_concentrations[["average historical flow"]],
                  dr_fl_sur_conc_pct = surface_water_concentrations[["driest month average flow"]],
-                 av_ro_sur_conc_pct = surface_water_concentrations[["average historical runoff"]],
+                 #av_ro_sur_conc_pct = surface_water_concentrations[["average historical runoff"]],
+                 av_ro_sur_conc_pct = surface_water_concentrations[["nhd flow"]],
                  dr_ro_sur_conc_pct = surface_water_concentrations[["driest month average runoff"]],
                  av_fl_all_conc_pct = all_water_concentrations[["average historical flow"]],
                  dr_fl_all_conc_pct = all_water_concentrations[["driest month average flow"]],
-                 av_ro_all_conc_pct = all_water_concentrations[["average historical runoff"]],
+                 #av_ro_all_conc_pct = all_water_concentrations[["average historical runoff"]],
+                 av_ro_all_conc_pct = all_water_concentrations[["nhd flow"]],
                  dr_ro_all_conc_pct = all_water_concentrations[["driest month average runoff"]],
                  av_fl_max_conc_pct = surface_water_concentration_worst[["average historical flow"]],
                  dr_fl_max_conc_pct = surface_water_concentration_worst[["driest month average flow"]],
-                 av_ro_max_conc_pct = surface_water_concentration_worst[["average historical runoff"]],
+                 #av_ro_max_conc_pct = surface_water_concentration_worst[["average historical runoff"]],
+                 av_ro_max_conc_pct = surface_water_concentration_worst[["nhd flow"]],
                  dr_ro_max_conc_pct = surface_water_concentration_worst[["driest month average runoff"]],
                  surface_contribution_pct,
                  importance_of_worst_watershed_pct)
