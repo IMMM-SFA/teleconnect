@@ -267,10 +267,20 @@ count_watershed_data <- function(data_dir,
 
         # Calculate flow from NHD flowline
 
-        watershed_nhd_flows %>%
-          filter(DVSN_ID %in% watershed) -> nhd_flow
+        if(watershed %in% watershed_nhd_flows$DVSN_ID == TRUE){
 
-        if_else(length(nhd_flow$.[1]) == 0, historical_runoff_mean_m3sec, nhd_flow$Q0001E[1]) -> nhd_mean_flow_m3sec
+          watershed_nhd_flows %>%
+            filter(DVSN_ID %in% watershed) %>%
+            as_tibble() %>%
+            .[["Q0001E"]] -> nhd_flow
+
+          if_else(is.na(nhd_flow) == TRUE, historical_runoff_mean_m3sec, nhd_flow) -> nhd_mean_flow_m3sec
+
+        }else{
+
+          historical_runoff_mean_m3sec -> nhd_mean_flow_m3sec
+
+        }
 
         #-------------------------------------------------------
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
