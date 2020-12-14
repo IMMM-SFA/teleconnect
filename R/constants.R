@@ -36,5 +36,5 @@ ltrday_to_m3sec <- 1.15741e-8
 
 cfs_to_m3sec <- 0.0283168
 
-
+nhdplus_flow_metric <- "Q0001C"
 

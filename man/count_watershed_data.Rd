@@ -19,7 +19,8 @@ count_watershed_data(
     transfers = "water/transfers/USIBTsHUC6_Dickson.shp", climate =
     "land/kop_climate_classes.tif", HUC4 = "water/USA_HUC4/huc4_to_huc2.shp", population
     = "land/pden2010_block/pden2010_60m.tif", runoff =
-    "water/Historical_Mean_Runoff/USA_Mean_Runoff.tif")
+    "water/Historical_Mean_Runoff/USA_Mean_Runoff.tif", nhd_flow =
+    "water/Watershed_Flow_Contributions/UWB_Intake_Flows.shp")
 )
 }
 \arguments{

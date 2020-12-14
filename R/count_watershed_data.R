@@ -38,7 +38,8 @@ count_watershed_data <- function(data_dir,
                                    climate = "land/kop_climate_classes.tif",
                                    HUC4 = "water/USA_HUC4/huc4_to_huc2.shp",
                                    population = "land/pden2010_block/pden2010_60m.tif",
-                                   runoff = "water/Historical_Mean_Runoff/USA_Mean_Runoff.tif"
+                                   runoff = "water/Historical_Mean_Runoff/USA_Mean_Runoff.tif",
+                                   nhd_flow = "water/Watershed_Flow_Contributions/UWB_Intake_Flows.shp"
                                  )){
 
   all_cities <- get_cities()[["city_state"]]
@@ -146,6 +147,9 @@ count_watershed_data <- function(data_dir,
   # read in watershed time series
   get_watershed_ts(watersheds) -> runoff_totals
 
+  # read in NHD flow shapefile
+  import_shapefile(paste0(data_dir, file_paths["nhd_flow"])) %>% st_as_sf() -> watershed_nhd_flows
+
   # temporary fix for Jackson MS
   if(watersheds == 3743){
     runoff_totals <- get_watershed_ts(3683) %>% mutate(watershed = 3743)
@@ -249,15 +253,27 @@ count_watershed_data <- function(data_dir,
           .[["flow"]] %>% min() * BCMmonth_to_m3sec ->
           historical_runoff_dry_m3sec
 
-        get_usgs_flows(watershed) -> watershed_flow
+        # Calculate flow from NHD flowline
 
-        watershed_flow %>% .[["flow_m3sec"]] %>% mean() ->
-          historical_flow_mean_m3sec
+        if(watershed %in% watershed_nhd_flows$DVSN_ID){
 
-        watershed_flow %>%
-          group_by(month) %>% summarise(flow = mean(flow_m3sec)) %>%
-          .[["flow"]] %>% min() ->
-          historical_flow_dry_m3sec
+          watershed_nhd_flows %>%
+            filter(DVSN_ID %in% watershed) %>%
+            .[[nhdplus_flow_metric]] -> nhd_flow_m3sec
+
+          if_else(is.na(nhd_flow_m3sec),
+                  historical_runoff_mean_m3sec,
+                  nhd_flow_m3sec) ->
+            historical_flow_mean_m3sec
+
+        }else{
+
+          historical_runoff_mean_m3sec -> historical_flow_mean_m3sec
+
+        }
+
+        # not yet accounting for within year flow variation
+        historical_flow_dry_m3sec <- NA_real_
 
         #-------------------------------------------------------
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
