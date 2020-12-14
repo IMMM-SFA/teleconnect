@@ -253,34 +253,27 @@ count_watershed_data <- function(data_dir,
           .[["flow"]] %>% min() * BCMmonth_to_m3sec ->
           historical_runoff_dry_m3sec
 
-        # Caclulate flow from USGS Gages
-
-        get_usgs_flows(watershed) -> watershed_flow
-
-        watershed_flow %>% .[["flow_m3sec"]] %>% mean() ->
-          historical_flow_mean_m3sec
-
-        watershed_flow %>%
-          group_by(month) %>% summarise(flow = mean(flow_m3sec)) %>%
-          .[["flow"]] %>% min() ->
-          historical_flow_dry_m3sec
-
         # Calculate flow from NHD flowline
 
-        if(watershed %in% watershed_nhd_flows$DVSN_ID == TRUE){
+        if(watershed %in% watershed_nhd_flows$DVSN_ID){
 
           watershed_nhd_flows %>%
             filter(DVSN_ID %in% watershed) %>%
-            as_tibble() %>%
-            .[["Q0001E"]] -> nhd_flow
+            .[[nhdplus_flow_metric]] -> nhd_flow_m3sec
 
-          if_else(is.na(nhd_flow) == TRUE, historical_runoff_mean_m3sec, nhd_flow) -> nhd_mean_flow_m3sec
+          if_else(is.na(nhd_flow_m3sec),
+                  historical_runoff_mean_m3sec,
+                  nhd_flow_m3sec) ->
+            historical_flow_mean_m3sec
 
         }else{
 
-          historical_runoff_mean_m3sec -> nhd_mean_flow_m3sec
+          historical_runoff_mean_m3sec -> historical_flow_mean_m3sec
 
         }
+
+        # not yet accounting for within year flow variation
+        historical_flow_dry_m3sec <- NA_real_
 
         #-------------------------------------------------------
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
@@ -574,7 +567,6 @@ count_watershed_data <- function(data_dir,
               "population water consumption",    "ltr/day",  ltr_per_day,
               "average historical runoff",       "m3/sec",   historical_runoff_mean_m3sec,
               "average historical flow",         "m3/sec",   historical_flow_mean_m3sec,
-              "nhd flow",                        "m3/sec",   nhd_mean_flow_m3sec,
               "driest month average runoff",     "m3/sec",   historical_runoff_dry_m3sec,
               "driest month average flow",       "m3/sec",   historical_flow_dry_m3sec,
               "wastewater discharge",            "m3/sec",   wastewater_outflow_m3persec
