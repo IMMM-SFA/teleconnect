@@ -1,0 +1,249 @@
+---
+output: github_document
+always_allow_html: yes
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+[![Build Status](https://travis-ci.org/IMMM-SFA/teleconnect.svg?branch=master)](https://travis-ci.org/IMMM-SFA/teleconnect)
+[![DOI](https://zenodo.org/badge/203447802.svg)](https://zenodo.org/badge/latestdoi/203447802)
+
+# teleconnect
+
+#### An R package to identify multi-sector teleconnection complexity
+
+## Description
+The `teleconnect` package classifies US cities according to the complexity 
+of their distal relationships across water, energy, and land sectors. The cities analyzed in this package
+are based off the Urban Water Blueprint dataset. 
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+library(readr)
+library(dplyr)
+library(vroom)
+library(purrr)
+library(tidyr)
+library(rgdal)
+library(sf)
+library(sp)
+library(tmaptools)
+library(readxl)
+library(purrr)
+library(plyr)
+library(raster)
+library(rgeos)
+library(units)
+library(ncdf4)
+library(data.table)
+library(RNetCDF)
+library(ggplot2)
+library(ggthemes)
+library(teleconnect)
+```
+```{r,echo=FALSE, message=FALSE, warning=FALSE,fig.width=10,fig.height=5}
+
+import_shapefile <- function(shp_path, quiet = TRUE, method = "sf") {
+
+  if(method == "sf") return(st_read(shp_path, quiet = quiet))
+  if(method == "rgdal") return(readOGR(shp_path, verbose = !quiet))
+}
+
+get_cities <- function(){
+  vroom(paste0(system.file("extdata", package = "teleconnect"),
+               "/city_to_intake_mapping.csv"),
+        col_types = cols(city = col_character(),
+                         state = col_character(),
+                         city_uid = col_integer(),
+                         intake = col_character(),
+                         DVSN_ID = col_integer(),
+                         DVTR_ID = col_integer(),
+                         city_state = col_character())
+  )
+}
+
+get_cities() %>%
+     subset(key_watershed == TRUE) ->
+     city_watershed_mapping
+
+city_watershed_mapping$DVSN_ID %>% unique() -> watersheds
+city_watershed_mapping$city_uid %>% unique() -> cities
+
+import_shapefile("C:/data_dir/misc/states_21basic/states.shp") -> states
+import_shapefile("C:/data_dir/water/CWM_v2_2/World_Watershed8.shp") %>% st_as_sf() %>% subset(DVSN_ID %in% watersheds) -> watersheds
+import_shapefile("C:/data_dir/water/CWM_v2_2/City_Centroid.shp") %>% st_as_sf()-> intake
+intake %>% subset(City_ID %in% cities) -> intakes
+
+raster::raster("C:/CERF/Data/MSR_50M/MSR_50M/MSR_50M.tif") -> relief
+crop(relief, states) %>% mask(states) -> relief2
+relief_spdf <- as(relief2, "SpatialPixelsDataFrame")
+relief <- as.data.frame(relief_spdf)
+
+
+ggplot() +
+  geom_raster(data = relief, aes(x = x,
+                                 y = y,
+                                 alpha = MSR_50M)) +
+  scale_alpha(name = "", range = c(0.6, 0), guide = F)  +
+  geom_sf(data=states, fill = NA, size = 0.7, color = "black") +
+  geom_sf(data=watersheds, fill = "steelblue", alpha = 0.4) +
+  geom_sf(data=intakes, color = "red4", alpha = 0.9, size = 2) +
+  scale_fill_manual(values = "steelblue") +
+  coord_sf() +
+  theme_map() +
+  theme(
+    legend.position = c(0.1, 0.15),
+    legend.text.align = 0,
+    legend.background = element_rect(fill = alpha('white', 0.0)),
+    legend.text = element_text(size = 19, hjust = 0, color = "#4e4d47"),
+    plot.title = element_text(size = 15, hjust = 0.5, color = "#4e4d47"),
+    legend.title = element_blank(),
+    plot.margin = unit(c(.5,.5,.2,.5), "cm"),
+    panel.spacing = unit(c(-.1,0.2,.2,0.2), "cm"),
+    panel.border = element_blank(),
+    plot.caption = element_text(size = 6,
+                                hjust = 0.92,
+                                margin = margin(t = 0.2,
+                                                b = 0,
+                                                unit = "cm"),
+                                color = "#939184")
+  ) +
+  labs(x = NULL,
+       y = NULL,
+       title = "Watersheds and Cities")
+
+```
+
+## Get Started with `teleconnect`
+`teleconnect` can be installed directly from its GitHub repository using the R `devtools` package. From an R prompt, run the command:
+```r
+devtools::install_github('IMMM-SFA/teleconnect')
+```
+
+##### Data Directory Set Up
+
+In order for the package to function properly, the user needs to correctly set up a data directory, and place all of the necessary datasets in that directory. The steps below show how to set up the directory so that the package can read in the input datasets correctly.
+
+    Step 1: In a drive of your choice, create a folder called "data_dir".
+    Step 2: Within the "data_dir" folder, create the 3 folders: "energy","land","water". 
+            Follow this set up:
+            
+            Main Folder: data_dir
+                  Sub Folder: energy
+                  Sub Folder: land
+                  Sub Folder: water
+    
+    Step 3: Follow the instructions in the "Data Downloading Instructions" section below to download the datasets. The             table below shows where to find each dataset, and what folder it needs to go in. 
+```{r, echo=FALSE,message=FALSE}
+library(knitr)
+library(vroom)
+vroom("C:/data_dir/products/README_Images/filelocations.csv") -> files
+kable(files)
+```
+
+##### Data Downloading Instructions
+
+Below are instructions on how to download each dataset above from the online sources.
+
+    `watersheds`,`withdrawal`,`citypoint` datasets:
+      1. Follow the link in the table above and click the Download button across from "CWM_v2_2.zip".
+      2. This will download a data file named `knb.1002.1`. Right click and unzip this folder. Go inside the unzipped file, copy the folder named "CWM_v2_2.zip", and place it into the `water` folder.
+      
+    `powerplants` dataset:
+      1. Follow the link in the table above and download the Excel file at the bottom of the page.
+      2. After it downloads, place it into the `water` folder.
+      
+    `crop` and `crop_attributes` datasets:
+      1. Follow the link in the table above and download the zipped 2019 CDL file.
+      2. This layer requires some processing before it can function properly in the package. In order for the package to run this data, the file size needs to be decreased. We do this by changing the resolution from 30m cells to 90 meter cells.
+      3. Open up ArcGIS and load in the CDL file. Run this file through the "Resample" function, and set the cell size to 90 meters by 90 meters.
+      4. Once the output is created, run the output through the "Project Raster" function, and change the projection to `GCS_WGS_1984`.
+      5. Export the output of this function to `land` folder under the file name of `cdl_lowres_usa`, and set the file type to an IMAGINE image file. This will also produce the `crop_attributes` file. 
+      
+
+##### Data information
+
+Data Collected: 2019-2020
+
+Geographic location: Continental United States
+
+Projection: WGS 1984
+
+
+
+## Usage
+
+Once all the necessary data is organized in the correct format, the package is ready to be used. The main function is `count_watershed_teleconnections`. Within this function, set up your data directory and select cities. The city names need to be in the format of `City | State`, and for multiple cities, place them inside `c()`.
+
+Here is an example of what you would type into your console: 
+
+```r
+count_watershed_teleconnections(data_dir = "C:/data_dir/", cities = c("Portland | OR", "Charlotte | NC", "Austin | TX"))
+```
+
+The package will cycle through each city and their respective watersheds, and produce a table with several columns of information. To learn what each of these variables mean, scroll to the bottom of this section and see the table of variables. The result of this function will look something like this:
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+suppressMessages(count_watershed_teleconnections("C:/data_dir/", cities = c("Portland | OR", "Charlotte | NC", "Austin | TX"))) -> results
+gsub("\\|", ", ", results$city) -> results$city
+gsub("\\ ", "", results$city) -> results$city
+gsub("\\,", ", ", results$city) -> results$city
+```
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+kable(results)
+```
+
+This table can be used to compare different variables between multiple cities. Below is a graph comparing how much developed land are in cities' watersheds. 
+
+```{r, echo=FALSE,message=FALSE}
+vroom("C:/data_dir/products/README_Images/teleconnect_example.csv") %>% 
+  ggplot(aes(x = reorder(city, developed_fraction), y = developed_fraction)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +
+  labs(x = NULL, y = "Fraction of Developed Land") +
+  theme_classic() 
+```
+
+
+
+To get a closer look at the cities, their watersheds, and the type of land within those watersheds, run the `plot_watershed` function.
+
+Here is an example of what to type into the console:
+
+```r
+plot_watershed(data_dir = "C:/data_dir/", city = "Los Angeles | CA")
+```
+
+Below are some examples of maps that can be produced:
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE,fig.width=10,fig.height=5}
+plot_watershed(data_dir = "C:/data_dir/", city = "Los Angeles | CA")
+```
+
+The table below shows explanations for each of these variables that are created through this function:
+
+```{r, echo=FALSE,message=FALSE}
+vroom("C:/data_dir/products/README_Images/variable_descriptions.csv") -> variables
+kable(variables)
+```
+## Support
+
+For any questions about the package, please contact any of the contributors below:
+
+Sean Turner:
+sean.turner@pnnl.gov
+
+Kristian Nelson:
+kristian.nelson@pnnl.gov
+
+
+## Authors and Acknowledgement 
+
+Authors: Sean Turner, Kristian Nelson, Chris Vernon, Jennie Rice, Casey Burleyson, Ryan McManamay, Kerim Dickson
+
+This research was supported by the US Department of Energy, Office of Science, as 
+part of research in the MultiSector Dynamics, Earth and Environmental System Modeling Program.
+
+
+
+
+
