@@ -36,7 +36,8 @@ count_watershed_teleconnections <- function(data_dir,
                                               HUC4 = "water/USA_HUC4/huc4_to_huc2.shp",
                                               population = "land/pden2010_block/pden2010_60m.tif",
                                               runoff = "water/Historical_Mean_Runoff/USA_Mean_Runoff.tif",
-                                              nhd_flow = "water/Watershed_Flow_Contributions/UWB_Intake_Flows.shp"
+                                              nhd_flow = "water/Watershed_Flow_Contributions/UWB_Intake_Flows.shp",
+                                              contributions = "water/Watershed_Flow_Contributions/Watershed_Contributions.csv"
                                             )){
 
   suppressWarnings(count_watershed_data(data_dir = data_dir,
@@ -94,6 +95,9 @@ count_watershed_teleconnections <- function(data_dir,
 
   # Get Population
   get_population() -> cities_population
+
+  # Get source contributions
+  get_source_contribution(data_dir,file_paths) -> contributions
 
   # map through all cities, computing teleconnections
   cities %>%
@@ -278,7 +282,8 @@ count_watershed_teleconnections <- function(data_dir,
         }) %>% unlist() %>% sum() -> thermal_with_BCM
 
         # get contribution of different source watersheds to city supply
-        get_source_contribution(city) %>%
+        contributions %>%
+          filter(city_state == city) %>%
           mutate(DVSN_ID = as.character(DVSN_ID)) -> source_contributions
 
         # runoff contaminant concentrations
