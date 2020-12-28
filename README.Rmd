@@ -134,14 +134,33 @@ In order for the package to function properly, the user needs to correctly set u
     Step 3: Follow the instructions in the "Data Downloading Instructions" section below to download the datasets. The             table below shows where to find each dataset, and what folder it needs to go in. 
 ```{r, echo=FALSE,message=FALSE}
 library(knitr)
-library(vroom)
-vroom("C:/data_dir/products/README_Images/filelocations.csv") -> files
+
+tibble::tribble(
+  ~`Teleconnect Name`,	~`Sub Folder Location`, ~`Full File Path`,~`Data Location`,
+  "watersheds", "water","water/CWM_v2_2/World_Watershed8.shp","https://knb.ecoinformatics.org/view/doi%3A10.5063%2FF1J67DWR",
+  "withdrawal","water","water/CWM_v2_2/Snapped_Withdrawal_Points.shp","https://knb.ecoinformatics.org/view/doi%3A10.5063%2FF1J67DWR",
+  "citypoint","water","water/CWM_v2_2/City_Centroid.shp","https://knb.ecoinformatics.org/view/doi%3A10.5063%2FF1J67DWR",
+  "powerplants","water","water/UCS-EW3-Energy-Water-Database.xlsx","https://www.ucsusa.org/resources/ucs-ew3-energy-water-database",
+  "crop","land","land/2016_90m_cdls/cdl_lowres_usa.img","https://www.nass.usda.gov/Research_and_Science/Cropland/Release/",
+  "crop_attributes","land","land/2016_90m_cdls/cdl_lowres_usa.img.vat.dbf","https://www.nass.usda.gov/Research_and_Science/Cropland/Release/",
+  "irrigation","land","land/Version2_USA_Demeter.csv","NA",
+  "nlud","land","land/usa_nlud_LR.tif","NA",
+  "hydro","energy","energy/EHA_Public_PlantFY2019_GIS_6/ORNL_EHAHydroPlant_PublicFY2019final.xlsx","NA",
+  "transfers","water","water/transfers/USIBTsHUC6_Dickson.shp","NA",
+  "climate","land","land/kop_climate_classes.tif","http://koeppen-geiger.vu-wien.ac.at/present.htm",
+  "HUC4","water","water/USA_HUC4/huc4_to_huc2.shp","http://prd-tnm.s3-website-us-west-2.amazonaws.com/?prefix=StagedProducts/Hydrography/WBD/National/GDB/",
+  "population","land","land/pden2010_block/pden2010_60m.tif","https://www.sciencebase.gov/catalog/item/57753ebee4b07dd077c70868",
+  "runoff","water","water/Historical_Mean_Runoff/USA_Mean_Runoff.tif","NA",
+  "nhd_flow","water","water/Watershed_Flow_Contributions/UWB_Intake_Flows.shp","NA",
+  "contributions","water","water/Watershed_Flow_Contributions/Watershed_Contributions.csv","NA"
+) -> files
+
 kable(files)
 ```
 
 ##### Data Downloading Instructions
 
-Below are instructions on how to download each dataset above from the online sources.
+Below are instructions on how to download each dataset and prepare them for the package.
 
     `watersheds`,`withdrawal`,`citypoint` datasets:
       1. Follow the link in the table above and click the Download button across from "CWM_v2_2.zip".
@@ -182,7 +201,7 @@ count_watershed_teleconnections(data_dir = "C:/data_dir/", cities = c("Portland 
 The package will cycle through each city and their respective watersheds, and produce a table with several columns of information. To learn what each of these variables mean, scroll to the bottom of this section and see the table of variables. The result of this function will look something like this:
 
 ```{r,echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
-suppressMessages(count_watershed_teleconnections("C:/data_dir/", cities = c("Portland | OR", "Charlotte | NC", "Austin | TX"))) -> results
+suppressMessages(count_watershed_teleconnections("C:/data_dir/", cities = c("Atlanta | GA", "Portland | OR", "Charlotte | NC", "Austin | TX", "Macon | GA", "Philadelphia | PA", "Houston | TX", "Raleigh | NC", "Knoxville | TN", "New York | NY", "Los Angeles | CA"))) -> results
 gsub("\\|", ", ", results$city) -> results$city
 gsub("\\ ", "", results$city) -> results$city
 gsub("\\,", ", ", results$city) -> results$city
@@ -195,7 +214,7 @@ kable(results)
 This table can be used to compare different variables between multiple cities. Below is a graph comparing how much developed land are in cities' watersheds. 
 
 ```{r, echo=FALSE,message=FALSE}
-vroom("C:/data_dir/products/README_Images/teleconnect_example.csv") %>% 
+results %>% 
   ggplot(aes(x = reorder(city, developed_fraction), y = developed_fraction)) +
   geom_bar(stat = "identity", fill = "steelblue") +
   coord_flip() +
@@ -213,7 +232,7 @@ Here is an example of what to type into the console:
 plot_watershed(data_dir = "C:/data_dir/", city = "Los Angeles | CA")
 ```
 
-Below are some examples of maps that can be produced:
+Below is the map that is produced:
 
 ```{r,echo=FALSE, message=FALSE, warning=FALSE,fig.width=10,fig.height=5}
 plot_watershed(data_dir = "C:/data_dir/", city = "Los Angeles | CA")
@@ -222,7 +241,63 @@ plot_watershed(data_dir = "C:/data_dir/", city = "Los Angeles | CA")
 The table below shows explanations for each of these variables that are created through this function:
 
 ```{r, echo=FALSE,message=FALSE}
-vroom("C:/data_dir/products/README_Images/variable_descriptions.csv") -> variables
+tibble::tribble(
+  ~`Variable Name`,	~Description, ~Units,
+  "city_population", "The population of the city being analyzed","people",
+  "n_watersheds","Number of watersheds that city uses to source drinking water","watersheds",
+  "n_other_cities","Number of other cities pulling off the same watersheds","cities",
+  "dependent_city_pop","Total population of people dependent on that city's watersheds","people",
+  "watershed_area_sqkm","Combined area of all the source watersheds of a city","square kilometers",
+  "storage_BCM","Combined storage capacity of all the city catchments","billion cubic meters",
+  "yield_BCM","Combined yield capacity of all the city catchments","billion cubic meters",
+  "irr_cons_BCM","Combined water consumption that is used for irrigation with the watersheds","billion cubic meters",
+  "n_climate_zones","Number of climate zones that the source watersheds cover","zones",
+  "n_transfers_in","Number of interbasin transfers that flow into the source watersheds","transfers",
+  "n_transfers_out","Number of interbasin transfers that flow out of the source watersheds","transfers",
+  "n_transfers_within","Number of water transfers that occur within the source watersheds","transfers",
+  "n_hydro_plants","Number of hydro electric power plants operating within the source watersheds","plants",
+  "n_thermal_plants","Number of thermal power plants operating within the source watersheds","plants",
+  "n_fac_agcrop","Number of agricultural crop facilities within the source watersheds","facilities",
+  "n_fac_aglivestock","Number of agicultural livestock facilities within the source watersheds","facilities",
+  "n_fac_cnsmnf","","facilities",
+  "n_fac_mining","Number of mining facilities within the source watersheds","facilities",
+  "n_fac_oilgas","Number of oil and gas facilities within the source watersheds","facilities",
+  "n_fac_total","Total number of facilities operating within the source watersheds","facilities",
+  "hydro_gen_MWh","Combined hydro electric generation from all the facilities within the source watersheds","Megawatthours",
+  "thermal_gen_MWh","Combined thermal generation from all the facilities within the source watersheds","Megawatthours",
+  "thermal_cons_BCM","Combined water consumption that is used for thermal generation","billion cubic meters",
+  "thermal_with_BCM","Combined water withdrawal for thermal generation","billion cubic meters",
+  "n_utilities","Number of electric utilities within the source watersheds","utilities",
+  "n_ba","Number of balancing authorities within the source watersheds","balancing authorities",
+  "n_crop_classes","Total number of different types of crops within the source watersheds","crops",
+  "cropland_fraction","Fraction of land that is used for crops within the source watersheds","NA",
+  "developed_fraction","Fraction of land that is developed within the source watersheds","NA",
+  "ag_runoff_max","Max amount of agricultural runoff within the source watersheds","",
+  "ag_runoff_av_exgw","","",
+  "ag_runoff_av","Average runoff from agricultural lands","",
+  "dev_runof_max","Max amount of agricultural runoff within the source watersheds","",
+  "dev_runof_av_exgw","","",
+  "dev_runof_av","Average runoff from developed lands","",
+  "np_runoff_max","Max amount of non-point source runoff within the source watersheds","",
+  "np_runoff_av_exgw","","",
+  "np_runoff_av_exgw_unweighted","","",
+  "np_runoff_av","Average non-point source runoff.","",
+  "n_economic_sectors","Total number of different economic sectors within the source watersheds","sectors",
+  "max_withdr_dis_km","Maximum distance between a city's intake points","kilometers",
+  "avg_withdr_dis_km","Average distance between a city's intake points","kilometers",
+  "n_treatment_plants","Total number of waste water treatment plants operating within the source watersheds","plants",
+  "watershed_pop","Total number of people living within the source watershed boundaries","people",
+  "pop_cons_m3sec","Combined water consumption from the source watersheds that is used for people","m3/sec",
+  "av_fl_sur_conc_pct","","%",
+  "av_fl_sur_conc_pct_unweighted","","%",
+  "av_ro_sur_conc_pct","","%",
+  "av_fl_all_conc_pct","","%",
+  "av_ro_all_conc_pct","","%",
+  "av_fl_max_conc_pct","","%",
+  "av_ro_max_conc_pct","","%",
+  "surface_contribution_pct","","%",
+  "importance_of_worst_watershed_pct","","%",
+) -> variables
 kable(variables)
 ```
 ## Support
