@@ -144,9 +144,9 @@ tibble::tribble(
   "crop","land","land/2016_90m_cdls/cdl_lowres_usa.img","https://www.nass.usda.gov/Research_and_Science/Cropland/Release/",
   "crop_attributes","land","land/2016_90m_cdls/cdl_lowres_usa.img.vat.dbf","https://www.nass.usda.gov/Research_and_Science/Cropland/Release/",
   "irrigation","land","land/Version2_USA_Demeter.csv","NA",
-  "nlud","land","land/usa_nlud_LR.tif","NA",
-  "hydro","energy","energy/EHA_Public_PlantFY2019_GIS_6/ORNL_EHAHydroPlant_PublicFY2019final.xlsx","NA",
-  "transfers","water","water/transfers/USIBTsHUC6_Dickson.shp","NA",
+  "nlud","land","land/usa_nlud_LR.tif","https://drive.google.com/file/d/1vmNfwjcaLf0sZTYJ1wsB3liG37sN8gyC/view",
+  "hydro","energy","energy/EHA_Public_PlantFY2019_GIS_6/ORNL_EHAHydroPlant_PublicFY2019final.xlsx","https://hydrosource.ornl.gov/node/250",
+  "transfers","NA","NA","NA",
   "climate","land","land/kop_climate_classes.tif","http://koeppen-geiger.vu-wien.ac.at/present.htm",
   "HUC4","water","water/USA_HUC4/huc4_to_huc2.shp","http://prd-tnm.s3-website-us-west-2.amazonaws.com/?prefix=StagedProducts/Hydrography/WBD/National/GDB/",
   "population","land","land/pden2010_block/pden2010_60m.tif","https://www.sciencebase.gov/catalog/item/57753ebee4b07dd077c70868",
@@ -177,6 +177,30 @@ Below are instructions on how to download each dataset and prepare them for the 
       4. Once the output is created, run the output through the "Project Raster" function, and change the projection to `GCS_WGS_1984`.
       5. Export the output of this function to `land` folder under the file name of `cdl_lowres_usa`, and set the file type to an IMAGINE image file. This will also produce the `crop_attributes` file. 
       
+      `nlud` dataset:
+      1: Download the zip file from the google drive listed in the table above. 
+      2: Unzip the file, and the remove the TIFs listed below (these are empty):
+          - NLUDv1_2010_30m-0000000000-0000000000.tif
+          - NLUDv1_2010_30m-0000093184-0000232960.tif
+          - NLUDv1_2010_30m-0000093184-0000000000.tif
+          - NLUDv1_2010_30m-0000046592-0000232960.tif
+          - NLUDv1_2010_30m-0000046592-0000000000.tif
+          - NLUDv1_2010_30m-0000000000-0000232960.tif
+      3: Change the resolution of these rasters to 90m by 90m, and then mosaic them together. Save the mosaic file to the file path in the table.
+      4: (Efficient code to do this will be placed here.)
+      
+      `hyrdo` dataset:
+      1. Follow the link in the table above and click the download button for the ORNL EHAHydroPlant FY2020revised (xlsx).
+      2. After downloading place it into the `energy` folder.
+      
+      `climate` dataset:
+      1. Follow the link in the table above and scroll to the High Resolution Map and Data section.
+      2. Click the download link next to R code with raster file.
+      3. Crop this raster file to the shape of the Continental United States, and save it as a new TIF file in the `land` folder under the name "koppen_climate_classes.tif".
+      
+      `population` dataset:
+      1. Follow the link in the table above and download the attached file named "pden2010_block.zip". Place this file into the `land` folder.
+      2. This raster will also need to be cropped to the shape of the Continental United States.
 
 ##### Data information
 
