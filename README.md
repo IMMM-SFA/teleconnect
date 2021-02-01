@@ -1,8 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-[![Build
-Status](https://travis-ci.org/IMMM-SFA/teleconnect.svg?branch=master)](https://travis-ci.org/IMMM-SFA/teleconnect)
+![build](https://github.com/IMMM-SFA/teleconnect/workflows/build/badge.svg) [![codecov](https://codecov.io/gh/IMMM-SFA/teleconnect/branch/master/graph/badge.svg?token=uF3EvxwvCO)](https://codecov.io/gh/IMMM-SFA/teleconnect) 
 [![DOI](https://zenodo.org/badge/203447802.svg)](https://zenodo.org/badge/latestdoi/203447802)
 
 # teleconnect
