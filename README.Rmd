@@ -1,0 +1,348 @@
+---
+output: github_document
+always_allow_html: yes
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+[![Build Status](https://travis-ci.org/IMMM-SFA/teleconnect.svg?branch=master)](https://travis-ci.org/IMMM-SFA/teleconnect)
+[![DOI](https://zenodo.org/badge/203447802.svg)](https://zenodo.org/badge/latestdoi/203447802)
+
+# teleconnect
+
+#### An R package to identify multi-sector teleconnection complexity
+
+## Description
+The `teleconnect` package classifies US cities according to the complexity 
+of their distal relationships across water, energy, and land sectors. The cities analyzed in this package
+are based off the Urban Water Blueprint dataset. 
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+library(readr)
+library(dplyr)
+library(vroom)
+library(purrr)
+library(tidyr)
+library(rgdal)
+library(sf)
+library(sp)
+library(tmaptools)
+library(readxl)
+library(purrr)
+library(plyr)
+library(raster)
+library(rgeos)
+library(units)
+library(ncdf4)
+library(data.table)
+library(RNetCDF)
+library(ggplot2)
+library(ggthemes)
+library(teleconnect)
+```
+```{r,echo=FALSE, message=FALSE, warning=FALSE,fig.width=10,fig.height=5}
+
+import_shapefile <- function(shp_path, quiet = TRUE, method = "sf") {
+
+  if(method == "sf") return(st_read(shp_path, quiet = quiet))
+  if(method == "rgdal") return(readOGR(shp_path, verbose = !quiet))
+}
+
+get_cities <- function(){
+  vroom(paste0(system.file("extdata", package = "teleconnect"),
+               "/city_to_intake_mapping.csv"),
+        col_types = cols(city = col_character(),
+                         state = col_character(),
+                         city_uid = col_integer(),
+                         intake = col_character(),
+                         DVSN_ID = col_integer(),
+                         DVTR_ID = col_integer(),
+                         city_state = col_character())
+  )
+}
+
+get_cities() %>%
+     subset(key_watershed == TRUE) ->
+     city_watershed_mapping
+
+city_watershed_mapping$DVSN_ID %>% unique() -> watersheds
+city_watershed_mapping$city_uid %>% unique() -> cities
+
+import_shapefile("C:/data_dir/misc/states_21basic/states.shp") -> states
+import_shapefile("C:/data_dir/water/CWM_v2_2/World_Watershed8.shp") %>% st_as_sf() %>% subset(DVSN_ID %in% watersheds) -> watersheds
+import_shapefile("C:/data_dir/water/CWM_v2_2/City_Centroid.shp") %>% st_as_sf()-> intake
+intake %>% subset(City_ID %in% cities) -> intakes
+
+raster::raster("C:/CERF/Data/MSR_50M/MSR_50M/MSR_50M.tif") -> relief
+crop(relief, states) %>% mask(states) -> relief2
+relief_spdf <- as(relief2, "SpatialPixelsDataFrame")
+relief <- as.data.frame(relief_spdf)
+
+
+ggplot() +
+  geom_raster(data = relief, aes(x = x,
+                                 y = y,
+                                 alpha = MSR_50M)) +
+  scale_alpha(name = "", range = c(0.6, 0), guide = F)  +
+  geom_sf(data=states, fill = NA, size = 0.7, color = "black") +
+  geom_sf(data=watersheds, fill = "steelblue", alpha = 0.4) +
+  geom_sf(data=intakes, color = "red4", alpha = 0.9, size = 2) +
+  scale_fill_manual(values = "steelblue") +
+  coord_sf() +
+  theme_map() +
+  theme(
+    legend.position = c(0.1, 0.15),
+    legend.text.align = 0,
+    legend.background = element_rect(fill = alpha('white', 0.0)),
+    legend.text = element_text(size = 19, hjust = 0, color = "#4e4d47"),
+    plot.title = element_text(size = 15, hjust = 0.5, color = "#4e4d47"),
+    legend.title = element_blank(),
+    plot.margin = unit(c(.5,.5,.2,.5), "cm"),
+    panel.spacing = unit(c(-.1,0.2,.2,0.2), "cm"),
+    panel.border = element_blank(),
+    plot.caption = element_text(size = 6,
+                                hjust = 0.92,
+                                margin = margin(t = 0.2,
+                                                b = 0,
+                                                unit = "cm"),
+                                color = "#939184")
+  ) +
+  labs(x = NULL,
+       y = NULL,
+       title = "Watersheds and Cities")
+
+```
+
+## Get Started with `teleconnect`
+`teleconnect` can be installed directly from its GitHub repository using the R `devtools` package. From an R prompt, run the command:
+```r
+devtools::install_github('IMMM-SFA/teleconnect')
+```
+
+##### Data Directory Set Up
+
+In order for the package to function properly, the user needs to correctly set up a data directory, and place all of the necessary datasets in that directory. The steps below show how to set up the directory so that the package can read in the input datasets correctly.
+
+    Step 1: In a drive of your choice, create a folder called "data_dir".
+    Step 2: Within the "data_dir" folder, create the 3 folders: "energy","land","water". 
+            Follow this set up:
+            
+            Main Folder: data_dir
+                  Sub Folder: energy
+                  Sub Folder: land
+                  Sub Folder: water
+    
+    Step 3: Follow the instructions in the "Data Downloading Instructions" section below to download the datasets. The             table below shows where to find each dataset, and what folder it needs to go in. 
+```{r, echo=FALSE,message=FALSE}
+library(knitr)
+
+tibble::tribble(
+  ~`Teleconnect Name`,	~`Sub Folder Location`, ~`Full File Path`,~`Data Location`,
+  "watersheds", "water","water/CWM_v2_2/World_Watershed8.shp","https://knb.ecoinformatics.org/view/doi%3A10.5063%2FF1J67DWR",
+  "withdrawal","water","water/CWM_v2_2/Snapped_Withdrawal_Points.shp","https://knb.ecoinformatics.org/view/doi%3A10.5063%2FF1J67DWR",
+  "citypoint","water","water/CWM_v2_2/City_Centroid.shp","https://knb.ecoinformatics.org/view/doi%3A10.5063%2FF1J67DWR",
+  "powerplants","water","water/UCS-EW3-Energy-Water-Database.xlsx","https://www.ucsusa.org/resources/ucs-ew3-energy-water-database",
+  "crop","land","land/2016_90m_cdls/cdl_lowres_usa.img","https://www.nass.usda.gov/Research_and_Science/Cropland/Release/",
+  "crop_attributes","land","land/2016_90m_cdls/cdl_lowres_usa.img.vat.dbf","https://www.nass.usda.gov/Research_and_Science/Cropland/Release/",
+  "irrigation","land","land/Version2_USA_Demeter.csv","NA",
+  "nlud","land","land/usa_nlud_LR.tif","https://drive.google.com/file/d/1vmNfwjcaLf0sZTYJ1wsB3liG37sN8gyC/view",
+  "hydro","energy","energy/EHA_Public_PlantFY2019_GIS_6/ORNL_EHAHydroPlant_PublicFY2019final.xlsx","https://hydrosource.ornl.gov/node/250",
+  "transfers","NA","NA","NA",
+  "climate","land","land/kop_climate_classes.tif","http://koeppen-geiger.vu-wien.ac.at/present.htm",
+  "HUC4","water","water/USA_HUC4/huc4_to_huc2.shp","http://prd-tnm.s3-website-us-west-2.amazonaws.com/?prefix=StagedProducts/Hydrography/WBD/National/GDB/",
+  "population","land","land/pden2010_block/pden2010_60m.tif","https://www.sciencebase.gov/catalog/item/57753ebee4b07dd077c70868",
+  "runoff","water","water/Historical_Mean_Runoff/USA_Mean_Runoff.tif","NA",
+  "nhd_flow","water","water/Watershed_Flow_Contributions/UWB_Intake_Flows.shp","NA",
+  "contributions","water","water/Watershed_Flow_Contributions/Watershed_Contributions.csv","NA"
+) -> files
+
+kable(files)
+```
+
+##### Data Downloading Instructions
+
+Below are instructions on how to download each dataset and prepare them for the package.
+
+    `watersheds`,`withdrawal`,`citypoint` datasets:
+      1. Follow the link in the table above and click the Download button across from "CWM_v2_2.zip".
+      2. This will download a data file named `knb.1002.1`. Right click and unzip this folder. Go inside the unzipped file, copy the folder named "CWM_v2_2.zip", and place it into the `water` folder.
+      
+    `powerplants` dataset:
+      1. Follow the link in the table above and download the Excel file at the bottom of the page.
+      2. After it downloads, place it into the `water` folder.
+      
+    `crop` and `crop_attributes` datasets:
+      1. Follow the link in the table above and download the zipped 2019 CDL file.
+      2. This layer requires some processing before it can function properly in the package. In order for the package to run this data, the file size needs to be decreased. We do this by changing the resolution from 30m cells to 90 meter cells.
+      3. Open up ArcGIS and load in the CDL file. Run this file through the "Resample" function, and set the cell size to 90 meters by 90 meters.
+      4. Once the output is created, run the output through the "Project Raster" function, and change the projection to `GCS_WGS_1984`.
+      5. Export the output of this function to `land` folder under the file name of `cdl_lowres_usa`, and set the file type to an IMAGINE image file. This will also produce the `crop_attributes` file. 
+      
+      `nlud` dataset:
+      1: Download the zip file from the google drive listed in the table above. 
+      2: Unzip the file, and the remove the TIFs listed below (these are empty):
+          - NLUDv1_2010_30m-0000000000-0000000000.tif
+          - NLUDv1_2010_30m-0000093184-0000232960.tif
+          - NLUDv1_2010_30m-0000093184-0000000000.tif
+          - NLUDv1_2010_30m-0000046592-0000232960.tif
+          - NLUDv1_2010_30m-0000046592-0000000000.tif
+          - NLUDv1_2010_30m-0000000000-0000232960.tif
+      3: Change the resolution of these rasters to 90m by 90m, and then mosaic them together. Save the mosaic file to the file path in the table.
+      4: (Efficient code to do this will be placed here.)
+      
+      `hyrdo` dataset:
+      1. Follow the link in the table above and click the download button for the ORNL EHAHydroPlant FY2020revised (xlsx).
+      2. After downloading place it into the `energy` folder.
+      
+      `climate` dataset:
+      1. Follow the link in the table above and scroll to the High Resolution Map and Data section.
+      2. Click the download link next to R code with raster file.
+      3. Crop this raster file to the shape of the Continental United States, and save it as a new TIF file in the `land` folder under the name "koppen_climate_classes.tif".
+      
+      `population` dataset:
+      1. Follow the link in the table above and download the attached file named "pden2010_block.zip". Place this file into the `land` folder.
+      2. This raster will also need to be cropped to the shape of the Continental United States.
+
+##### Data information
+
+Data Collected: 2019-2020
+
+Geographic location: Continental United States
+
+Projection: WGS 1984
+
+
+
+## Usage
+
+Once all the necessary data is organized in the correct format, the package is ready to be used. The main function is `count_watershed_teleconnections`. Within this function, set up your data directory and select cities. The city names need to be in the format of `City | State`, and for multiple cities, place them inside `c()`.
+
+Here is an example of what you would type into your console: 
+
+```r
+count_watershed_teleconnections(data_dir = "C:/data_dir/", cities = c("Portland | OR", "Charlotte | NC", "Austin | TX"))
+```
+
+The package will cycle through each city and their respective watersheds, and produce a table with several columns of information. To learn what each of these variables mean, scroll to the bottom of this section and see the table of variables. The result of this function will look something like this:
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+suppressMessages(count_watershed_teleconnections("C:/data_dir/", cities = c("Atlanta | GA", "Portland | OR", "Charlotte | NC", "Austin | TX", "Macon | GA", "Philadelphia | PA", "Houston | TX", "Raleigh | NC", "Knoxville | TN", "New York | NY", "Los Angeles | CA"))) -> results
+gsub("\\|", ", ", results$city) -> results$city
+gsub("\\ ", "", results$city) -> results$city
+gsub("\\,", ", ", results$city) -> results$city
+```
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE}
+kable(results)
+```
+
+This table can be used to compare different variables between multiple cities. Below is a graph comparing how much developed land are in cities' watersheds. 
+
+```{r, echo=FALSE,message=FALSE}
+results %>% 
+  ggplot(aes(x = reorder(city, developed_fraction), y = developed_fraction)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +
+  labs(x = NULL, y = "Fraction of Developed Land") +
+  theme_classic() 
+```
+
+
+
+To get a closer look at the cities, their watersheds, and the type of land within those watersheds, run the `plot_watershed` function.
+
+Here is an example of what to type into the console:
+
+```r
+plot_watershed(data_dir = "C:/data_dir/", city = "Los Angeles | CA")
+```
+
+Below is the map that is produced:
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE,fig.width=10,fig.height=5}
+plot_watershed(data_dir = "C:/data_dir/", city = "Los Angeles | CA")
+```
+
+The table below shows explanations for each of these variables that are created through this function:
+
+```{r, echo=FALSE,message=FALSE}
+tibble::tribble(
+  ~`Variable Name`,	~Description, ~Units,
+  "city_population", "The population of the city being analyzed","people",
+  "n_watersheds","Number of watersheds that city uses to source drinking water","watersheds",
+  "n_other_cities","Number of other cities pulling off the same watersheds","cities",
+  "dependent_city_pop","Total population of people dependent on that city's watersheds","people",
+  "watershed_area_sqkm","Combined area of all the source watersheds of a city","square kilometers",
+  "storage_BCM","Combined storage capacity of all the city catchments","billion cubic meters",
+  "yield_BCM","Combined yield capacity of all the city catchments","billion cubic meters",
+  "irr_cons_BCM","Combined water consumption that is used for irrigation with the watersheds","billion cubic meters",
+  "n_climate_zones","Number of climate zones that the source watersheds cover","zones",
+  "n_transfers_in","Number of interbasin transfers that flow into the source watersheds","transfers",
+  "n_transfers_out","Number of interbasin transfers that flow out of the source watersheds","transfers",
+  "n_transfers_within","Number of water transfers that occur within the source watersheds","transfers",
+  "n_hydro_plants","Number of hydro electric power plants operating within the source watersheds","plants",
+  "n_thermal_plants","Number of thermal power plants operating within the source watersheds","plants",
+  "n_fac_agcrop","Number of agricultural crop facilities within the source watersheds","facilities",
+  "n_fac_aglivestock","Number of agicultural livestock facilities within the source watersheds","facilities",
+  "n_fac_cnsmnf","","facilities",
+  "n_fac_mining","Number of mining facilities within the source watersheds","facilities",
+  "n_fac_oilgas","Number of oil and gas facilities within the source watersheds","facilities",
+  "n_fac_total","Total number of facilities operating within the source watersheds","facilities",
+  "hydro_gen_MWh","Combined hydro electric generation from all the facilities within the source watersheds","Megawatthours",
+  "thermal_gen_MWh","Combined thermal generation from all the facilities within the source watersheds","Megawatthours",
+  "thermal_cons_BCM","Combined water consumption that is used for thermal generation","billion cubic meters",
+  "thermal_with_BCM","Combined water withdrawal for thermal generation","billion cubic meters",
+  "n_utilities","Number of electric utilities within the source watersheds","utilities",
+  "n_ba","Number of balancing authorities within the source watersheds","balancing authorities",
+  "n_crop_classes","Total number of different types of crops within the source watersheds","crops",
+  "cropland_fraction","Fraction of land that is used for crops within the source watersheds","NA",
+  "developed_fraction","Fraction of land that is developed within the source watersheds","NA",
+  "ag_runoff_max","Max amount of agricultural runoff within the source watersheds","",
+  "ag_runoff_av_exgw","","",
+  "ag_runoff_av","Average runoff from agricultural lands","",
+  "dev_runof_max","Max amount of agricultural runoff within the source watersheds","",
+  "dev_runof_av_exgw","","",
+  "dev_runof_av","Average runoff from developed lands","",
+  "np_runoff_max","Max amount of non-point source runoff within the source watersheds","",
+  "np_runoff_av_exgw","","",
+  "np_runoff_av_exgw_unweighted","","",
+  "np_runoff_av","Average non-point source runoff.","",
+  "n_economic_sectors","Total number of different economic sectors within the source watersheds","sectors",
+  "max_withdr_dis_km","Maximum distance between a city's intake points","kilometers",
+  "avg_withdr_dis_km","Average distance between a city's intake points","kilometers",
+  "n_treatment_plants","Total number of waste water treatment plants operating within the source watersheds","plants",
+  "watershed_pop","Total number of people living within the source watershed boundaries","people",
+  "pop_cons_m3sec","Combined water consumption from the source watersheds that is used for people","m3/sec",
+  "av_fl_sur_conc_pct","","%",
+  "av_fl_sur_conc_pct_unweighted","","%",
+  "av_ro_sur_conc_pct","","%",
+  "av_fl_all_conc_pct","","%",
+  "av_ro_all_conc_pct","","%",
+  "av_fl_max_conc_pct","","%",
+  "av_ro_max_conc_pct","","%",
+  "surface_contribution_pct","","%",
+  "importance_of_worst_watershed_pct","","%",
+) -> variables
+kable(variables)
+```
+## Support
+
+For any questions about the package, please contact any of the contributors below:
+
+Sean Turner:
+sean.turner@pnnl.gov
+
+Kristian Nelson:
+kristian.nelson@pnnl.gov
+
+
+## Authors and Acknowledgement 
+
+Authors: Sean Turner, Kristian Nelson, Chris Vernon, Jennie Rice, Casey Burleyson, Ryan McManamay, Kerim Dickson
+
+This research was supported by the US Department of Energy, Office of Science, as 
+part of research in the MultiSector Dynamics, Earth and Environmental System Modeling Program.
+
+
+
+
+

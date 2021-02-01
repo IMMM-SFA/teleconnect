@@ -579,16 +579,6 @@ get_watershed_usage <- function(city){
   return(connect_table)
 }
 
-#' get_teleconnect_table
-#' @details load in teleconnect table
-#' @importFrom vroom vroom cols
-#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
-get_teleconnect_table <- function(){
-  vroom(paste0(system.file("extdata", package = "teleconnect"),
-               "/teleconnect_table.csv")) -> teleconnect_table
-  return(teleconnect_table)
-}
-
 #' get_runoff_values
 #' @details calculate runoff volume in meters cubed per second
 #' @importFrom tidyr as_tibble
@@ -660,10 +650,13 @@ get_wasteflow_points <- function(){
 #' @importFrom vroom vroom cols
 #' @importFrom dplyr filter
 #' @author Sean Turner (sean.turner@pnnl.gov)
-get_source_contribution <- function(city){
-  vroom(paste0(system.file("extdata", package = "teleconnect"),
-               "/source_water_contributions.csv"), col_types = cols()) %>%
-    filter(city_state == city)
+get_source_contribution <- function(data_dir,file_paths){
+  vroom(paste0(data_dir, file_paths["contributions"]),
+        col_types = cols(city_state = col_character(),
+                         intake = col_character(),
+                         DVSN_ID= col_double(),
+                         type = col_character(),
+                         contribution_to_supply = col_double()))
 }
 
 #' get_usgs_flows

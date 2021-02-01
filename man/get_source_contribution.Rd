@@ -4,7 +4,7 @@
 \alias{get_source_contribution}
 \title{get_source_contribution}
 \usage{
-get_source_contribution(city)
+get_source_contribution(data_dir, file_paths)
 }
 \description{
 get_source_contribution
