@@ -7,12 +7,12 @@
 #' @importFrom purrr map_dfr map
 #' @importFrom dplyr filter group_indices left_join if_else tribble group_by summarise arrange
 #' @importFrom tibble tibble
-#' @importFrom sf as_Spatial st_as_sf st_cast st_within st_make_valid
+#' @importFrom sf as_Spatial st_as_sf st_cast st_within
 #' @importFrom foreign read.dbf
 #' @importFrom exactextractr exact_extract
 #' @importFrom geosphere areaPolygon distGeo
 #' @importFrom tmaptools set_projection
-#' @importFrom lwgeom st_startpoint st_endpoint
+#' @importFrom lwgeom st_startpoint st_endpoint st_make_valid
 #' @importFrom reservoir yield
 #' @importFrom raster intersect extent
 #' @importFrom stringr str_remove
@@ -387,8 +387,8 @@ count_watershed_data <- function(data_dir,
           as_tibble()  %>%
           get_irrigation_count() -> irrigation_km2
 
-        watersheds_select %>% st_as_sf() %>% sf::st_make_valid() -> wtrshd_sf
-        HUC2_sp %>% st_as_sf() %>% sf::st_make_valid() -> HUC_sf
+        watersheds_select %>% st_as_sf() %>% lwgeom::st_make_valid() -> wtrshd_sf
+        HUC2_sp %>% st_as_sf() %>% lwgeom::st_make_valid() -> HUC_sf
 
         sup(sf::st_intersection(wtrshd_sf, HUC_sf)) %>% as_tibble() -> watershed_HUC2
 
