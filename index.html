@@ -40,7 +40,7 @@
       <ul class="nav navbar-nav">
 <li>
   <a href="index.html">
-    <span class="fas fa fas fa-home fa-lg"></span>
+    <span class="fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -74,26 +74,27 @@
   <div class="contents col-md-9">
 
 
-<div id="teleconnect" class="section level1">
+<div id="gamut" class="section level1">
 <div class="page-header"><h1 class="hasAnchor">
-<a href="#teleconnect" class="anchor"></a>teleconnect</h1></div>
-<div id="an-r-package-to-identify-multi-sector-teleconnection-complexity" class="section level4">
+<a href="#gamut" class="anchor"></a><code>gamut</code>
+</h1></div>
+<div id="geospatial-analytics-for-multisector-urban-teleconnections" class="section level4">
 <h4 class="hasAnchor">
-<a href="#an-r-package-to-identify-multi-sector-teleconnection-complexity" class="anchor"></a>An R package to identify multi-sector teleconnection complexity</h4>
+<a href="#geospatial-analytics-for-multisector-urban-teleconnections" class="anchor"></a><strong>G</strong>eospatial <strong>A</strong>nalytics for <strong>M</strong>ultisector <strong>U</strong>rban <strong>T</strong>eleconnections</h4>
 </div>
 <div id="description" class="section level2">
 <h2 class="hasAnchor">
 <a href="#description" class="anchor"></a>Description</h2>
-<p>The <code>teleconnect</code> package classifies US cities according to the complexity of their distal relationships across water, energy, and land sectors. The cities analyzed in this package are based off the Urban Water Blueprint dataset.</p>
-<p><img src="README_files/figure-gfm/unnamed-chunk-2-1.png"><!-- --></p>
+<p><code>gamut</code> is a tool for exploring <em>teleconnections</em> between cities of the United States and human activities that occur in their associated water supply catchments. A <em>teleconnection</em> is a causal connection or correlation between human and environmental phenomena that occur a long distance apart.</p>
+<p><img src="README_files/figure-gfm/unnamed-chunk-1-1.png"><!-- --></p>
 </div>
-<div id="get-started-with-teleconnect" class="section level2">
+<div id="get-started-with-gamut" class="section level2">
 <h2 class="hasAnchor">
-<a href="#get-started-with-teleconnect" class="anchor"></a>Get Started with <code>teleconnect</code>
+<a href="#get-started-with-gamut" class="anchor"></a>Get Started with <code>gamut</code>
 </h2>
-<p><code>teleconnect</code> can be installed directly from its GitHub repository using the R <code>devtools</code> package. From an R prompt, run the command:</p>
-<div class="sourceCode" id="cb1"><pre class="downlit">
-<span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/remotes/man/install_github.html">install_github</a></span><span class="op">(</span><span class="st">'IMMM-SFA/teleconnect'</span><span class="op">)</span></pre></div>
+<p><code>gamut</code> can be installed directly from this repository using the R <code>devtools</code> package. From an R prompt, run the command:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">'IMMM-SFA/gamut'</span><span class="op">)</span></code></pre></div>
 <div id="data-directory-set-up" class="section level5">
 <h5 class="hasAnchor">
 <a href="#data-directory-set-up" class="anchor"></a>Data Directory Set Up</h5>
@@ -107,7 +108,7 @@
 <span id="cb2-7"><a href="#cb2-7"></a>              Sub Folder<span class="op">:</span><span class="st"> </span>land</span>
 <span id="cb2-8"><a href="#cb2-8"></a>              Sub Folder<span class="op">:</span><span class="st"> </span>water</span>
 <span id="cb2-9"><a href="#cb2-9"></a></span>
-<span id="cb2-10"><a href="#cb2-10"></a>Step <span class="dv">3</span><span class="op">:</span><span class="st"> </span>Follow the instructions <span class="cf">in</span> the <span class="st">"Data Downloading Instructions"</span> section below to download the datasets. The             table below shows where to find each dataset, and what folder it needs to go in. </span></code></pre></div>
+<span id="cb2-10"><a href="#cb2-10"></a>Step <span class="dv">3</span><span class="op">:</span><span class="st"> </span>Follow the instructions <span class="cf">in</span> the <span class="st">"Data Downloading Instructions"</span> section below to download the datasets. The             table below shows where to find each dataset, and what folder it needs to go in.</span></code></pre></div>
 <table class="table">
 <colgroup>
 <col width="7%">
@@ -250,27 +251,19 @@
 <span id="cb3-23"><a href="#cb3-23"></a>      <span class="op">-</span><span class="st"> </span>NLUDv1_<span class="dv">2010</span>_30m<span class="dv">-0000046592</span><span class="fl">-0000000000.</span>tif</span>
 <span id="cb3-24"><a href="#cb3-24"></a>      <span class="op">-</span><span class="st"> </span>NLUDv1_<span class="dv">2010</span>_30m<span class="dv">-0000000000</span><span class="fl">-0000232960.</span>tif</span>
 <span id="cb3-25"><a href="#cb3-25"></a>  <span class="dv">3</span><span class="op">:</span><span class="st"> </span>Change the resolution of these rasters to 90m by 90m, and then mosaic them together. Save the mosaic file to the file path <span class="cf">in</span> the table.</span>
-<span id="cb3-26"><a href="#cb3-26"></a>  <span class="dv">4</span><span class="op">:</span><span class="st"> </span>(Efficient code to do this will be placed here.)</span>
-<span id="cb3-27"><a href="#cb3-27"></a>  </span>
-<span id="cb3-28"><a href="#cb3-28"></a>  <span class="st">`</span><span class="dt">hyrdo</span><span class="st">`</span> dataset<span class="op">:</span></span>
-<span id="cb3-29"><a href="#cb3-29"></a><span class="st">  </span><span class="fl">1.</span> Follow the link <span class="cf">in</span> the table above and click the download button <span class="cf">for</span> the ORNL EHAHydroPlant <span class="kw">FY2020revised</span> (xlsx).</span>
-<span id="cb3-30"><a href="#cb3-30"></a>  <span class="fl">2.</span> After downloading place it into the <span class="st">`</span><span class="dt">energy</span><span class="st">`</span> folder.</span>
-<span id="cb3-31"><a href="#cb3-31"></a>  </span>
-<span id="cb3-32"><a href="#cb3-32"></a>  <span class="st">`</span><span class="dt">climate</span><span class="st">`</span> dataset<span class="op">:</span></span>
-<span id="cb3-33"><a href="#cb3-33"></a><span class="st">  </span><span class="fl">1.</span> Follow the link <span class="cf">in</span> the table above and scroll to the High Resolution Map and Data section.</span>
-<span id="cb3-34"><a href="#cb3-34"></a>  <span class="fl">2.</span> Click the download link <span class="cf">next</span> to R code with raster file.</span>
-<span id="cb3-35"><a href="#cb3-35"></a>  <span class="fl">3.</span> Crop this raster file to the shape of the Continental United States, and save it as a new TIF file <span class="cf">in</span> the <span class="st">`</span><span class="dt">land</span><span class="st">`</span> folder under the name <span class="st">"koppen_climate_classes.tif"</span>.</span>
-<span id="cb3-36"><a href="#cb3-36"></a>  </span>
-<span id="cb3-37"><a href="#cb3-37"></a>  <span class="st">`</span><span class="dt">population</span><span class="st">`</span> dataset<span class="op">:</span></span>
-<span id="cb3-38"><a href="#cb3-38"></a><span class="st">  </span><span class="fl">1.</span> Follow the link <span class="cf">in</span> the table above and download the attached file named <span class="st">"pden2010_block.zip"</span>. Place this file into the <span class="st">`</span><span class="dt">land</span><span class="st">`</span> folder.</span>
-<span id="cb3-39"><a href="#cb3-39"></a>  <span class="fl">2.</span> This raster will also need to be cropped to the shape of the Continental United States.</span></code></pre></div>
-</div>
-<div id="data-information" class="section level5">
-<h5 class="hasAnchor">
-<a href="#data-information" class="anchor"></a>Data information</h5>
-<p>Data Collected: 2019-2020</p>
-<p>Geographic location: Continental United States</p>
-<p>Projection: WGS 1984</p>
+<span id="cb3-26"><a href="#cb3-26"></a>  </span>
+<span id="cb3-27"><a href="#cb3-27"></a>  <span class="st">`</span><span class="dt">hyrdo</span><span class="st">`</span> dataset<span class="op">:</span></span>
+<span id="cb3-28"><a href="#cb3-28"></a><span class="st">  </span><span class="fl">1.</span> Follow the link <span class="cf">in</span> the table above and click the download button <span class="cf">for</span> the ORNL EHAHydroPlant <span class="kw">FY2020revised</span> (xlsx).</span>
+<span id="cb3-29"><a href="#cb3-29"></a>  <span class="fl">2.</span> After downloading place it into the <span class="st">`</span><span class="dt">energy</span><span class="st">`</span> folder.</span>
+<span id="cb3-30"><a href="#cb3-30"></a>  </span>
+<span id="cb3-31"><a href="#cb3-31"></a>  <span class="st">`</span><span class="dt">climate</span><span class="st">`</span> dataset<span class="op">:</span></span>
+<span id="cb3-32"><a href="#cb3-32"></a><span class="st">  </span><span class="fl">1.</span> Follow the link <span class="cf">in</span> the table above and scroll to the High Resolution Map and Data section.</span>
+<span id="cb3-33"><a href="#cb3-33"></a>  <span class="fl">2.</span> Click the download link <span class="cf">next</span> to R code with raster file.</span>
+<span id="cb3-34"><a href="#cb3-34"></a>  <span class="fl">3.</span> Crop this raster file to the shape of the Continental United States, and save it as a new TIF file <span class="cf">in</span> the <span class="st">`</span><span class="dt">land</span><span class="st">`</span> folder under the name <span class="st">"koppen_climate_classes.tif"</span>.</span>
+<span id="cb3-35"><a href="#cb3-35"></a>  </span>
+<span id="cb3-36"><a href="#cb3-36"></a>  <span class="st">`</span><span class="dt">population</span><span class="st">`</span> dataset<span class="op">:</span></span>
+<span id="cb3-37"><a href="#cb3-37"></a><span class="st">  </span><span class="fl">1.</span> Follow the link <span class="cf">in</span> the table above and download the attached file named <span class="st">"pden2010_block.zip"</span>. Place this file into the <span class="st">`</span><span class="dt">land</span><span class="st">`</span> folder.</span>
+<span id="cb3-38"><a href="#cb3-38"></a>  <span class="fl">2.</span> This raster will also need to be cropped to the shape of the Continental United States.</span></code></pre></div>
 </div>
 </div>
 <div id="usage" class="section level2">
@@ -278,8 +271,8 @@
 <a href="#usage" class="anchor"></a>Usage</h2>
 <p>Once all the necessary data is organized in the correct format, the package is ready to be used. The main function is <code>count_watershed_teleconnections</code>. Within this function, set up your data directory and select cities. The city names need to be in the format of <code>City | State</code>, and for multiple cities, place them inside <code><a href="https://rdrr.io/r/base/c.html">c()</a></code>.</p>
 <p>Here is an example of what you would type into your console:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit">
-<span class="fu"><a href="reference/count_watershed_teleconnections.html">count_watershed_teleconnections</a></span><span class="op">(</span>data_dir <span class="op">=</span> <span class="st">"C:/data_dir/"</span>, cities <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Portland | OR"</span>, <span class="st">"Charlotte | NC"</span>, <span class="st">"Austin | TX"</span><span class="op">)</span><span class="op">)</span></pre></div>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="reference/count_watershed_teleconnections.html">count_watershed_teleconnections</a></span><span class="op">(</span>data_dir <span class="op">=</span> <span class="st">"your/gamut/data_dir"</span>, cities <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Portland | OR"</span>, <span class="st">"Charlotte | NC"</span>, <span class="st">"Austin | TX"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <p>The package will cycle through each city and their respective watersheds, and produce a table with several columns of information. To learn what each of these variables mean, scroll to the bottom of this section and see the table of variables. The result of this function will look something like this:</p>
 <table class="table">
 <colgroup>
@@ -398,63 +391,6 @@
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">Atlanta, GA</td>
-<td align="right">498044</td>
-<td align="right">1</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">4109.2426</td>
-<td align="right">2.4119697</td>
-<td align="right">0.0710615</td>
-<td align="right">0.0054521</td>
-<td align="right">2</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">2</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">2</td>
-<td align="right">361</td>
-<td align="right">14</td>
-<td align="right">0</td>
-<td align="right">9402</td>
-<td align="right">185763.17</td>
-<td align="right">0</td>
-<td align="right">0.0000000</td>
-<td align="right">0.0000000</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">7</td>
-<td align="right">0.0094468</td>
-<td align="right">0.3660531</td>
-<td align="right">0.0001360</td>
-<td align="right">0.0001360</td>
-<td align="right">0.0001360</td>
-<td align="right">0.2660990</td>
-<td align="right">0.2660990</td>
-<td align="right">0.2660990</td>
-<td align="right">0.2662349</td>
-<td align="right">0.2662349</td>
-<td align="right">0.2662349</td>
-<td align="right">0.2662349</td>
-<td align="right">13</td>
-<td align="right">10.798758</td>
-<td align="right">10.798758</td>
-<td align="right">0</td>
-<td align="right">1.530574e+06</td>
-<td align="right">3.5430035</td>
-<td align="right">4.6432565</td>
-<td align="right">4.6432565</td>
-<td align="right">5.8426343</td>
-<td align="right">4.6432565</td>
-<td align="right">5.8426343</td>
-<td align="right">4.643256</td>
-<td align="right">5.842634</td>
-<td align="right">100.0</td>
-<td align="right">100.0</td>
-</tr>
-<tr class="even">
 <td align="left">Portland, OR</td>
 <td align="right">653115</td>
 <td align="right">1</td>
@@ -462,7 +398,7 @@
 <td align="right">653115</td>
 <td align="right">280.7526</td>
 <td align="right">0.0970009</td>
-<td align="right">0.0710615</td>
+<td align="right">0.3154655</td>
 <td align="right">0.0000000</td>
 <td align="right">4</td>
 <td align="right">NA</td>
@@ -485,9 +421,9 @@
 <td align="right">0</td>
 <td align="right">0.0000000</td>
 <td align="right">0.0044529</td>
-<td align="right">0.0000000</td>
-<td align="right">0.0000000</td>
-<td align="right">0.0000000</td>
+<td align="right">0.000000</td>
+<td align="right">0.000000</td>
+<td align="right">0.000000</td>
 <td align="right">0.0000172</td>
 <td align="right">0.0000172</td>
 <td align="right">0.0000172</td>
@@ -501,367 +437,25 @@
 <td align="right">0</td>
 <td align="right">1.963243e+01</td>
 <td align="right">0.0000454</td>
-<td align="right">0.0000000</td>
-<td align="right">0.0000000</td>
-<td align="right">0.0000000</td>
-<td align="right">0.0000000</td>
-<td align="right">0.0000000</td>
 <td align="right">0.000000</td>
 <td align="right">0.000000</td>
-<td align="right">100.0</td>
-<td align="right">100.0</td>
-</tr>
-<tr class="odd">
-<td align="left">Charlotte, NC</td>
-<td align="right">872498</td>
-<td align="right">1</td>
-<td align="right">3</td>
-<td align="right">212079</td>
-<td align="right">4875.1775</td>
-<td align="right">3.2929366</td>
-<td align="right">0.0710615</td>
-<td align="right">0.0173409</td>
-<td align="right">3</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">6</td>
-<td align="right">3</td>
-<td align="right">0</td>
-<td align="right">1</td>
-<td align="right">213</td>
-<td align="right">10</td>
-<td align="right">0</td>
-<td align="right">442</td>
-<td align="right">574511.46</td>
-<td align="right">23312996</td>
-<td align="right">0.0226557</td>
-<td align="right">3.4663151</td>
-<td align="right">1</td>
-<td align="right">1</td>
-<td align="right">8</td>
-<td align="right">0.0456691</td>
-<td align="right">0.1762985</td>
-<td align="right">0.0023421</td>
-<td align="right">0.0023421</td>
-<td align="right">0.0023421</td>
-<td align="right">0.0436056</td>
-<td align="right">0.0436056</td>
-<td align="right">0.0436056</td>
-<td align="right">0.0459477</td>
-<td align="right">0.0459477</td>
-<td align="right">0.0459477</td>
-<td align="right">0.0459477</td>
-<td align="right">12</td>
-<td align="right">17.065885</td>
-<td align="right">17.065885</td>
-<td align="right">0</td>
-<td align="right">4.668231e+05</td>
-<td align="right">1.0806115</td>
-<td align="right">1.5690333</td>
-<td align="right">1.5690333</td>
-<td align="right">1.6886042</td>
-<td align="right">1.5690333</td>
-<td align="right">1.6886042</td>
-<td align="right">1.569033</td>
-<td align="right">1.688604</td>
-<td align="right">100.0</td>
-<td align="right">100.0</td>
+<td align="right">0.000000</td>
+<td align="right">0.000000</td>
+<td align="right">0.000000</td>
+<td align="right">0.000000</td>
+<td align="right">0.000000</td>
+<td align="right">100</td>
+<td align="right">100</td>
 </tr>
 <tr class="even">
-<td align="left">Austin, TX</td>
-<td align="right">964254</td>
-<td align="right">1</td>
-<td align="right">3</td>
-<td align="right">1207821</td>
-<td align="right">97194.7485</td>
-<td align="right">6.4692813</td>
-<td align="right">0.0710615</td>
-<td align="right">0.6764835</td>
-<td align="right">3</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">6</td>
-<td align="right">10</td>
-<td align="right">0</td>
-<td align="right">6</td>
-<td align="right">10</td>
-<td align="right">0</td>
-<td align="right">1</td>
-<td align="right">72</td>
-<td align="right">231050.88</td>
-<td align="right">7425960</td>
-<td align="right">0.0098231</td>
-<td align="right">0.1109466</td>
-<td align="right">9</td>
-<td align="right">2</td>
-<td align="right">8</td>
-<td align="right">0.1451631</td>
-<td align="right">0.0520904</td>
-<td align="right">0.0103864</td>
-<td align="right">0.0103864</td>
-<td align="right">0.0103864</td>
-<td align="right">0.0060554</td>
-<td align="right">0.0060554</td>
-<td align="right">0.0060554</td>
-<td align="right">0.0164418</td>
-<td align="right">0.0164418</td>
-<td align="right">0.0164418</td>
-<td align="right">0.0164418</td>
-<td align="right">13</td>
-<td align="right">3.503236</td>
-<td align="right">3.503236</td>
-<td align="right">0</td>
-<td align="right">9.394054e+05</td>
-<td align="right">2.1745543</td>
-<td align="right">1.1588398</td>
-<td align="right">1.1588398</td>
-<td align="right">1.2682985</td>
-<td align="right">1.1588398</td>
-<td align="right">1.2682985</td>
-<td align="right">1.158840</td>
-<td align="right">1.268298</td>
-<td align="right">100.0</td>
-<td align="right">100.0</td>
-</tr>
-<tr class="odd">
-<td align="left">Macon, GA</td>
-<td align="right">153095</td>
-<td align="right">1</td>
-<td align="right">1</td>
-<td align="right">153095</td>
-<td align="right">5805.3543</td>
-<td align="right">0.5672585</td>
-<td align="right">0.0710615</td>
-<td align="right">0.0052724</td>
-<td align="right">1</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">3</td>
-<td align="right">1</td>
-<td align="right">0</td>
-<td align="right">2</td>
-<td align="right">358</td>
-<td align="right">33</td>
-<td align="right">0</td>
-<td align="right">12440</td>
-<td align="right">68416.13</td>
-<td align="right">24348774</td>
-<td align="right">0.0633148</td>
-<td align="right">0.0926290</td>
-<td align="right">1</td>
-<td align="right">1</td>
-<td align="right">8</td>
-<td align="right">0.0179467</td>
-<td align="right">0.3019529</td>
-<td align="right">0.0004749</td>
-<td align="right">0.0004749</td>
-<td align="right">0.0004749</td>
-<td align="right">0.2396321</td>
-<td align="right">0.2396321</td>
-<td align="right">0.2396321</td>
-<td align="right">0.2401070</td>
-<td align="right">0.2401070</td>
-<td align="right">0.2401070</td>
-<td align="right">0.2401070</td>
-<td align="right">13</td>
-<td align="right">3.430790</td>
-<td align="right">3.430790</td>
-<td align="right">0</td>
-<td align="right">1.674266e+06</td>
-<td align="right">3.8756251</td>
-<td align="right">5.7257250</td>
-<td align="right">5.7257250</td>
-<td align="right">5.7789911</td>
-<td align="right">5.7257250</td>
-<td align="right">5.7789911</td>
-<td align="right">5.725725</td>
-<td align="right">5.778991</td>
-<td align="right">100.0</td>
-<td align="right">100.0</td>
-</tr>
-<tr class="even">
-<td align="left">Philadelphia, PA</td>
-<td align="right">1584138</td>
-<td align="right">2</td>
-<td align="right">4</td>
-<td align="right">10155355</td>
-<td align="right">25000.1122</td>
-<td align="right">2.4580071</td>
-<td align="right">0.1421230</td>
-<td align="right">0.0413309</td>
-<td align="right">2</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">10</td>
-<td align="right">16</td>
-<td align="right">1</td>
-<td align="right">17</td>
-<td align="right">301</td>
-<td align="right">29</td>
-<td align="right">1</td>
-<td align="right">1764</td>
-<td align="right">249723.16</td>
-<td align="right">23756210</td>
-<td align="right">0.0431045</td>
-<td align="right">0.7471718</td>
-<td align="right">14</td>
-<td align="right">1</td>
-<td align="right">8</td>
-<td align="right">0.1128719</td>
-<td align="right">0.1799514</td>
-<td align="right">0.1019802</td>
-<td align="right">0.0494111</td>
-<td align="right">0.0494111</td>
-<td align="right">0.2038389</td>
-<td align="right">0.1076844</td>
-<td align="right">0.1076844</td>
-<td align="right">0.3058191</td>
-<td align="right">0.1570955</td>
-<td align="right">0.1818828</td>
-<td align="right">0.1570955</td>
-<td align="right">13</td>
-<td align="right">15.865748</td>
-<td align="right">9.745459</td>
-<td align="right">0</td>
-<td align="right">4.083398e+06</td>
-<td align="right">9.4523306</td>
-<td align="right">3.7301834</td>
-<td align="right">4.1224094</td>
-<td align="right">4.0931675</td>
-<td align="right">3.7301834</td>
-<td align="right">4.0931675</td>
-<td align="right">6.083539</td>
-<td align="right">6.462299</td>
-<td align="right">100.0</td>
-<td align="right">40.0</td>
-</tr>
-<tr class="odd">
-<td align="left">Houston, TX</td>
-<td align="right">2325502</td>
-<td align="right">2</td>
-<td align="right">3</td>
-<td align="right">4565557</td>
-<td align="right">50273.6660</td>
-<td align="right">10.0813681</td>
-<td align="right">0.1421230</td>
-<td align="right">0.0057792</td>
-<td align="right">1</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">2</td>
-<td align="right">18</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">2</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">8</td>
-<td align="right">5079.73</td>
-<td align="right">25375485</td>
-<td align="right">0.0307072</td>
-<td align="right">0.5044097</td>
-<td align="right">11</td>
-<td align="right">2</td>
-<td align="right">10</td>
-<td align="right">0.0732626</td>
-<td align="right">0.1768837</td>
-<td align="right">0.0122991</td>
-<td align="right">0.0108832</td>
-<td align="right">0.0093595</td>
-<td align="right">0.1147764</td>
-<td align="right">0.0657315</td>
-<td align="right">0.0565291</td>
-<td align="right">0.1148982</td>
-<td align="right">0.0766146</td>
-<td align="right">0.0932378</td>
-<td align="right">0.0658886</td>
-<td align="right">13</td>
-<td align="right">102.672878</td>
-<td align="right">65.669248</td>
-<td align="right">0</td>
-<td align="right">7.679998e+06</td>
-<td align="right">17.7778126</td>
-<td align="right">16.7718115</td>
-<td align="right">10.0307609</td>
-<td align="right">9.9591510</td>
-<td align="right">14.4237579</td>
-<td align="right">8.5648699</td>
-<td align="right">18.814554</td>
-<td align="right">11.132603</td>
-<td align="right">86.0</td>
-<td align="right">76.0</td>
-</tr>
-<tr class="even">
-<td align="left">Raleigh, NC</td>
-<td align="right">469298</td>
-<td align="right">1</td>
-<td align="right">2</td>
-<td align="right">743589</td>
-<td align="right">1987.8516</td>
-<td align="right">0.1921883</td>
-<td align="right">0.0710615</td>
-<td align="right">0.0041787</td>
-<td align="right">1</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">38</td>
-<td align="right">6</td>
-<td align="right">0</td>
-<td align="right">657</td>
-<td align="right">0.00</td>
-<td align="right">0</td>
-<td align="right">0.0000000</td>
-<td align="right">0.0000000</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">8</td>
-<td align="right">0.0939267</td>
-<td align="right">0.1669958</td>
-<td align="right">0.0161245</td>
-<td align="right">0.0161245</td>
-<td align="right">0.0161245</td>
-<td align="right">0.0529000</td>
-<td align="right">0.0529000</td>
-<td align="right">0.0529000</td>
-<td align="right">0.0690245</td>
-<td align="right">0.0690245</td>
-<td align="right">0.0690245</td>
-<td align="right">0.0690245</td>
-<td align="right">12</td>
-<td align="right">18.713965</td>
-<td align="right">18.713965</td>
-<td align="right">0</td>
-<td align="right">2.537039e+05</td>
-<td align="right">0.5872788</td>
-<td align="right">2.0842711</td>
-<td align="right">2.0842711</td>
-<td align="right">3.3143195</td>
-<td align="right">2.0842711</td>
-<td align="right">3.3143195</td>
-<td align="right">2.084271</td>
-<td align="right">3.314319</td>
-<td align="right">100.0</td>
-<td align="right">100.0</td>
-</tr>
-<tr class="odd">
 <td align="left">Knoxville, TN</td>
 <td align="right">187500</td>
 <td align="right">1</td>
-<td align="right">3</td>
-<td align="right">346730</td>
+<td align="right">2</td>
+<td align="right">159230</td>
 <td align="right">23196.0276</td>
 <td align="right">5.1667173</td>
-<td align="right">0.0710615</td>
+<td align="right">0.8121560</td>
 <td align="right">0.0132724</td>
 <td align="right">3</td>
 <td align="right">NA</td>
@@ -884,9 +478,9 @@
 <td align="right">7</td>
 <td align="right">0.0392887</td>
 <td align="right">0.1217025</td>
-<td align="right">0.0017350</td>
-<td align="right">0.0017350</td>
-<td align="right">0.0017350</td>
+<td align="right">0.001735</td>
+<td align="right">0.001735</td>
+<td align="right">0.001735</td>
 <td align="right">0.0187317</td>
 <td align="right">0.0187317</td>
 <td align="right">0.0187317</td>
@@ -900,140 +494,24 @@
 <td align="right">0</td>
 <td align="right">1.559519e+06</td>
 <td align="right">3.6100047</td>
-<td align="right">1.4421179</td>
-<td align="right">1.4421179</td>
-<td align="right">1.7276066</td>
-<td align="right">1.4421179</td>
-<td align="right">1.7276066</td>
+<td align="right">1.442118</td>
 <td align="right">1.442118</td>
 <td align="right">1.727607</td>
-<td align="right">100.0</td>
-<td align="right">100.0</td>
-</tr>
-<tr class="even">
-<td align="left">NewYork, NY</td>
-<td align="right">8398748</td>
-<td align="right">8</td>
-<td align="right">1</td>
-<td align="right">8398748</td>
-<td align="right">5203.8799</td>
-<td align="right">2.3480124</td>
-<td align="right">0.5684919</td>
-<td align="right">0.0046190</td>
-<td align="right">2</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">5</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">3</td>
-<td align="right">45</td>
-<td align="right">7</td>
-<td align="right">0</td>
-<td align="right">377</td>
-<td align="right">155873.63</td>
-<td align="right">0</td>
-<td align="right">0.0000000</td>
-<td align="right">0.0000000</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">7</td>
-<td align="right">0.0473016</td>
-<td align="right">0.0822482</td>
-<td align="right">0.0207107</td>
-<td align="right">0.0034037</td>
-<td align="right">0.0034037</td>
-<td align="right">0.3966929</td>
-<td align="right">0.0263228</td>
-<td align="right">0.0263228</td>
-<td align="right">0.3966933</td>
-<td align="right">0.0297265</td>
-<td align="right">0.0667699</td>
-<td align="right">0.0297265</td>
-<td align="right">13</td>
-<td align="right">191.509637</td>
-<td align="right">130.711473</td>
-<td align="right">0</td>
-<td align="right">2.566443e+05</td>
-<td align="right">0.5940853</td>
-<td align="right">0.1757086</td>
-<td align="right">0.3212001</td>
-<td align="right">0.1946581</td>
-<td align="right">0.1757086</td>
-<td align="right">0.1946581</td>
-<td align="right">1.363024</td>
-<td align="right">1.150314</td>
-<td align="right">100.0</td>
-<td align="right">5.0</td>
-</tr>
-<tr class="odd">
-<td align="left">LosAngeles, CA</td>
-<td align="right">3990456</td>
-<td align="right">30</td>
-<td align="right">29</td>
-<td align="right">14790722</td>
-<td align="right">499549.8199</td>
-<td align="right">129.2864648</td>
-<td align="right">2.4160906</td>
-<td align="right">0.9946673</td>
-<td align="right">15</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">NA</td>
-<td align="right">196</td>
-<td align="right">38</td>
-<td align="right">7</td>
-<td align="right">12</td>
-<td align="right">3312</td>
-<td align="right">445</td>
-<td align="right">211</td>
-<td align="right">8436</td>
-<td align="right">26779746.24</td>
-<td align="right">132000904</td>
-<td align="right">0.3249964</td>
-<td align="right">1.2873801</td>
-<td align="right">23</td>
-<td align="right">11</td>
-<td align="right">10</td>
-<td align="right">0.0125410</td>
-<td align="right">0.0110604</td>
-<td align="right">0.0594559</td>
-<td align="right">0.0010065</td>
-<td align="right">0.0009210</td>
-<td align="right">0.3849221</td>
-<td align="right">0.0004974</td>
-<td align="right">0.0004551</td>
-<td align="right">0.3849221</td>
-<td align="right">0.0015039</td>
-<td align="right">0.0211506</td>
-<td align="right">0.0013761</td>
-<td align="right">13</td>
-<td align="right">843.137141</td>
-<td align="right">331.178945</td>
-<td align="right">0</td>
-<td align="right">3.809702e+06</td>
-<td align="right">8.8187738</td>
-<td align="right">0.5737800</td>
-<td align="right">0.3949688</td>
-<td align="right">0.7595693</td>
-<td align="right">0.5250087</td>
-<td align="right">0.6950059</td>
-<td align="right">10.872884</td>
-<td align="right">10.872884</td>
-<td align="right">91.5</td>
-<td align="right">1.5</td>
+<td align="right">1.442118</td>
+<td align="right">1.727607</td>
+<td align="right">1.442118</td>
+<td align="right">1.727607</td>
+<td align="right">100</td>
+<td align="right">100</td>
 </tr>
 </tbody>
 </table>
 <p>This table can be used to compare different variables between multiple cities. Below is a graph comparing how much developed land are in cities’ watersheds.</p>
+<p><img src="README_files/figure-gfm/unnamed-chunk-5-1.png"><!-- --></p>
+<p><code>gamut</code> also has very basic functionality for visualizing watersheds and associated land uses for a given city watersheds. For example:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="reference/plot_watershed.html">plot_watershed</a></span><span class="op">(</span>data_dir <span class="op">=</span> <span class="st">"your/gamut/data_dir"</span>, city <span class="op">=</span> <span class="st">"New York | NY"</span><span class="op">)</span></code></pre></div>
 <p><img src="README_files/figure-gfm/unnamed-chunk-6-1.png"><!-- --></p>
-<p>To get a closer look at the cities, their watersheds, and the type of land within those watersheds, run the <code>plot_watershed</code> function.</p>
-<p>Here is an example of what to type into the console:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit">
-<span class="fu"><a href="reference/plot_watershed.html">plot_watershed</a></span><span class="op">(</span>data_dir <span class="op">=</span> <span class="st">"C:/data_dir/"</span>, city <span class="op">=</span> <span class="st">"Los Angeles | CA"</span><span class="op">)</span></pre></div>
-<p>Below is the map that is produced:</p>
-<p><img src="README_files/figure-gfm/unnamed-chunk-7-1.png"><!-- --></p>
 <p>The table below shows explanations for each of these variables that are created through this function:</p>
 <table class="table">
 <colgroup>
@@ -1129,7 +607,7 @@
 </tr>
 <tr class="odd">
 <td align="left">n_fac_cnsmnf</td>
-<td align="left"></td>
+<td align="left">Number of construction and manufacturing facilities within the source watersheds</td>
 <td align="left">facilities</td>
 </tr>
 <tr class="even">
@@ -1326,6 +804,7 @@
 <p>For any questions about the package, please contact any of the contributors below:</p>
 <p>Sean Turner: <a href="mailto:sean.turner@pnnl.gov" class="email">sean.turner@pnnl.gov</a></p>
 <p>Kristian Nelson: <a href="mailto:kristian.nelson@pnnl.gov" class="email">kristian.nelson@pnnl.gov</a></p>
+<p>Chris Vernon <a href="mailto:chris.vernon@pnnl.gov" class="email">chris.vernon@pnnl.gov</a></p>
 </div>
 <div id="authors-and-acknowledgement" class="section level2">
 <h2 class="hasAnchor">
@@ -1355,7 +834,7 @@
   <div class="dev-status">
 <h2>Dev status</h2>
 <ul class="list-unstyled">
-<li><a href="https://travis-ci.org/IMMM-SFA/teleconnect"><img src="https://travis-ci.org/IMMM-SFA/teleconnect.svg?branch=master" alt="Build Status"></a></li>
+<li><a href="https://codecov.io/gh/IMMM-SFA/teleconnect"><img src="https://codecov.io/gh/IMMM-SFA/teleconnect/branch/master/graph/badge.svg?token=uF3EvxwvCO" alt="codecov"></a></li>
 <li><a href="https://zenodo.org/badge/latestdoi/203447802"><img src="https://zenodo.org/badge/203447802.svg" alt="DOI"></a></li>
 </ul>
 </div>
