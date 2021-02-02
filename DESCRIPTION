@@ -1,11 +1,24 @@
-Package: teleconnect
+Package: gamut
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Geospatial Analytics for Multisector Urban Teleconnections
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Authors@R: 
+    person(given = "Sean",
+           family = "Turner",
+           role = c("aut", "cre"),
+           email = "sean.turner@pnnl.gov",
+           comment = c(ORCID = "0000-0003-4400-9800"))
+    person(given = "Kristian",
+           family = "Nelson",
+           role = c("aut", "cre"),
+           email = "kristian.nelson@pnnl.gov",
+           comment = c(ORCID = "0000-0002-6745-167X"))
+    person(given = "Chris",
+           family = "Vernon",
+           role = c("aut", "cre"),
+           email = "chris.vernon@pnnl.gov",
+           comment = c(ORCID = "0000-0002-3406-6214"))
+Description: gamut is a tool for exploring teleconnections between cities of the United States and human activities that occur in their associated water supply catchments.
 License: BSD 2-Clause
 Encoding: UTF-8
 LazyData: true
