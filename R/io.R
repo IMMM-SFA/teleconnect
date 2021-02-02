@@ -86,7 +86,7 @@ import_points_from_csv <- function(f, pts_lat_field, pts_lon_field, pts_crs = 43
 #'
 #' Read internal data file that specifies all 236 US cities from UWB database.
 #' Provides consistent mapping across cities, intakes and watersheds.
-#' @import vroom
+#' @importFrom vroom vroom cols
 #' @author Sean Turner (sean.turner@pnnl.gov)
 #' @export
 get_cities <- function(){

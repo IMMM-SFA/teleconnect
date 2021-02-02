@@ -8,57 +8,23 @@ always_allow_html: yes
 [![Build Status](https://travis-ci.org/IMMM-SFA/teleconnect.svg?branch=master)](https://travis-ci.org/IMMM-SFA/teleconnect)
 [![DOI](https://zenodo.org/badge/203447802.svg)](https://zenodo.org/badge/latestdoi/203447802)
 
-# teleconnect
+# `gamut`
 
-#### An R package to identify multi-sector teleconnection complexity
+#### **G**eospatial **A**nalytics for **M**ultisector **U**rban **T**eleconnections
 
 ## Description
-The `teleconnect` package classifies US cities according to the complexity 
-of their distal relationships across water, energy, and land sectors. The cities analyzed in this package
-are based off the Urban Water Blueprint dataset. 
-```{r,echo=FALSE, message=FALSE, warning=FALSE}
-library(readr)
-library(dplyr)
-library(vroom)
-library(purrr)
-library(tidyr)
-library(rgdal)
-library(sf)
-library(sp)
-library(tmaptools)
-library(readxl)
-library(purrr)
-library(plyr)
-library(raster)
-library(rgeos)
-library(units)
-library(ncdf4)
-library(data.table)
-library(RNetCDF)
-library(ggplot2)
-library(ggthemes)
-library(teleconnect)
-```
+`gamut` is a tool for exploring *teleconnections* between cities of the United States and human activities that occur in their associated water supply catchments. A *teleconnection* is a causal connection or correlation between human and environmental phenomena that occur a long distance apart.
+
+
 ```{r,echo=FALSE, message=FALSE, warning=FALSE,fig.width=10,fig.height=5}
+library(teleconnect)
+library(ggplot2)
+library(sf)
+library(st)
 
-import_shapefile <- function(shp_path, quiet = TRUE, method = "sf") {
+# define data directory
 
-  if(method == "sf") return(st_read(shp_path, quiet = quiet))
-  if(method == "rgdal") return(readOGR(shp_path, verbose = !quiet))
-}
-
-get_cities <- function(){
-  vroom(paste0(system.file("extdata", package = "teleconnect"),
-               "/city_to_intake_mapping.csv"),
-        col_types = cols(city = col_character(),
-                         state = col_character(),
-                         city_uid = col_integer(),
-                         intake = col_character(),
-                         DVSN_ID = col_integer(),
-                         DVTR_ID = col_integer(),
-                         city_state = col_character())
-  )
-}
+your_gamut_data_directory <- "../../../../Large data files/spatial data/"
 
 get_cities() %>%
      subset(key_watershed == TRUE) ->
@@ -67,28 +33,38 @@ get_cities() %>%
 city_watershed_mapping$DVSN_ID %>% unique() -> watersheds
 city_watershed_mapping$city_uid %>% unique() -> cities
 
-import_shapefile("C:/data_dir/misc/states_21basic/states.shp") -> states
-import_shapefile("C:/data_dir/water/CWM_v2_2/World_Watershed8.shp") %>% st_as_sf() %>% subset(DVSN_ID %in% watersheds) -> watersheds
-import_shapefile("C:/data_dir/water/CWM_v2_2/City_Centroid.shp") %>% st_as_sf()-> intake
-intake %>% subset(City_ID %in% cities) -> intakes
+import_shapefile(paste0(your_gamut_data_directory,
+                        "/misc/states_21basic/states.shp")) %>% 
+  subset(!STATE_NAME %in% c("Alaska", "Hawaii"))->
+  states
 
-raster::raster("C:/CERF/Data/MSR_50M/MSR_50M/MSR_50M.tif") -> relief
-crop(relief, states) %>% mask(states) -> relief2
-relief_spdf <- as(relief2, "SpatialPixelsDataFrame")
-relief <- as.data.frame(relief_spdf)
+import_shapefile(paste0(your_gamut_data_directory,
+                        "/water/CWM_v2_2/World_Watershed8.shp")) %>%
+                   st_as_sf() %>%
+                   subset(DVSN_ID %in% watersheds) ->
+                   watersheds
+                 
+import_shapefile(paste0(your_gamut_data_directory, 
+                 "/water/CWM_v2_2/City_Centroid.shp")) %>%
+  st_as_sf() %>% subset(City_ID %in% cities) -> intakes
+
+#raster::raster("C:/CERF/Data/MSR_50M/MSR_50M/MSR_50M.tif") -> relief
+# crop(relief, states) %>% mask(states) -> relief2
+# relief_spdf <- as(relief2, "SpatialPixelsDataFrame")
+# relief <- as.data.frame(relief_spdf)
 
 
 ggplot() +
-  geom_raster(data = relief, aes(x = x,
-                                 y = y,
-                                 alpha = MSR_50M)) +
-  scale_alpha(name = "", range = c(0.6, 0), guide = F)  +
-  geom_sf(data=states, fill = NA, size = 0.7, color = "black") +
+  # geom_raster(data = relief, aes(x = x,
+  #                                y = y,
+  #                                alpha = MSR_50M)) +
+  # scale_alpha(name = "", range = c(0.6, 0), guide = F)  +
+  geom_sf(data=states, fill = "lightgrey", size = 0.7, color = "black") +
   geom_sf(data=watersheds, fill = "steelblue", alpha = 0.4) +
   geom_sf(data=intakes, color = "red4", alpha = 0.9, size = 2) +
   scale_fill_manual(values = "steelblue") +
   coord_sf() +
-  theme_map() +
+  theme_void() +
   theme(
     legend.position = c(0.1, 0.15),
     legend.text.align = 0,
@@ -112,10 +88,10 @@ ggplot() +
 
 ```
 
-## Get Started with `teleconnect`
-`teleconnect` can be installed directly from its GitHub repository using the R `devtools` package. From an R prompt, run the command:
+## Get Started with `gamut`
+`gamut` can be installed directly from this repository using the R `devtools` package. From an R prompt, run the command:
 ```r
-devtools::install_github('IMMM-SFA/teleconnect')
+devtools::install_github('IMMM-SFA/gamut')
 ```
 
 ##### Data Directory Set Up
@@ -131,11 +107,13 @@ In order for the package to function properly, the user needs to correctly set u
                   Sub Folder: land
                   Sub Folder: water
     
-    Step 3: Follow the instructions in the "Data Downloading Instructions" section below to download the datasets. The             table below shows where to find each dataset, and what folder it needs to go in. 
+    Step 3: Follow the instructions in the "Data Downloading Instructions" section below to download the datasets. The             table below shows where to find each dataset, and what folder it needs to go in.
+    
 ```{r, echo=FALSE,message=FALSE}
+library(tibble)
 library(knitr)
 
-tibble::tribble(
+tribble(
   ~`Teleconnect Name`,	~`Sub Folder Location`, ~`Full File Path`,~`Data Location`,
   "watersheds", "water","water/CWM_v2_2/World_Watershed8.shp","https://knb.ecoinformatics.org/view/doi%3A10.5063%2FF1J67DWR",
   "withdrawal","water","water/CWM_v2_2/Snapped_Withdrawal_Points.shp","https://knb.ecoinformatics.org/view/doi%3A10.5063%2FF1J67DWR",
@@ -187,7 +165,6 @@ Below are instructions on how to download each dataset and prepare them for the 
           - NLUDv1_2010_30m-0000046592-0000000000.tif
           - NLUDv1_2010_30m-0000000000-0000232960.tif
       3: Change the resolution of these rasters to 90m by 90m, and then mosaic them together. Save the mosaic file to the file path in the table.
-      4: (Efficient code to do this will be placed here.)
       
       `hyrdo` dataset:
       1. Follow the link in the table above and click the download button for the ORNL EHAHydroPlant FY2020revised (xlsx).
@@ -202,15 +179,6 @@ Below are instructions on how to download each dataset and prepare them for the 
       1. Follow the link in the table above and download the attached file named "pden2010_block.zip". Place this file into the `land` folder.
       2. This raster will also need to be cropped to the shape of the Continental United States.
 
-##### Data information
-
-Data Collected: 2019-2020
-
-Geographic location: Continental United States
-
-Projection: WGS 1984
-
-
 
 ## Usage
 
@@ -219,20 +187,21 @@ Once all the necessary data is organized in the correct format, the package is r
 Here is an example of what you would type into your console: 
 
 ```r
-count_watershed_teleconnections(data_dir = "C:/data_dir/", cities = c("Portland | OR", "Charlotte | NC", "Austin | TX"))
+count_watershed_teleconnections(data_dir = "your/gamut/data_dir", cities = c("Portland | OR", "Charlotte | NC", "Austin | TX"))
 ```
 
 The package will cycle through each city and their respective watersheds, and produce a table with several columns of information. To learn what each of these variables mean, scroll to the bottom of this section and see the table of variables. The result of this function will look something like this:
 
 ```{r,echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
-suppressMessages(count_watershed_teleconnections("C:/data_dir/", cities = c("Atlanta | GA", "Portland | OR", "Charlotte | NC", "Austin | TX", "Macon | GA", "Philadelphia | PA", "Houston | TX", "Raleigh | NC", "Knoxville | TN", "New York | NY", "Los Angeles | CA"))) -> results
+suppressMessages(count_watershed_teleconnections(your_gamut_data_directory,
+                                                 cities = c("Portland | OR", "Knoxville | TN"))) -> results
 gsub("\\|", ", ", results$city) -> results$city
 gsub("\\ ", "", results$city) -> results$city
 gsub("\\,", ", ", results$city) -> results$city
 ```
 
 ```{r,echo=FALSE, message=FALSE, warning=FALSE}
-kable(results)
+knitr::kable(results)
 ```
 
 This table can be used to compare different variables between multiple cities. Below is a graph comparing how much developed land are in cities' watersheds. 
@@ -247,19 +216,14 @@ results %>%
 ```
 
 
-
-To get a closer look at the cities, their watersheds, and the type of land within those watersheds, run the `plot_watershed` function.
-
-Here is an example of what to type into the console:
+`gamut` also has very basic functionality for visualizing watersheds and associated land uses for a given city watersheds. For example:
 
 ```r
-plot_watershed(data_dir = "C:/data_dir/", city = "Los Angeles | CA")
+plot_watershed(data_dir = "your/gamut/data_dir", city = "New York | NY")
 ```
 
-Below is the map that is produced:
-
 ```{r,echo=FALSE, message=FALSE, warning=FALSE,fig.width=10,fig.height=5}
-plot_watershed(data_dir = "C:/data_dir/", city = "Los Angeles | CA")
+plot_watershed(data_dir = your_gamut_data_directory, city = "New York | NY")
 ```
 
 The table below shows explanations for each of these variables that are created through this function:
@@ -283,7 +247,7 @@ tibble::tribble(
   "n_thermal_plants","Number of thermal power plants operating within the source watersheds","plants",
   "n_fac_agcrop","Number of agricultural crop facilities within the source watersheds","facilities",
   "n_fac_aglivestock","Number of agicultural livestock facilities within the source watersheds","facilities",
-  "n_fac_cnsmnf","","facilities",
+  "n_fac_cnsmnf","Number of construction and manufacturing facilities within the source watersheds ","facilities",
   "n_fac_mining","Number of mining facilities within the source watersheds","facilities",
   "n_fac_oilgas","Number of oil and gas facilities within the source watersheds","facilities",
   "n_fac_total","Total number of facilities operating within the source watersheds","facilities",
@@ -324,6 +288,7 @@ tibble::tribble(
 ) -> variables
 kable(variables)
 ```
+
 ## Support
 
 For any questions about the package, please contact any of the contributors below:
@@ -333,6 +298,9 @@ sean.turner@pnnl.gov
 
 Kristian Nelson:
 kristian.nelson@pnnl.gov
+
+Chris Vernon
+chris.vernon@pnnl.gov
 
 
 ## Authors and Acknowledgement 
