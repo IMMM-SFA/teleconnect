@@ -5,7 +5,7 @@ always_allow_html: yes
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-![build](https://github.com/IMMM-SFA/teleconnect/workflows/build/badge.svg) [![codecov](https://codecov.io/gh/IMMM-SFA/teleconnect/branch/master/graph/badge.svg?token=uF3EvxwvCO)](https://codecov.io/gh/IMMM-SFA/teleconnect) 
+![build](https://github.com/IMMM-SFA/gamut/workflows/build/badge.svg) [![codecov](https://codecov.io/gh/IMMM-SFA/gamut/branch/master/graph/badge.svg?token=uF3EvxwvCO)](https://codecov.io/gh/IMMM-SFA/gamut) 
 [![DOI](https://zenodo.org/badge/203447802.svg)](https://zenodo.org/badge/latestdoi/203447802) 
 
 # `gamut`
@@ -17,14 +17,14 @@ always_allow_html: yes
 
 
 ```{r,echo=FALSE, message=FALSE, warning=FALSE,fig.width=10,fig.height=5}
-library(teleconnect)
+library(gamut)
 library(ggplot2)
 library(sf)
 library(st)
 
 # define data directory
 
-your_gamut_data_directory <- "../../../../Large data files/spatial data/"
+your_gamut_data_directory <- "../../../Large data files/spatial data/"
 
 get_cities() %>%
      subset(key_watershed == TRUE) ->
