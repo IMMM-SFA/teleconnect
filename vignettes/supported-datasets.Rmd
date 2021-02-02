@@ -15,10 +15,10 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-library(teleconnect)
+library(gamut)
 ```
 
-## The following are datasets that are supported by the `teleconnect` package:
+## The following are datasets that are supported by the `gamut` package:
 
 | Sector | Dataset | Source | Reference | Usage | Year |
 | -- | -- | -- | -- | -- | -- |

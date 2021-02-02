@@ -1,7 +1,8 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-![build](https://github.com/IMMM-SFA/teleconnect/workflows/build/badge.svg) [![codecov](https://codecov.io/gh/IMMM-SFA/teleconnect/branch/master/graph/badge.svg?token=uF3EvxwvCO)](https://codecov.io/gh/IMMM-SFA/teleconnect) 
+![build](https://github.com/IMMM-SFA/gamut/workflows/build/badge.svg)
+[![codecov](https://codecov.io/gh/IMMM-SFA/gamut/branch/master/graph/badge.svg?token=uF3EvxwvCO)](https://codecov.io/gh/IMMM-SFA/gamut)
 [![DOI](https://zenodo.org/badge/203447802.svg)](https://zenodo.org/badge/latestdoi/203447802)
 
 # `gamut`

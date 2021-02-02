@@ -1,4 +1,4 @@
 library(testthat)
-library(teleconnect)
+library(gamut)
 
-test_check("teleconnect")
+test_check("gamut")
