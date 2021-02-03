@@ -7,12 +7,12 @@
 #' @importFrom purrr map_dfr map
 #' @importFrom dplyr filter group_indices left_join if_else tribble group_by summarise arrange
 #' @importFrom tibble tibble
-#' @importFrom sf as_Spatial st_as_sf st_cast st_within st_make_valid
 #' @importFrom foreign read.dbf
 #' @importFrom exactextractr exact_extract
 #' @importFrom geosphere areaPolygon distGeo
 #' @importFrom tmaptools set_projection
 #' @importFrom lwgeom st_startpoint st_endpoint
+#' @importFrom sf as_Spatial st_as_sf st_cast st_within st_make_valid
 #' @importFrom reservoir yield
 #' @importFrom raster intersect extent
 #' @importFrom stringr str_remove
