@@ -20,10 +20,14 @@ sample_polygon <- function() {
 }
 
 
-test_that("init_bbox() functionality", {
+# build sample polygon sf object
+test_ply <- sample_polygon()
 
-  # build sample polygon sf object
-  ply <- sample_polygon()
+# create a bounding box attribute list
+test_bbox <- init_bbox(test_ply)
+
+
+test_that("init_bbox() functionality", {
 
   # build what to expect as an output
   comp_bbox <- list()
@@ -34,7 +38,7 @@ test_that("init_bbox() functionality", {
   comp_bbox[[ "xmax_source" ]] <- 10
 
   # run the function and return the output list
-  sim_bbox <- init_bbox(ply)
+  sim_bbox <- init_bbox(test_ply)
 
   # ensure that the function produces what is expected
   expect_equal(comp_bbox, sim_bbox)
@@ -44,19 +48,31 @@ test_that("init_bbox() functionality", {
 
 test_that("poly_intersect() functionality", {
 
-  # build sample polygon sf object
-  ply <- sample_polygon()
-
-  # create a bounding box attribute list
-  sim_bbox <- init_bbox(ply)
-
   # load expected output data
   comp_ply <- readRDS("data/comp_poly_intersect.rds")
 
   # generate polygon intersection data
-  sim_ply <- poly_intersect(sim_bbox$xmin, sim_bbox$xmax, sim_bbox$ymin, sim_bbox$ymax, ply)
+  sim_ply <- poly_intersect(test_bbox$xmin, test_bbox$xmax, test_bbox$ymin, test_bbox$ymax, test_ply)
 
   # ensure that the function produces what is expected
   expect_equal(comp_ply, sim_ply)
 
 })
+
+
+
+test_that("chopped_area() functionality", {
+
+  # load expected output data
+  comp_ply <- readRDS("data/comp_chopped_area.rds")
+
+  # generate polygon intersection data
+  sim_ply <- chopped_area(test_bbox$xmax, test_bbox, test_ply)
+
+  # ensure that the function produces what is expected
+  expect_equal(comp_ply, sim_ply)
+
+})
+
+
+
