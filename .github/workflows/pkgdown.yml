@@ -16,6 +16,13 @@ jobs:
 
       - uses: r-lib/actions/setup-pandoc@v1
 
+      - name: Brew and macOS config
+        if: runner.os == 'macOS'
+        run: |
+          brew install pkg-config \
+            imagemagick@6 \
+            gdal
+
       - name: Query dependencies
         run: |
           install.packages('remotes')
