@@ -60,7 +60,6 @@ test_that("poly_intersect() functionality", {
 })
 
 
-
 test_that("chopped_area() functionality", {
 
   # load expected output data
@@ -73,7 +72,6 @@ test_that("chopped_area() functionality", {
   expect_equal(comp_ply, sim_ply)
 
 })
-
 
 
 test_that("target_function() functionality", {
@@ -104,7 +102,6 @@ test_that("slicer() functionality", {
 })
 
 
-
 test_that("polygon_bounding_box() functionality", {
 
   # load expected output data
@@ -118,6 +115,19 @@ test_that("polygon_bounding_box() functionality", {
 
 })
 
+
+test_that("build_polygon() functionality", {
+
+  # load expected output data
+  comp_ply <- readRDS("data/build_polygon.rds")
+
+  # generate function output
+  sim_ply <- build_polygon(test_bbox$xmin, test_bbox$xmax, test_bbox$ymin, test_bbox$ymax)
+
+  # ensure that the function produces what is expected
+  expect_equal(comp_ply, sim_ply)
+
+})
 
 
 
