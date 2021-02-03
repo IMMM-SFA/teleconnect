@@ -90,6 +90,37 @@ test_that("target_function() functionality", {
 })
 
 
+test_that("slicer() functionality", {
+
+  # load expected output data
+  comp_ply <- readRDS("data/slicer.rds")
+
+  # generate function output
+  sim_ply <- slicer(test_ply, test_bbox$xmin, test_bbox$xmax)
+
+  # ensure that the function produces what is expected
+  expect_equal(comp_ply, sim_ply)
+
+})
+
+
+
+test_that("polygon_bounding_box() functionality", {
+
+  # load expected output data
+  comp_ply <- readRDS("data/polygon_bounding_box.rds")
+
+  # generate function output
+  sim_ply <- polygon_bounding_box(test_bbox$xmin, test_bbox$xmax, test_bbox$ymin, test_bbox$ymax, my_crs=4326)
+
+  # ensure that the function produces what is expected
+  expect_equal(comp_ply, sim_ply)
+
+})
+
+
+
+
 
 
 
