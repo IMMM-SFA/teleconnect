@@ -76,3 +76,6 @@ test_that("chopped_area() functionality", {
 
 
 
+
+
+
