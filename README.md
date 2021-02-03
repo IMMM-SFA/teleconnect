@@ -1,22 +1,12 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 ![build](https://github.com/IMMM-SFA/gamut/workflows/build/badge.svg) [![codecov](https://codecov.io/gh/IMMM-SFA/gamut/branch/main/graph/badge.svg?token=uF3EvxwvCO)](https://codecov.io/gh/IMMM-SFA/gamut) 
-=======
-![build](https://github.com/IMMM-SFA/gamut/workflows/build/badge.svg)
-[![codecov](https://codecov.io/gh/IMMM-SFA/gamut/branch/master/graph/badge.svg?token=uF3EvxwvCO)](https://codecov.io/gh/IMMM-SFA/gamut)
->>>>>>> 2acd0f3e0f6d7167ae3d7d797d3fbec0fd17c499
-=======
-
-![build](https://github.com/IMMM-SFA/gamut/workflows/build/badge.svg) [![codecov](https://codecov.io/gh/IMMM-SFA/gamut/branch/main/graph/badge.svg?token=uF3EvxwvCO)](https://codecov.io/gh/IMMM-SFA/gamut) 
->>>>>>> c89746abbf81c7f1f681a8ca346927bf02e42291
 [![DOI](https://zenodo.org/badge/203447802.svg)](https://zenodo.org/badge/latestdoi/203447802)
 
 # `gamut`
 
-#### **G**eospatial **A**nalytics for **M**ultisector **U**rban **T**eleconnections
+### **G**eospatial **A**nalytics for **M**ultisector **U**rban **T**eleconnections
 
 ## Description
 
@@ -37,7 +27,7 @@ distance apart.
 devtools::install_github('IMMM-SFA/gamut')
 ```
 
-##### Data Directory Set Up
+### Data Directory Set Up
 
 In order for the package to function properly, the user needs to
 correctly set up a data directory, and place all of the necessary
@@ -74,7 +64,7 @@ directory so that the package can read in the input datasets correctly.
 | nhd\_flow        | water               | water/Watershed\_Flow\_Contributions/UWB\_Intake\_Flows.shp                         | NA                                                                                                       |
 | contributions    | water               | water/Watershed\_Flow\_Contributions/Watershed\_Contributions.csv                   | NA                                                                                                       |
 
-##### Data Downloading Instructions
+### Data Downloading Instructions
 
 Below are instructions on how to download each dataset and prepare them
 for the package.
