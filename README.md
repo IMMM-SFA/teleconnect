@@ -2,11 +2,16 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 ![build](https://github.com/IMMM-SFA/gamut/workflows/build/badge.svg) [![codecov](https://codecov.io/gh/IMMM-SFA/gamut/branch/main/graph/badge.svg?token=uF3EvxwvCO)](https://codecov.io/gh/IMMM-SFA/gamut) 
 =======
 ![build](https://github.com/IMMM-SFA/gamut/workflows/build/badge.svg)
 [![codecov](https://codecov.io/gh/IMMM-SFA/gamut/branch/master/graph/badge.svg?token=uF3EvxwvCO)](https://codecov.io/gh/IMMM-SFA/gamut)
 >>>>>>> 2acd0f3e0f6d7167ae3d7d797d3fbec0fd17c499
+=======
+
+![build](https://github.com/IMMM-SFA/gamut/workflows/build/badge.svg) [![codecov](https://codecov.io/gh/IMMM-SFA/gamut/branch/main/graph/badge.svg?token=uF3EvxwvCO)](https://codecov.io/gh/IMMM-SFA/gamut) 
+>>>>>>> c89746abbf81c7f1f681a8ca346927bf02e42291
 [![DOI](https://zenodo.org/badge/203447802.svg)](https://zenodo.org/badge/latestdoi/203447802)
 
 # `gamut`
