@@ -128,10 +128,3 @@ test_that("build_polygon() functionality", {
   expect_equal(comp_ply, sim_ply)
 
 })
-
-
-
-
-
-
-
