@@ -17,7 +17,7 @@ test_that("verify constants values", {
 
   expect_equal(0.00378541 * 1e-3, Mgallons_to_BCM) # Million gallons to billion cubic meters
 
-  m2expect_equal(1000000, m2_to_km2)
+  expect_equal(1000000, m2_to_km2)
 
   expect_equal(1000, m_to_km)
 
