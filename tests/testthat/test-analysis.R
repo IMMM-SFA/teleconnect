@@ -76,6 +76,21 @@ test_that("chopped_area() functionality", {
 
 
 
+test_that("target_function() functionality", {
+
+  # load expected output data
+  comp_ply <- readRDS("data/target_function.rds")
+
+  # generate function output
+  sim_ply <- target_function(fraction=0.4, test_bbox$xmax, test_bbox, test_ply, total_area=sf::st_area(test_ply))
+
+  # ensure that the function produces what is expected
+  expect_equal(comp_ply, sim_ply)
+
+})
+
+
+
 
 
 
