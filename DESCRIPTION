@@ -27,7 +27,6 @@ RoxygenNote: 7.1.1
 Imports: 
     car,
     clisymbols,
-    cowplot,
     crayon,
     dams,
     dataRetrieval,
