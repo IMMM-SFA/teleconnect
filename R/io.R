@@ -34,21 +34,6 @@ import_raster <- function(raster_path) {
   return(raster(raster_path, RAT = TRUE))
 }
 
-
-#' Import NetCDF to brick raster
-#'
-#' Import NetCDF to brick raster
-#'
-#' @param ncdf_file character. A full path to the input NetCDF file with the file name and extension
-#' @importFrom raster brick
-#' @return raster object
-#' @author Chris R. Vernon (chris.vernon@pnnl.gov)
-#' @export
-import_ncdf_to_raster <- function(ncdf_file) {
-
-  return(brick(ncdf_file))
-}
-
 #' Import point data from a CSV file
 #'
 #' Import point data that contains a value to be spatially joined to the fishnet containing
