@@ -5,7 +5,7 @@
 #' @param cities a vector of cities to be included in the count. If omitted, all cities will be included.
 #' @details counts teleconnections associated with water supply catchments associated with each city
 #' @importFrom purrr map_dfr map
-#' @importFrom dplyr filter group_indices left_join if_else tribble group_by summarise arrange
+#' @importFrom dplyr filter group_indices left_join if_else tribble group_by summarise arrange right_join
 #' @importFrom tibble tibble
 #' @importFrom foreign read.dbf
 #' @importFrom exactextractr exact_extract
@@ -376,7 +376,7 @@ count_watershed_data <- function(data_dir,
 
         irrigation_bcm %>% filter(HUC2 %in% HUC2_majority) %>%
           select(GCAM_commodity, Irr_BCM_KM2) %>%
-          right_join(irrigation_km2, by = "GCAM_commodity") %>%
+          dplyr::right_join(irrigation_km2, by = "GCAM_commodity") %>%
           mutate(consumption_BCM = Irr_BCM_KM2 * irr) %>%
           .[["consumption_BCM"]] %>% sum(na.rm = T) ->
           total_irr_bcm
