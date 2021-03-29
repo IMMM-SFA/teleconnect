@@ -12,7 +12,7 @@
 #' @param n_cores integer for the number of machine cores used to run the polygon slicing function. 2 is default for users with 16GB of RAM.
 #' @details counts teleconnections assoicated with water supply catchments associated with each city
 #' @importFrom purrr map_dfr
-#' @importFrom dplyr filter group_indices left_join
+#' @importFrom dplyr filter group_indices left_join right_join
 #' @importFrom tibble tibble
 #' @importFrom sf as_Spatial
 #' @importFrom foreign read.dbf
