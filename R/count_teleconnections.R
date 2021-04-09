@@ -34,7 +34,7 @@ count_watershed_teleconnections <- function(data_dir,
                                               transfers = "water/transfers/USIBTsHUC6_Dickson.shp",
                                               climate = "land/kop_climate_classes.tif",
                                               HUC4 = "water/USA_HUC4/huc4_to_huc2.shp",
-                                              population = "land/pden2010_block/pden2010_60m.tif",
+                                              population = "land/pden2010_60m.tif",
                                               runoff = "water/UWSCatch/USA_Mean_Runoff.tif",
                                               nhd_flow = "water/UWSCatCH/UWSCatCH_Intake_Flows.shp",
                                               contributions = "water/UWSCatCH/Watershed_Contributions.csv"
