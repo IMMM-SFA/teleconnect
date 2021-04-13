@@ -26,6 +26,7 @@ distance apart.
 
 ``` r
 devtools::install_github('IMMM-SFA/gamut')
+library(gamut)
 ```
 
 ##### Data Files
@@ -54,13 +55,9 @@ package.
 
 ##### Data Downloading Instructions
 
-To download all of the `gamut` input datasets, use the
-`get_gamut_datasets` function as seen below. This will download all of
-the necessary data to run the `gamut` package.
-
-``` r
-get_gamut_datasets("Download Location", "Unzip Location")
-```
+To download all of the `gamut` input datasets, visit the [Zenodo data
+repository](https://zenodo.org/record/4662993#.YHTNpehKhPY) and download
+the zipped data files to your preferred directory.
 
 ## Usage
 
