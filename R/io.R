@@ -75,7 +75,7 @@ import_points_from_csv <- function(f, pts_lat_field, pts_lon_field, pts_crs = 43
 #' @author Sean Turner (sean.turner@pnnl.gov)
 #' @export
 get_cities <- function(){
-  vroom(paste0(system.file("extdata", package = "teleconnect"),
+  vroom(paste0(system.file("extdata", package = "gamut"),
                "/city_to_intake_mapping.csv"),
         col_types = cols(city = col_character(),
                          state = col_character(),
@@ -94,7 +94,7 @@ get_cities <- function(){
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
 #' @export
 get_crop_mapping <- function(){
-  vroom(paste0(system.file("extdata", package = "teleconnect"),
+  vroom(paste0(system.file("extdata", package = "gamut"),
                "/FAO_ag_items_PRODSTAT.csv"),
         col_types = cols(item = col_character(),
                          GTAP_crop = col_character(),
@@ -134,7 +134,7 @@ get_ucs_power_plants <- function(ucs_file_path,
                                  method = "sp"){
 
   # read in EIA Plant and utility data (2010)
-  vroom(paste0(system.file("extdata", package = "teleconnect"),
+  vroom(paste0(system.file("extdata", package = "gamut"),
                "/EIA_Plant_2010.csv"),
         col_select = c('UTILITY_ID',
                          'PLANT_CODE'),
@@ -143,7 +143,7 @@ get_ucs_power_plants <- function(ucs_file_path,
         delim = ",") -> utility_data_2010
 
   # read in EIA Plant and Balancing Authorities (2015)
-  vroom(paste0(system.file("extdata", package = "teleconnect"),
+  vroom(paste0(system.file("extdata", package = "gamut"),
                "/EIA_Plant_2015.csv"),
         col_select = c('Plant Code',
                        'BA_NAME'),
@@ -152,7 +152,7 @@ get_ucs_power_plants <- function(ucs_file_path,
         skip = 1, delim = ",") %>% unique() -> utility_data_2015
 
   # read in Utility ID -> Balancing Authority mapping
-  vroom(paste0(system.file("extdata", package = "teleconnect"),
+  vroom(paste0(system.file("extdata", package = "gamut"),
                "/Electric_Retail_Service_Territories.csv"),
         col_select = c('UTILITY_ID',
                        'CNTRL_AREA'),
@@ -414,7 +414,7 @@ get_demeter_file <- function(irrigation_file_path){
           root_tuber_rfd = col_double(),
           sugarcrop_rfd = col_double(),
           wheat_rfd = col_double(),
-          area_sqkm = col_double())) -> demeter
+          area_sqkm = col_double())) %>% as.data.frame() -> demeter
   # convert to spatial points so that it can be masked by watershed.
   SpatialPointsDataFrame(coords = demeter[ ,c(2,1)], demeter, proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs")) -> usa_irrigation
 
@@ -474,7 +474,7 @@ get_irrigation_count <- function(irrigation_city){
 
 get_nlud_names <- function(economic_ids){
   # Load id table
-  vroom(paste0(system.file("extdata", package = "teleconnect"),
+  vroom(paste0(system.file("extdata", package = "gamut"),
                "/nlud_id_table.csv"),
         col_select = c('Group.1',
                        'NLUD_Class',
@@ -516,7 +516,7 @@ get_hydro_dataset <- function(data_dir, hydro_file_path){
 #' @importFrom vroom vroom cols
 #' @author Sean Turner (sean.turner@pnnl.gov)
 get_population <- function(){
-  vroom(paste0(system.file("extdata", package = "teleconnect"),
+  vroom(paste0(system.file("extdata", package = "gamut"),
                "/city_population.csv"),
         skip = 1, col_types = cols())
 }
@@ -531,7 +531,7 @@ get_population <- function(){
 #' @export
 get_watershed_ts <- function(watersheds){
 
-  vroom(paste0(system.file("extdata", package = "teleconnect"),
+  vroom(paste0(system.file("extdata", package = "gamut"),
                                 "/teleconnect_runoff_bcm.csv"),
                          delim = ",", skip = 2, col_types = cols()) %>%
     select(Monthly_Date, one_of(as.character(watersheds))) %>%
@@ -545,7 +545,7 @@ get_watershed_ts <- function(watersheds){
 #' @importFrom vroom vroom cols
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
 get_irrigation_bcm <- function(){
-  vroom(paste0(system.file("extdata", package = "teleconnect"),
+  vroom(paste0(system.file("extdata", package = "gamut"),
                "/HUC2_Irrigation_Data.csv"),
         skip = 2, col_types = cols())
 
@@ -556,7 +556,7 @@ get_irrigation_bcm <- function(){
 #' @importFrom vroom vroom cols
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
 get_watershed_usage <- function(city){
-  vroom(paste0(system.file("extdata", package = "teleconnect"),
+  vroom(paste0(system.file("extdata", package = "gamut"),
                "/city_usage_table.csv"),
         skip = 2, col_types = cols()) -> connect_table
   connect_table <- connect_table[!(connect_table$city_state == city),]
@@ -607,7 +607,7 @@ get_runoff_values <- function(cropcover_agg, runoff_agg, lc_values, polygon_area
 #' @importFrom tidyr replace_na
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
 get_wasteflow_points <- function(){
-  vroom(paste0(system.file("extdata", package = "teleconnect"),
+  vroom(paste0(system.file("extdata", package = "gamut"),
                "/CWNS_2012.csv"), col_types = cols()) ->
     wwtp_table
 
@@ -619,7 +619,7 @@ get_wasteflow_points <- function(){
     filter(flow_MGD > 0) %>%
     filter(!is.na(lon), !is.na(lat)) %>%
     mutate(flow_cumecs = flow_MGD * MGD_to_m3sec) %>%
-    select(lon, lat, flow_cumecs) ->
+    select(lon, lat, flow_cumecs) %>% as.data.frame() ->
     wwtp_surface_discharge_data
 
   SpatialPointsDataFrame(wwtp_surface_discharge_data[c("lon", "lat")],
@@ -651,7 +651,7 @@ get_source_contribution <- function(data_dir,file_paths){
 #' @author Sean Turner (sean.turner@pnnl.gov)
 get_usgs_flows <- function(DVSN){
 
-    vroom(paste0(system.file("extdata", package = "teleconnect"),
+    vroom(paste0(system.file("extdata", package = "gamut"),
                "/teleconnect_flows_USGS_cfs.csv"), col_types = cols()) ->
     all_flows
 
@@ -680,7 +680,7 @@ get_usgs_flows <- function(DVSN){
 get_epa_facilities <- function(){
 
   suppressWarnings(
-    vroom(paste0(system.file("extdata", package = "teleconnect"),
+    vroom(paste0(system.file("extdata", package = "gamut"),
                  "/EPA_facilities_water_NPDES_TRI.csv"), col_types = cols(),
           comment = "##") %>%
       mutate(SIC_CODES = gsub("0000, ", "", SIC_CODES)) %>%
@@ -716,7 +716,8 @@ get_epa_facilities <- function(){
     filter(!is.na(lon)) %>%
     filter(!is.na(lat)) %>%
     # correction for +ve lon values
-    mutate(lon = if_else(lon > 0, lon * -1, lon)) -> epa_facilities
+    mutate(lon = if_else(lon > 0, lon * -1, lon)) %>%
+    as.data.frame() -> epa_facilities
 
   SpatialPointsDataFrame(
     epa_facilities[c("lon", "lat")],
