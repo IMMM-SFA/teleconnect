@@ -112,21 +112,17 @@ The ``gamut`` package is open source and may be downloaded using the [devtools](
 ### Dependencies 
 
 Imports: 
-    car,
     clisymbols,
     crayon,
     dams,
     dataRetrieval,
     dplyr,
     exactextractr,
-    fasterize,
     foreign,
     geosphere,
     ggplot2,
-    lubridate,
     lwgeom,
     magrittr,
-    ncdf4,
     purrr,
     raster,
     readxl,
@@ -134,21 +130,19 @@ Imports:
     rgdal,
     rgeos,
     sf,
-    smoothr,
     sp,
-    spex,
     stringr,
     tibble,
     tidyr,
-    tmap,
-    tmaptools,
     units,
     vroom
-    
+
 Suggests: 
     testthat (>= 2.1.0),
     knitr,
     rmarkdown
+
+VignetteBuilder: knitr
 
 
 ### Acknowledgements
