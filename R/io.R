@@ -219,10 +219,12 @@ get_zonal_data <- function(raster_object, polygon, city) {
   # extract raster projection
   raster_crs <- crs(raster_object)
   # transform projection and union all polygons into one
+  sup(
   polygon %>%
     st_as_sf() %>%
     st_transform(crs = raster_crs) %>%
     st_union() -> ply_union
+  )
   # use exactextractr to return classes and coverage fractions of each cell
   exactextractr::exact_extract(raster_object, ply_union) %>%
     .[[1]] %>% .[["value"]] %>%

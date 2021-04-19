@@ -311,21 +311,21 @@ count_watershed_data <- function(data_dir,
           cropcover_agg_crop -> cropcover_agg
         }
 
-        suppressMessages(get_runoff_values(cropcover_agg,
-                                           runoff_agg,
-                                           developed_values,
-                                           polygon_area,
-                                           land_table)) -> dev_runoff_m3persec
+        sup(get_runoff_values(cropcover_agg,
+                              runoff_agg,
+                              developed_values,
+                              polygon_area,
+                              land_table)) -> dev_runoff_m3persec
 
         # Crop Runoff Calculation
         crop_reclass_table %>% filter(!is.na(GCAM_Class)) %>%
           .[["CDL_ID"]] -> cultivated_values
 
-        suppressMessages(get_runoff_values(cropcover_agg,
-                                           runoff_agg,
-                                           cultivated_values,
-                                           polygon_area,
-                                           land_table)) -> cultivated_runoff_m3persec
+        sup(get_runoff_values(cropcover_agg,
+                              runoff_agg,
+                              cultivated_values,
+                              polygon_area,
+                              land_table)) -> cultivated_runoff_m3persec
 
         # Rest of land runoff calculation
 
@@ -335,7 +335,7 @@ count_watershed_data <- function(data_dir,
           filter(!CDL_ID %in% crop_dev_vals) %>%
           .[["CDL_ID"]] -> other_vals
 
-        suppressMessages(get_runoff_values(cropcover_agg,
+        sup(get_runoff_values(cropcover_agg,
                                            runoff_agg,
                                            other_vals,
                                            polygon_area,

@@ -40,7 +40,7 @@ count_watershed_teleconnections <- function(data_dir,
                                               contributions = "water/UWSCatCH/Watershed_Contributions.csv"
                                             )){
 
-  suppressWarnings(count_watershed_data(data_dir = data_dir,
+  sup(count_watershed_data(data_dir = data_dir,
                        cities = cities,
                        run_all = run_all,
                        file_paths = file_paths)) ->
