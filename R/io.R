@@ -268,7 +268,6 @@ mask_raster_to_polygon <- function(raster_object, polygon) {
 #' @param crop_cover_levels levels of the crop cover raster file.
 #' @details Read internal data file that specifies the GCAM classification for certain crop types. Reclassify CDL based on GCAM.
 #' @importFrom dplyr group_indices left_join filter rename case_when
-#' @importFrom car recode
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
 #' @export
 reclassify_raster <- function(crop_cover_levels){
