@@ -10,7 +10,6 @@
 #' @importFrom foreign read.dbf
 #' @importFrom exactextractr exact_extract
 #' @importFrom geosphere areaPolygon distGeo
-#' @importFrom tmaptools set_projection
 #' @importFrom lwgeom st_startpoint st_endpoint
 #' @importFrom sf as_Spatial st_as_sf st_cast st_within st_make_valid
 #' @importFrom reservoir yield
@@ -72,7 +71,7 @@ count_watershed_data <- function(data_dir,
     subset(DVSN_ID %in% watersheds) -> catchment_shapes
 
   # read ucs plant data
-  get_ucs_power_plants(paste0(data_dir, file_paths["powerplants"])) -> power_plants_USA
+  sup(get_ucs_power_plants(paste0(data_dir, file_paths["powerplants"]))) -> power_plants_USA
 
   # read croptype raster for US
   sup(import_raster(paste0(data_dir, file_paths["crop"]))) -> cropcover_USA
