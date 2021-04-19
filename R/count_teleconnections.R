@@ -72,7 +72,7 @@ count_watershed_teleconnections <- function(data_dir,
 
 
   # read power plant data
-  get_ucs_power_plants(paste0(data_dir, file_paths["powerplants"])) ->
+  sup(get_ucs_power_plants(paste0(data_dir, file_paths["powerplants"]))) ->
     power_plants_usa
 
   # read shapefiles for watersheds
