@@ -35,7 +35,7 @@ Most cities in the United States withdraw surface water for their drinking water
   <img width="460" height="300" src="gamut_plot.png">
 </p>
 <div align="center">
-  Figure 1: Watersheds and cities that are analyzed within the ``gamut`` package.
+  Figure 1: Watersheds and cities that are analyzed within the ``gamut`` package. Watershed delineations and city points gathered from [@McDonald:2014]. Hillshade map made from Natural Earth.
 </div>  
 <p>&nbsp;</p>                                        
   The ``gamut`` package computes dozens of city-level metrics that inform on the nature of surface water supply catchments and the presence, intensity, and impact of human activities in those catchments (Figure 1). Each city’s watershed is defined using the Urban Water Blueprint [@McDonald:2014], which is enhanced with source contribution estimates as well as river flow and high-resolution runoff [@Nelson:2021]. Watershed delineations are used to mask geospatial land use layers. Various sectors are considered, including electricity generation, agriculture, industry and other economic developments, and water infrastructure (dams, reservoirs, aqueducts). 
