@@ -5,12 +5,11 @@
 #' @param cities a vector of cities to be included in the count. If omitted, all cities will be included.
 #' @details counts teleconnections associated with water supply catchments associated with each city
 #' @importFrom purrr map_dfr map
-#' @importFrom dplyr filter group_indices left_join if_else tribble group_by summarise arrange
+#' @importFrom dplyr filter group_indices left_join if_else tribble group_by summarise arrange right_join
 #' @importFrom tibble tibble
 #' @importFrom foreign read.dbf
 #' @importFrom exactextractr exact_extract
 #' @importFrom geosphere areaPolygon distGeo
-#' @importFrom tmaptools set_projection
 #' @importFrom lwgeom st_startpoint st_endpoint
 #' @importFrom sf as_Spatial st_as_sf st_cast st_within st_make_valid
 #' @importFrom reservoir yield
@@ -37,10 +36,10 @@ count_watershed_data <- function(data_dir,
                                    transfers = "water/transfers/USIBTsHUC6_Dickson.shp",
                                    climate = "land/kop_climate_classes.tif",
                                    HUC4 = "water/USA_HUC4/huc4_to_huc2.shp",
-                                   population = "land/pden2010_block/pden2010_60m.tif",
-                                   runoff = "water/Historical_Mean_Runoff/USA_Mean_Runoff.tif",
-                                   nhd_flow = "water/Watershed_Flow_Contributions/UWB_Intake_Flows.shp",
-                                   contributions = "water/Watershed_Flow_Contributions/Watershed_Contributions.csv"
+                                   population = "land/pden2010_60m.tif",
+                                   runoff = "water/UWSCatch/USA_Mean_Runoff.tif",
+                                   nhd_flow = "water/UWSCatCH/UWSCatCH_Intake_Flows.shp",
+                                   contributions = "water/UWSCatCH/Watershed_Contributions.csv"
                                  )){
 
   all_cities <- get_cities()[["city_state"]]
@@ -65,10 +64,6 @@ count_watershed_data <- function(data_dir,
 
   message(paste0("Processing ", length(watersheds), " watershed(s). This may take several minutes..."))
 
-  # watershed_mapping %>%
-  #   dplyr::select(city_state, DVSN_ID, city_uid, intake) %>%
-  #   unique() -> water_mapping_select
-
   # read shapefiles for watersheds
   import_shapefile(paste0(data_dir, file_paths["watersheds"]),
                    method = "rgdal") %>%
@@ -76,7 +71,7 @@ count_watershed_data <- function(data_dir,
     subset(DVSN_ID %in% watersheds) -> catchment_shapes
 
   # read ucs plant data
-  get_ucs_power_plants(paste0(data_dir, file_paths["powerplants"])) -> power_plants_USA
+  sup(get_ucs_power_plants(paste0(data_dir, file_paths["powerplants"]))) -> power_plants_USA
 
   # read croptype raster for US
   sup(import_raster(paste0(data_dir, file_paths["crop"]))) -> cropcover_USA
@@ -90,22 +85,16 @@ count_watershed_data <- function(data_dir,
   import_raster(paste0(data_dir, file_paths["nlud"])) -> economic_USA
 
   # read NID point file
-  # dams::nid_cleaned %>%
-  #   as.data.frame() -> nid_dataset
-
   dams::nid_subset -> nid_dataset
 
   nid_dataset %>%
     filter(!is.na(longitude),
            !is.na(latitude)) %>%
-    # filter(!is.na(nid_dataset$Longitude),
-    #        !is.na(nid_dataset$Latitude))  %>%
     as_tibble() ->
     nid_no_NA
 
   nid_spatial <- SpatialPointsDataFrame(coords = nid_no_NA %>%
-                                          select(longitude, latitude),
-                                          #select(Longitude, Latitude),
+                                        select(longitude, latitude),
                                         data = nid_no_NA,
                                         proj4string = CRS(proj4_string))
 
@@ -192,17 +181,10 @@ count_watershed_data <- function(data_dir,
           as_tibble() ->
           watershed_power_plants
 
-        # subset(watershed_power_plants, Power.Plant.Type == "Hydropower") ->
-        #   hydro_plants
-
         # subset hydro plants for target watershed
         hydro_points[watersheds_select, ] %>% as_tibble() %>%
           select(PLANT_NAME, NID_ID, generation) ->
           hydro_plants
-        # left_join(nid_dataset, by = "NID_ID") %>%
-        # select(NID_ID, PLANT_NAME, generation,
-        #        Max_Storage, Normal_Storage, NID_Storage) ->
-        # hydro_plants
 
         nrow(hydro_plants) -> n_hydro_plants
 
@@ -328,21 +310,21 @@ count_watershed_data <- function(data_dir,
           cropcover_agg_crop -> cropcover_agg
         }
 
-        suppressMessages(get_runoff_values(cropcover_agg,
-                                           runoff_agg,
-                                           developed_values,
-                                           polygon_area,
-                                           land_table)) -> dev_runoff_m3persec
+        sup(get_runoff_values(cropcover_agg,
+                              runoff_agg,
+                              developed_values,
+                              polygon_area,
+                              land_table)) -> dev_runoff_m3persec
 
         # Crop Runoff Calculation
         crop_reclass_table %>% filter(!is.na(GCAM_Class)) %>%
           .[["CDL_ID"]] -> cultivated_values
 
-        suppressMessages(get_runoff_values(cropcover_agg,
-                                           runoff_agg,
-                                           cultivated_values,
-                                           polygon_area,
-                                           land_table)) -> cultivated_runoff_m3persec
+        sup(get_runoff_values(cropcover_agg,
+                              runoff_agg,
+                              cultivated_values,
+                              polygon_area,
+                              land_table)) -> cultivated_runoff_m3persec
 
         # Rest of land runoff calculation
 
@@ -350,10 +332,9 @@ count_watershed_data <- function(data_dir,
 
         crop_reclass_table %>%
           filter(!CDL_ID %in% crop_dev_vals) %>%
-          #filter(!CDL_ID %in% non_land_cdl_classes) %>%
           .[["CDL_ID"]] -> other_vals
 
-        suppressMessages(get_runoff_values(cropcover_agg,
+        sup(get_runoff_values(cropcover_agg,
                                            runoff_agg,
                                            other_vals,
                                            polygon_area,
@@ -361,7 +342,6 @@ count_watershed_data <- function(data_dir,
 
         # Total runoff calculation
         append(crop_dev_vals, other_vals) -> all_vals
-        #get_runoff_values(cropcover_agg, runoff_agg, all_vals) -> total_runoff_m3persec
 
         # Calculate fractions
         dev_runoff_m3persec + cultivated_runoff_m3persec + other_runoff_m3persec -> expec_total_runoff
@@ -373,15 +353,6 @@ count_watershed_data <- function(data_dir,
         }
 
         #--------------------------------------------------------
-        # TELECONNECTION - Count number of irrigated and rainfed crops in watershed.
-        # Get irrigation data points within city's watersheds
-        # usa_irrigation[watersheds_select, ] %>%
-        #   as_tibble()  %>%
-        # # count the number of crop types that are irrigated
-        #   get_irrigation_count() %>%
-        #   filter(GCAM_Class %in% crop_and_landcover_types$GCAM_Class) -> irr_crops
-        # length(irr_crops$irr_count) -> tc_n_irrigated_crops
-
         # TELECONNECTION - Irrigation Consumption
         usa_irrigation[watersheds_select, ] %>%
           as_tibble()  %>%
@@ -404,7 +375,7 @@ count_watershed_data <- function(data_dir,
 
         irrigation_bcm %>% filter(HUC2 %in% HUC2_majority) %>%
           select(GCAM_commodity, Irr_BCM_KM2) %>%
-          right_join(irrigation_km2, by = "GCAM_commodity") %>%
+          dplyr::right_join(irrigation_km2, by = "GCAM_commodity") %>%
           mutate(consumption_BCM = Irr_BCM_KM2 * irr) %>%
           .[["consumption_BCM"]] %>% sum(na.rm = T) ->
           total_irr_bcm

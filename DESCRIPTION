@@ -25,22 +25,17 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 Imports: 
-    car,
     clisymbols,
-    cowplot,
     crayon,
     dams,
     dataRetrieval,
     dplyr,
     exactextractr,
-    fasterize,
     foreign,
     geosphere,
     ggplot2,
-    lubridate,
     lwgeom,
     magrittr,
-    ncdf4,
     purrr,
     raster,
     readxl,
@@ -48,14 +43,10 @@ Imports:
     rgdal,
     rgeos,
     sf,
-    smoothr,
     sp,
-    spex,
     stringr,
     tibble,
     tidyr,
-    tmap,
-    tmaptools,
     units,
     vroom
 Suggests: 
