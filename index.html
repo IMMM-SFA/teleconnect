@@ -77,9 +77,9 @@
 <div class="page-header"><h1 class="hasAnchor">
 <a href="#gamut" class="anchor"></a><code>gamut</code>
 </h1></div>
-<div id="geospatial-analytics-for-multisector-urban-teleconnections" class="section level3">
-<h3 class="hasAnchor">
-<a href="#geospatial-analytics-for-multisector-urban-teleconnections" class="anchor"></a><strong>G</strong>eospatial <strong>A</strong>nalytics for <strong>M</strong>ultisector <strong>U</strong>rban <strong>T</strong>eleconnections</h3>
+<div id="geospatial-analytics-for-multisector-urban-teleconnections" class="section level4">
+<h4 class="hasAnchor">
+<a href="#geospatial-analytics-for-multisector-urban-teleconnections" class="anchor"></a><strong>G</strong>eospatial <strong>A</strong>nalytics for <strong>M</strong>ultisector <strong>U</strong>rban <strong>T</strong>eleconnections</h4>
 </div>
 <div id="description" class="section level2">
 <h2 class="hasAnchor">
@@ -93,21 +93,12 @@
 </h2>
 <p><code>gamut</code> can be installed directly from this repository using the R <code>devtools</code> package. From an R prompt, run the command:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">'IMMM-SFA/gamut'</span><span class="op">)</span></code></pre></div>
-<div id="data-directory-set-up" class="section level3">
-<h3 class="hasAnchor">
-<a href="#data-directory-set-up" class="anchor"></a>Data Directory Set Up</h3>
-<p>In order for the package to function properly, the user needs to correctly set up a data directory, and place all of the necessary datasets in that directory. The steps below show how to set up the directory so that the package can read in the input datasets correctly.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>Step <span class="dv">1</span><span class="op">:</span><span class="st"> </span>In a drive of your choice, create a folder called <span class="st">"data_dir"</span>.</span>
-<span id="cb2-2"><a href="#cb2-2"></a>Step <span class="dv">2</span><span class="op">:</span><span class="st"> </span>Within the <span class="st">"data_dir"</span> folder, create the <span class="dv">3</span> folders<span class="op">:</span><span class="st"> "energy"</span>,<span class="st">"land"</span>,<span class="st">"water"</span>. </span>
-<span id="cb2-3"><a href="#cb2-3"></a>        Follow this set up<span class="op">:</span></span>
-<span id="cb2-4"><a href="#cb2-4"></a><span class="st">        </span></span>
-<span id="cb2-5"><a href="#cb2-5"></a><span class="st">        </span>Main Folder<span class="op">:</span><span class="st"> </span>data_dir</span>
-<span id="cb2-6"><a href="#cb2-6"></a>              Sub Folder<span class="op">:</span><span class="st"> </span>energy</span>
-<span id="cb2-7"><a href="#cb2-7"></a>              Sub Folder<span class="op">:</span><span class="st"> </span>land</span>
-<span id="cb2-8"><a href="#cb2-8"></a>              Sub Folder<span class="op">:</span><span class="st"> </span>water</span>
-<span id="cb2-9"><a href="#cb2-9"></a></span>
-<span id="cb2-10"><a href="#cb2-10"></a>Step <span class="dv">3</span><span class="op">:</span><span class="st"> </span>Follow the instructions <span class="cf">in</span> the <span class="st">"Data Downloading Instructions"</span> section below to download the datasets. The             table below shows where to find each dataset, and what folder it needs to go in.</span></code></pre></div>
+<code class="sourceCode R"><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">'IMMM-SFA/gamut'</span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">gamut</span><span class="op">)</span></code></pre></div>
+<div id="data-files" class="section level5">
+<h5 class="hasAnchor">
+<a href="#data-files" class="anchor"></a>Data Files</h5>
+<p>The table below shows all the files used within the <code>gamut</code> software package.</p>
 <table class="table">
 <colgroup>
 <col width="7%">
@@ -221,48 +212,10 @@
 </tbody>
 </table>
 </div>
-<div id="data-downloading-instructions" class="section level3">
-<h3 class="hasAnchor">
-<a href="#data-downloading-instructions" class="anchor"></a>Data Downloading Instructions</h3>
-<p>Below are instructions on how to download each dataset and prepare them for the package.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="st">`</span><span class="dt">watersheds</span><span class="st">`</span>,<span class="st">`</span><span class="dt">withdrawal</span><span class="st">`</span>,<span class="st">`</span><span class="dt">citypoint</span><span class="st">`</span> datasets<span class="op">:</span></span>
-<span id="cb3-2"><a href="#cb3-2"></a><span class="st">  </span><span class="fl">1.</span> Follow the link <span class="cf">in</span> the table above and click the Download button across from <span class="st">"CWM_v2_2.zip"</span>.</span>
-<span id="cb3-3"><a href="#cb3-3"></a>  <span class="fl">2.</span> This will download a data file named <span class="st">`</span><span class="dt">knb.1002.1</span><span class="st">`</span>. Right click and unzip this folder. Go inside the unzipped file, copy the folder named <span class="st">"CWM_v2_2.zip"</span>, and place it into the <span class="st">`</span><span class="dt">water</span><span class="st">`</span> folder.</span>
-<span id="cb3-4"><a href="#cb3-4"></a>  </span>
-<span id="cb3-5"><a href="#cb3-5"></a><span class="st">`</span><span class="dt">powerplants</span><span class="st">`</span> dataset<span class="op">:</span></span>
-<span id="cb3-6"><a href="#cb3-6"></a><span class="st">  </span><span class="fl">1.</span> Follow the link <span class="cf">in</span> the table above and download the Excel file at the bottom of the page.</span>
-<span id="cb3-7"><a href="#cb3-7"></a>  <span class="fl">2.</span> After it downloads, place it into the <span class="st">`</span><span class="dt">water</span><span class="st">`</span> folder.</span>
-<span id="cb3-8"><a href="#cb3-8"></a>  </span>
-<span id="cb3-9"><a href="#cb3-9"></a><span class="st">`</span><span class="dt">crop</span><span class="st">`</span> and <span class="st">`</span><span class="dt">crop_attributes</span><span class="st">`</span> datasets<span class="op">:</span></span>
-<span id="cb3-10"><a href="#cb3-10"></a><span class="st">  </span><span class="fl">1.</span> Follow the link <span class="cf">in</span> the table above and download the zipped <span class="dv">2019</span> CDL file.</span>
-<span id="cb3-11"><a href="#cb3-11"></a>  <span class="fl">2.</span> This layer requires some processing before it can <span class="cf">function</span> properly <span class="cf">in</span> the package. In order <span class="cf">for</span> the package to run this data, the file size needs to be decreased. We do this by changing the resolution from 30m cells to <span class="dv">90</span> meter cells.</span>
-<span id="cb3-12"><a href="#cb3-12"></a>  <span class="fl">3.</span> Open up ArcGIS and load <span class="cf">in</span> the CDL file. Run this file through the <span class="st">"Resample"</span> <span class="cf">function</span>, and set the cell size to <span class="dv">90</span> meters by <span class="dv">90</span> meters.</span>
-<span id="cb3-13"><a href="#cb3-13"></a>  <span class="fl">4.</span> Once the output is created, run the output through the <span class="st">"Project Raster"</span> <span class="cf">function</span>, and change the projection to <span class="st">`</span><span class="dt">GCS_WGS_1984</span><span class="st">`</span>.</span>
-<span id="cb3-14"><a href="#cb3-14"></a>  <span class="fl">5.</span> Export the output of this <span class="cf">function</span> to <span class="st">`</span><span class="dt">land</span><span class="st">`</span> folder under the file name of <span class="st">`</span><span class="dt">cdl_lowres_usa</span><span class="st">`</span>, and set the file type to an IMAGINE image file. This will also produce the <span class="st">`</span><span class="dt">crop_attributes</span><span class="st">`</span> file. </span>
-<span id="cb3-15"><a href="#cb3-15"></a>  </span>
-<span id="cb3-16"><a href="#cb3-16"></a>  <span class="st">`</span><span class="dt">nlud</span><span class="st">`</span> dataset<span class="op">:</span></span>
-<span id="cb3-17"><a href="#cb3-17"></a><span class="st">  </span><span class="dv">1</span><span class="op">:</span><span class="st"> </span>Download the zip file from the google drive listed <span class="cf">in</span> the table above. </span>
-<span id="cb3-18"><a href="#cb3-18"></a>  <span class="dv">2</span><span class="op">:</span><span class="st"> </span>Unzip the file, and the remove the TIFs listed <span class="kw">below</span> (these are empty)<span class="op">:</span></span>
-<span id="cb3-19"><a href="#cb3-19"></a><span class="st">      </span><span class="op">-</span><span class="st"> </span>NLUDv1_<span class="dv">2010</span>_30m<span class="dv">-0000000000</span><span class="fl">-0000000000.</span>tif</span>
-<span id="cb3-20"><a href="#cb3-20"></a>      <span class="op">-</span><span class="st"> </span>NLUDv1_<span class="dv">2010</span>_30m<span class="dv">-0000093184</span><span class="fl">-0000232960.</span>tif</span>
-<span id="cb3-21"><a href="#cb3-21"></a>      <span class="op">-</span><span class="st"> </span>NLUDv1_<span class="dv">2010</span>_30m<span class="dv">-0000093184</span><span class="fl">-0000000000.</span>tif</span>
-<span id="cb3-22"><a href="#cb3-22"></a>      <span class="op">-</span><span class="st"> </span>NLUDv1_<span class="dv">2010</span>_30m<span class="dv">-0000046592</span><span class="fl">-0000232960.</span>tif</span>
-<span id="cb3-23"><a href="#cb3-23"></a>      <span class="op">-</span><span class="st"> </span>NLUDv1_<span class="dv">2010</span>_30m<span class="dv">-0000046592</span><span class="fl">-0000000000.</span>tif</span>
-<span id="cb3-24"><a href="#cb3-24"></a>      <span class="op">-</span><span class="st"> </span>NLUDv1_<span class="dv">2010</span>_30m<span class="dv">-0000000000</span><span class="fl">-0000232960.</span>tif</span>
-<span id="cb3-25"><a href="#cb3-25"></a>  <span class="dv">3</span><span class="op">:</span><span class="st"> </span>Change the resolution of these rasters to 90m by 90m, and then mosaic them together. Save the mosaic file to the file path <span class="cf">in</span> the table.</span>
-<span id="cb3-26"><a href="#cb3-26"></a>  </span>
-<span id="cb3-27"><a href="#cb3-27"></a>  <span class="st">`</span><span class="dt">hyrdo</span><span class="st">`</span> dataset<span class="op">:</span></span>
-<span id="cb3-28"><a href="#cb3-28"></a><span class="st">  </span><span class="fl">1.</span> Follow the link <span class="cf">in</span> the table above and click the download button <span class="cf">for</span> the ORNL EHAHydroPlant <span class="kw">FY2020revised</span> (xlsx).</span>
-<span id="cb3-29"><a href="#cb3-29"></a>  <span class="fl">2.</span> After downloading place it into the <span class="st">`</span><span class="dt">energy</span><span class="st">`</span> folder.</span>
-<span id="cb3-30"><a href="#cb3-30"></a>  </span>
-<span id="cb3-31"><a href="#cb3-31"></a>  <span class="st">`</span><span class="dt">climate</span><span class="st">`</span> dataset<span class="op">:</span></span>
-<span id="cb3-32"><a href="#cb3-32"></a><span class="st">  </span><span class="fl">1.</span> Follow the link <span class="cf">in</span> the table above and scroll to the High Resolution Map and Data section.</span>
-<span id="cb3-33"><a href="#cb3-33"></a>  <span class="fl">2.</span> Click the download link <span class="cf">next</span> to R code with raster file.</span>
-<span id="cb3-34"><a href="#cb3-34"></a>  <span class="fl">3.</span> Crop this raster file to the shape of the Continental United States, and save it as a new TIF file <span class="cf">in</span> the <span class="st">`</span><span class="dt">land</span><span class="st">`</span> folder under the name <span class="st">"koppen_climate_classes.tif"</span>.</span>
-<span id="cb3-35"><a href="#cb3-35"></a>  </span>
-<span id="cb3-36"><a href="#cb3-36"></a>  <span class="st">`</span><span class="dt">population</span><span class="st">`</span> dataset<span class="op">:</span></span>
-<span id="cb3-37"><a href="#cb3-37"></a><span class="st">  </span><span class="fl">1.</span> Follow the link <span class="cf">in</span> the table above and download the attached file named <span class="st">"pden2010_block.zip"</span>. Place this file into the <span class="st">`</span><span class="dt">land</span><span class="st">`</span> folder.</span>
-<span id="cb3-38"><a href="#cb3-38"></a>  <span class="fl">2.</span> This raster will also need to be cropped to the shape of the Continental United States.</span></code></pre></div>
+<div id="data-downloading-instructions" class="section level5">
+<h5 class="hasAnchor">
+<a href="#data-downloading-instructions" class="anchor"></a>Data Downloading Instructions</h5>
+<p>To download all of the <code>gamut</code> input datasets, visit the <a href="https://zenodo.org/record/4662993#.YHTNpehKhPY">Zenodo data repository</a> and download the zipped data files to your preferred directory.</p>
 </div>
 </div>
 <div id="usage" class="section level2">
@@ -270,7 +223,7 @@
 <a href="#usage" class="anchor"></a>Usage</h2>
 <p>Once all the necessary data is organized in the correct format, the package is ready to be used. The main function is <code>count_watershed_teleconnections</code>. Within this function, set up your data directory and select cities. The city names need to be in the format of <code>City | State</code>, and for multiple cities, place them inside <code><a href="https://rdrr.io/r/base/c.html">c()</a></code>.</p>
 <p>Here is an example of what you would type into your console:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="reference/count_watershed_teleconnections.html">count_watershed_teleconnections</a></span><span class="op">(</span>data_dir <span class="op">=</span> <span class="st">"your/gamut/data_dir"</span>, cities <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Portland | OR"</span>, <span class="st">"Charlotte | NC"</span>, <span class="st">"Austin | TX"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <p>The package will cycle through each city and their respective watersheds, and produce a table with several columns of information. To learn what each of these variables mean, scroll to the bottom of this section and see the table of variables. The result of this function will look something like this:</p>
 <table class="table">
@@ -397,9 +350,9 @@
 <td align="right">653115</td>
 <td align="right">280.7526</td>
 <td align="right">0.0970009</td>
-<td align="right">0.3154655</td>
+<td align="right">0.3221776</td>
 <td align="right">0.0000000</td>
-<td align="right">4</td>
+<td align="right">1</td>
 <td align="right">NA</td>
 <td align="right">NA</td>
 <td align="right">NA</td>
@@ -454,9 +407,9 @@
 <td align="right">159230</td>
 <td align="right">23196.0276</td>
 <td align="right">5.1667173</td>
-<td align="right">0.8121560</td>
+<td align="right">0.7517477</td>
 <td align="right">0.0132724</td>
-<td align="right">3</td>
+<td align="right">2</td>
 <td align="right">NA</td>
 <td align="right">NA</td>
 <td align="right">NA</td>
@@ -507,10 +460,6 @@
 </table>
 <p>This table can be used to compare different variables between multiple cities. Below is a graph comparing how much developed land are in cities’ watersheds.</p>
 <p><img src="README_files/figure-gfm/unnamed-chunk-5-1.png"><!-- --></p>
-<p><code>gamut</code> also has very basic functionality for visualizing watersheds and associated land uses for a given city watersheds. For example:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="reference/plot_watershed.html">plot_watershed</a></span><span class="op">(</span>data_dir <span class="op">=</span> <span class="st">"your/gamut/data_dir"</span>, city <span class="op">=</span> <span class="st">"New York | NY"</span><span class="op">)</span></code></pre></div>
-<p><img src="README_files/figure-gfm/unnamed-chunk-6-1.png"><!-- --></p>
 <p>The table below shows explanations for each of these variables that are created through this function:</p>
 <table class="table">
 <colgroup>
@@ -834,7 +783,7 @@
   <div class="dev-status">
 <h2>Dev status</h2>
 <ul class="list-unstyled">
-<li><a href="https://codecov.io/gh/IMMM-SFA/gamut"><img src="https://codecov.io/gh/IMMM-SFA/gamut/branch/main/graph/badge.svg?token=uF3EvxwvCO" alt="codecov"></a></li>
+<li><a href="https://codecov.io/gh/IMMM-SFA/gamut"><img src="https://codecov.io/gh/IMMM-SFA/gamut/branch/master/graph/badge.svg?token=uF3EvxwvCO" alt="codecov"></a></li>
 <li><a href="https://zenodo.org/badge/latestdoi/203447802"><img src="https://zenodo.org/badge/203447802.svg" alt="DOI"></a></li>
 </ul>
 </div>

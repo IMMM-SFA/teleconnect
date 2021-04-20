@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>count_watershed_teleconnections — count_watershed_teleconnections • gamut</title>
+<title>get_gamut_datasets — get_gamut_datasets • gamut</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="count_watershed_teleconnections — count_watershed_teleconnections" />
-<meta property="og:description" content="count_watershed_teleconnections" />
+<meta property="og:title" content="get_gamut_datasets — get_gamut_datasets" />
+<meta property="og:description" content="get_gamut_datasets" />
 
 
 
@@ -115,82 +115,33 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>count_watershed_teleconnections</h1>
+    <h1>get_gamut_datasets</h1>
     
-    <div class="hidden name"><code>count_watershed_teleconnections.Rd</code></div>
+    <div class="hidden name"><code>get_gamut_datasets.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>count_watershed_teleconnections</p>
+    <p>get_gamut_datasets</p>
     </div>
 
-    <pre class="usage"><span class='fu'>count_watershed_teleconnections</span><span class='op'>(</span>
-  <span class='va'>data_dir</span>,
-  cities <span class='op'>=</span> <span class='cn'>NULL</span>,
-  run_all <span class='op'>=</span> <span class='cn'>TRUE</span>,
-  file_paths <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span>watersheds <span class='op'>=</span> <span class='st'>"water/CWM_v2_2/World_Watershed8.shp"</span>, withdrawal <span class='op'>=</span>
-    <span class='st'>"water/CWM_v2_2/Snapped_Withdrawal_Points.shp"</span>, citypoint <span class='op'>=</span>
-    <span class='st'>"water/CWM_v2_2/City_Centroid.shp"</span>, powerplants <span class='op'>=</span>
-    <span class='st'>"water/UCS-EW3-Energy-Water-Database.xlsx"</span>, crop <span class='op'>=</span>
-    <span class='st'>"land/2016_90m_cdls/cdl_lowres_usa.img"</span>, crop_attributes <span class='op'>=</span>
-    <span class='st'>"land/2016_90m_cdls/cdl_lowres_usa.img.vat.dbf"</span>, irrigation <span class='op'>=</span>
-    <span class='st'>"land/Version2_USA_Demeter.csv"</span>, nlud <span class='op'>=</span> <span class='st'>"land/usa_nlud_LR.tif"</span>, hydro <span class='op'>=</span>
-    <span class='st'>"energy/ORNL_EHAHydroPlant_FY2020revised.xlsx"</span>, transfers <span class='op'>=</span>
-    <span class='st'>"water/transfers/USIBTsHUC6_Dickson.shp"</span>,      climate <span class='op'>=</span>
-    <span class='st'>"land/kop_climate_classes.tif"</span>, HUC4 <span class='op'>=</span> <span class='st'>"water/USA_HUC4/huc4_to_huc2.shp"</span>, population
-    <span class='op'>=</span> <span class='st'>"land/pden2010_60m.tif"</span>, runoff <span class='op'>=</span> <span class='st'>"water/UWSCatch/USA_Mean_Runoff.tif"</span>, nhd_flow <span class='op'>=</span>
-    <span class='st'>"water/UWSCatCH/UWSCatCH_Intake_Flows.shp"</span>, contributions <span class='op'>=</span>
-    <span class='st'>"water/UWSCatCH/Watershed_Contributions.csv"</span><span class='op'>)</span>
-<span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>get_gamut_datasets</span><span class='op'>(</span><span class='va'>download_path</span>, <span class='va'>unzip_path</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>data_dir</th>
-      <td><p>root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")</p></td>
+      <th>download_path</th>
+      <td><p>path to the downloaded file</p></td>
     </tr>
     <tr>
-      <th>cities</th>
-      <td><p>a vector of cities to be included in the count. If omitted, all cities will be included.</p></td>
-    </tr>
-    <tr>
-      <th>watersheds_file_path</th>
-      <td><p>path of watersheds shapefile within data_dir</p></td>
-    </tr>
-    <tr>
-      <th>powerplants_file_path</th>
-      <td><p>path of power plants data file</p></td>
-    </tr>
-    <tr>
-      <th>crop_file_path</th>
-      <td><p>path of crop cover raster</p></td>
-    </tr>
-    <tr>
-      <th>dams_file_path</th>
-      <td><p>path of National Inventory of Dams "NID" point file</p></td>
-    </tr>
-    <tr>
-      <th>irrigation_file_path</th>
-      <td><p>path of edited demeter irrigation file.</p></td>
-    </tr>
-    <tr>
-      <th>nuld_file_path</th>
-      <td><p>path of land use raster file.</p></td>
-    </tr>
-    <tr>
-      <th>poly_slices</th>
-      <td><p>integer for how may parts to split the watersheds polygons into to enable faster zonal stats</p></td>
-    </tr>
-    <tr>
-      <th>n_cores</th>
-      <td><p>integer for the number of machine cores used to run the polygon slicing function. 2 is default for users with 16GB of RAM.</p></td>
+      <th>unzip_path</th>
+      <td><p>path to the unzipped file</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>counts teleconnections assoicated with water supply catchments associated with each city</p>
+    <p>function to download the gamut input datasets</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
