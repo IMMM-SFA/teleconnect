@@ -45,6 +45,7 @@ Imports:
     rgeos,
     sf,
     sp,
+    spex,
     stringr,
     tibble,
     tidyr,
