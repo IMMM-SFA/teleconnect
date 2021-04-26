@@ -45,11 +45,10 @@ get_endpoints <- function(transfers) {
 
 
 
-#' sup
+#' suppress warnings convenience function
 #' @param method shorten suppressMessages
 #' @return action
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
-
 #' @export
 sup <- function(sup) {
 
