@@ -1,8 +1,8 @@
 #' count_watershed_data
 #'
 #' @param data_dir root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")
-#' @param file_paths paths to data files
 #' @param cities a vector of cities to be included in the count. If omitted, all cities will be included.
+#' @param file_paths paths to data files
 #' @details counts teleconnections associated with water supply catchments associated with each city
 #' @importFrom purrr map_dfr map
 #' @importFrom dplyr filter group_indices left_join if_else tribble group_by summarise arrange right_join
@@ -388,43 +388,11 @@ count_watershed_data <- function(data_dir,
           get_nlud_names() -> nlud_table
 
 
-        # if(run_all == TRUE){
-        # # -------------------------------------------------------
-        # # TELECONNECTION - Interbasin Transfers in Watershed
-        # TEMPORARILY REMOVED DUE TO RUN PROBLEMS LIKELY DUE TO RGDAL UPDATE - ST
-        # # subset interbasin transfers for the select watershed
-        # st_as_sf(watersheds_select) -> sf_watershed
-        # sup(interbasin_transfers[sf_watershed, ]) -> watershed_transfers
-        #
-        # # add a row.id and +1 so that it equals the the row number starting from 1
-        # watershed_transfers$row.id <- as.numeric(rownames(watershed_transfers))
-        # watershed_transfers$row.id <- watershed_transfers$row.id + 1
-        #
-        # # find all the transfers that are fully within the watershed shape, then join by row.id
-        # sup(st_within(interbasin_transfers, sf_watershed)) %>% as_tibble() %>%
-        #   left_join(watershed_transfers, by = "row.id") -> transfers_within
-        #
-        # # subset the interbasin transfers by those that are with in and those that are outward
-        # subset(interbasin_transfers, OBJECTID %in% transfers_within$OBJECTID) -> inner_transfers
-        #
-        # subset(watershed_transfers, !(OBJECTID %in% inner_transfers$OBJECTID)) -> outer_transfers
-        #
-        # # get start and endpoints of the outer transfers to determine inflow/outflow
-        # get_startpoints(outer_transfers) -> transfer_start
-        # get_endpoints(outer_transfers) -> transfer_end
-        #
-        # # find transfers that start within the watershed and transfers that start outside of the watershed
-        # sup(transfer_start[sf_watershed, ]) %>%
-        #   nrow() -> n_transfers_out
-        # sup(transfer_end[sf_watershed, ]) %>%
-        #   nrow() -> n_transfers_into
-        # nrow(inner_transfers) -> n_transfers_within
-
-        #}else{
+        # TODO:  Potentally add in interbasin transfer from commit 1989d3877304370d034091e7e0a6598c947c6c4a
           n_transfers_into <- NA_integer_
           n_transfers_out <- NA_integer_
           n_transfers_within <- NA_integer_
-        #}
+
         #---------------------------------------------------------
         # TELECONNTECTION - Number of climate zones watershed crosses
         get_zonal_data(us_climate, watersheds_select) %>%
