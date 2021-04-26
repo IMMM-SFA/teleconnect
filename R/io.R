@@ -49,6 +49,7 @@ import_raster <- function(raster_path) {
 #' default is EPSG:3857 the WGS 84 / Pseudo-Mercator -- Used by all modern web
 #' mapping applications.
 #' @importFrom sf st_as_sf st_transform
+#' @importFrom utils read.csv
 #' @return A simple features (sf) spatial data frame object.
 #' @author Chris R. Vernon (chris.vernon@pnnl.gov)
 #' @export
