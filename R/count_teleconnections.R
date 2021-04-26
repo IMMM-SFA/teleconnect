@@ -12,7 +12,7 @@
 #' @param n_cores integer for the number of machine cores used to run the polygon slicing function. 2 is default for users with 16GB of RAM.
 #' @details counts teleconnections assoicated with water supply catchments associated with each city
 #' @importFrom purrr map_dfr
-#' @importFrom dplyr filter group_indices left_join
+#' @importFrom dplyr filter group_indices left_join right_join
 #' @importFrom tibble tibble
 #' @importFrom sf as_Spatial
 #' @importFrom foreign read.dbf
@@ -34,13 +34,13 @@ count_watershed_teleconnections <- function(data_dir,
                                               transfers = "water/transfers/USIBTsHUC6_Dickson.shp",
                                               climate = "land/kop_climate_classes.tif",
                                               HUC4 = "water/USA_HUC4/huc4_to_huc2.shp",
-                                              population = "land/pden2010_block/pden2010_60m.tif",
-                                              runoff = "water/Historical_Mean_Runoff/USA_Mean_Runoff.tif",
-                                              nhd_flow = "water/Watershed_Flow_Contributions/UWB_Intake_Flows.shp",
-                                              contributions = "water/Watershed_Flow_Contributions/Watershed_Contributions.csv"
+                                              population = "land/pden2010_60m.tif",
+                                              runoff = "water/UWSCatch/USA_Mean_Runoff.tif",
+                                              nhd_flow = "water/UWSCatCH/UWSCatCH_Intake_Flows.shp",
+                                              contributions = "water/UWSCatCH/Watershed_Contributions.csv"
                                             )){
 
-  suppressWarnings(count_watershed_data(data_dir = data_dir,
+  sup(count_watershed_data(data_dir = data_dir,
                        cities = cities,
                        run_all = run_all,
                        file_paths = file_paths)) ->
@@ -68,16 +68,11 @@ count_watershed_teleconnections <- function(data_dir,
                    method = "rgdal") %>%
     # subset for desired watersheds
     subset(DVSN_ID %in% city_watershed_mapping$DVSN_ID) ->
-    # remove City_Name; it's inconsistent with other shapefiles
-    #dplyr::select(-City_Name) ->
     watersheds
 
-  # # read NID point file and select only Flood Control Dams (C = Flood Control)
-  # import_shapefile(paste0(data_dir, dams_file_path)) %>%
-  #   subset(grepl("C", Purposes)) %>%
-  #   as_Spatial() -> flood_control_dams
 
-  get_ucs_power_plants(paste0(data_dir, file_paths["powerplants"])) ->
+  # read power plant data
+  sup(get_ucs_power_plants(paste0(data_dir, file_paths["powerplants"]))) ->
     power_plants_usa
 
   # read shapefiles for watersheds
@@ -352,27 +347,6 @@ count_watershed_teleconnections <- function(data_dir,
         np_runoff_av_exgw_unweighted <- get_average_runoff_conc_exgw_unweighted("nonpristine_conc")
         np_runoff_av <- get_average_runoff_conc("nonpristine_conc")
 
-        # # total runoff
-        # map(city_watershed_data, function(x){
-        #   x$metrics %>% filter(metric == "total runoff from watershed") %>%
-        #     .[["value"]]
-        # }) %>% unlist() %>% sum() -> total_runoff
-        #
-        # # developed runoff percent
-        # map(city_watershed_data, function(x){
-        #   x$metrics %>% filter(metric == "development runoff") %>%
-        #     .[["value"]]
-        # }) %>% unlist() %>% sum() -> developed_runoff
-        #
-        # # cropland runoff percent
-        # map(city_watershed_data, function(x){
-        #   x$metrics %>% filter(metric == "cultivated runoff") %>%
-        #     .[["value"]]
-        # }) %>% unlist() %>% sum() -> cropland_runoff
-        #
-        # 100 * (developed_runoff / total_runoff) -> developed_runoff_percent
-        # 100 * (cropland_runoff / total_runoff) -> cropland_runoff_percent
-
         # number of utilities
         power_plants_city %>%
           subset(cooling == "Yes" | `Power Plant Type` == "Hydro") %>%
@@ -388,11 +362,6 @@ count_watershed_teleconnections <- function(data_dir,
         if(n_missing_ba > 0) message(paste0("For ", city,", ", n_missing_ba,
                                             " plant(s) not assigned a Balancing Authority"))
         tc_ba_na %>% .[!is.na(.)] %>% unique() %>% length() -> n_ba
-
-
-        # TELECONNECTION - NUMBER OF FLOOD CONTROL DAMS WITHIN WATERSHED.
-        # flood_control_dams[watersheds_city, ] %>%
-        #   length() -> tc_fcdam
 
         # number of GCAM crop classes present
         map(city_watershed_data, function(x){
@@ -586,84 +555,5 @@ count_watershed_teleconnections <- function(data_dir,
         )
       }
 
-    })
-}
-
-#' count_utility_teleconnections
-#'
-#' @param data_dir root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")
-#' @param powerplants_file_path path of power plants data file
-#' @param utility_file_path path of electric retail service areas file
-#' @param citypoint_file_path path of city centroid point file
-#' @param cities a vector of cities to be included in the count. If omitted, all cities will be included.
-#' @details counts teleconnections for service areas associated with each city
-#' @importFrom purrr map_dfr
-#' @importFrom sf st_intersection st_as_sf st_agr
-#' @importFrom tibble tibble as_tibble
-#' @export
-count_utility_teleconnections <- function(data_dir,
-                                          powerplants_file_path = "water/UCS-EW3-Energy-Water-Database.xlsx",
-                                          utility_file_path = "energy/Electric_Retail_service_Territories/Electric_Retail_service_Territories.shp",
-                                          citypoint_file_path = "water/CWM_v2_2/City_Centroid.shp",
-                                          cities = NULL){
-
-  all_cities <- get_cities()[["city_state"]]
-
-  # use all cities if "cities" argument is omitted
-  if(is.null(cities)) cities <- all_cities %>% unique()
-
-  # throw error if any chosen city lies outside available cities
-  if(any(!cities %in% all_cities)) {
-    cities[!cities %in% all_cities] -> bad_cities
-    stop(paste0(paste(bad_cities), ": not part of '
-                teleconnect'!"))
-  }
-  # Load city mapping file
-  get_cities() %>%
-    subset(city_state %in% cities) -> city_mapping
-
-  # read shapefiles for utility areas
-  import_shapefile(paste0(data_dir, utility_file_path),
-                   method = "rgdal") %>% st_as_sf() -> utilities
-
-  # read ucs plant data
-  get_ucs_power_plants(paste0(data_dir, powerplants_file_path)) %>%
-    as_tibble() -> power_plants_USA
-
-  # Load city centroid file and merge with city mapping file
-  import_shapefile(paste0(data_dir, citypoint_file_path)) %>% st_as_sf() %>%
-    rename(.,"city_uid" = "City_ID") %>%
-    left_join(., city_mapping, by = "city_uid") %>%
-    select(c("city_state","geometry")) %>% unique() -> city_points
-
-  # map through all cities, computing utility teleconnections
-  cities %>%
-    map_dfr(function(city){
-      filter(city_points, city_state == !!city) -> utility_city
-
-      # intersect city points and utility polygons to find the service areas city belongs to.
-      sf::st_agr(utility_city) = "constant"
-      sf::st_agr(utilities) = "constant"
-      suppress_intersect(utility_city, utilities) -> city_in_utility
-
-      # count number of utilities that serve the city
-      length(city_in_utility$NAME)-> tc_n_utilities
-
-      # subset power plants for target city utilities
-      power_plants_USA %>%
-        subset(UTILITY_ID %in% city_in_utility$ID) -> power_plants_utility
-
-      # count number of water dependent plants
-      power_plants_utility %>%
-        subset(`Power.Plant.Type` == "Hydropower" | cooling == "Yes") %>%
-        .[["PLANT_CODE"]] %>% unique() %>%
-        length() -> tc_n_water_dependent
-
-      # output
-      return(
-        tibble(city = !! city,
-               n_utilites = tc_n_utilities,
-               n_waterdependentplants = tc_n_water_dependent)
-      )
     })
 }

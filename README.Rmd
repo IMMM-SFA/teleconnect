@@ -24,7 +24,7 @@ library(st)
 
 # define data directory
 
-your_gamut_data_directory <- "../../../Large data files/spatial data/"
+your_gamut_data_directory <- "C:/Geospatial_Input_Datasets/"
 
 get_cities() %>%
      subset(key_watershed == TRUE) ->
@@ -92,22 +92,12 @@ ggplot() +
 `gamut` can be installed directly from this repository using the R `devtools` package. From an R prompt, run the command:
 ```r
 devtools::install_github('IMMM-SFA/gamut')
+library(gamut)
 ```
 
-##### Data Directory Set Up
+##### Data Files
 
-In order for the package to function properly, the user needs to correctly set up a data directory, and place all of the necessary datasets in that directory. The steps below show how to set up the directory so that the package can read in the input datasets correctly.
-
-    Step 1: In a drive of your choice, create a folder called "data_dir".
-    Step 2: Within the "data_dir" folder, create the 3 folders: "energy","land","water". 
-            Follow this set up:
-            
-            Main Folder: data_dir
-                  Sub Folder: energy
-                  Sub Folder: land
-                  Sub Folder: water
-    
-    Step 3: Follow the instructions in the "Data Downloading Instructions" section below to download the datasets. The             table below shows where to find each dataset, and what folder it needs to go in.
+The table below shows all the files used within the `gamut` software package.
     
 ```{r, echo=FALSE,message=FALSE}
 library(tibble)
@@ -138,46 +128,7 @@ kable(files)
 
 ##### Data Downloading Instructions
 
-Below are instructions on how to download each dataset and prepare them for the package.
-
-    `watersheds`,`withdrawal`,`citypoint` datasets:
-      1. Follow the link in the table above and click the Download button across from "CWM_v2_2.zip".
-      2. This will download a data file named `knb.1002.1`. Right click and unzip this folder. Go inside the unzipped file, copy the folder named "CWM_v2_2.zip", and place it into the `water` folder.
-      
-    `powerplants` dataset:
-      1. Follow the link in the table above and download the Excel file at the bottom of the page.
-      2. After it downloads, place it into the `water` folder.
-      
-    `crop` and `crop_attributes` datasets:
-      1. Follow the link in the table above and download the zipped 2019 CDL file.
-      2. This layer requires some processing before it can function properly in the package. In order for the package to run this data, the file size needs to be decreased. We do this by changing the resolution from 30m cells to 90 meter cells.
-      3. Open up ArcGIS and load in the CDL file. Run this file through the "Resample" function, and set the cell size to 90 meters by 90 meters.
-      4. Once the output is created, run the output through the "Project Raster" function, and change the projection to `GCS_WGS_1984`.
-      5. Export the output of this function to `land` folder under the file name of `cdl_lowres_usa`, and set the file type to an IMAGINE image file. This will also produce the `crop_attributes` file. 
-      
-      `nlud` dataset:
-      1: Download the zip file from the google drive listed in the table above. 
-      2: Unzip the file, and the remove the TIFs listed below (these are empty):
-          - NLUDv1_2010_30m-0000000000-0000000000.tif
-          - NLUDv1_2010_30m-0000093184-0000232960.tif
-          - NLUDv1_2010_30m-0000093184-0000000000.tif
-          - NLUDv1_2010_30m-0000046592-0000232960.tif
-          - NLUDv1_2010_30m-0000046592-0000000000.tif
-          - NLUDv1_2010_30m-0000000000-0000232960.tif
-      3: Change the resolution of these rasters to 90m by 90m, and then mosaic them together. Save the mosaic file to the file path in the table.
-      
-      `hyrdo` dataset:
-      1. Follow the link in the table above and click the download button for the ORNL EHAHydroPlant FY2020revised (xlsx).
-      2. After downloading place it into the `energy` folder.
-      
-      `climate` dataset:
-      1. Follow the link in the table above and scroll to the High Resolution Map and Data section.
-      2. Click the download link next to R code with raster file.
-      3. Crop this raster file to the shape of the Continental United States, and save it as a new TIF file in the `land` folder under the name "koppen_climate_classes.tif".
-      
-      `population` dataset:
-      1. Follow the link in the table above and download the attached file named "pden2010_block.zip". Place this file into the `land` folder.
-      2. This raster will also need to be cropped to the shape of the Continental United States.
+To download all of the `gamut` input datasets, visit the [Zenodo data repository](https://zenodo.org/record/4662993#.YHTNpehKhPY) and download the zipped data files to your preferred directory. 
 
 
 ## Usage
@@ -215,16 +166,6 @@ results %>%
   theme_classic() 
 ```
 
-
-`gamut` also has very basic functionality for visualizing watersheds and associated land uses for a given city watersheds. For example:
-
-```r
-plot_watershed(data_dir = "your/gamut/data_dir", city = "New York | NY")
-```
-
-```{r,echo=FALSE, message=FALSE, warning=FALSE,fig.width=10,fig.height=5}
-plot_watershed(data_dir = your_gamut_data_directory, city = "New York | NY")
-```
 
 The table below shows explanations for each of these variables that are created through this function:
 
