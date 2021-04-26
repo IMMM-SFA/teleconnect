@@ -2,7 +2,7 @@
 % Please edit documentation in R/helper_functions.R
 \name{sup}
 \alias{sup}
-\title{sup}
+\title{suppress warnings convenience function}
 \usage{
 sup(sup)
 }
@@ -13,7 +13,7 @@ sup(sup)
 action
 }
 \description{
-sup
+suppress warnings convenience function
 }
 \author{
 Kristian Nelson (kristian.nelson@pnnl.gov)
