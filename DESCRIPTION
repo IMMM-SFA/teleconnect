@@ -1,7 +1,7 @@
 Package: gamut
 Type: Package
 Title: Geospatial Analytics for Multisector Urban Teleconnections
-Version: 0.1.0
+Version: 1.0.0
 Authors@R: 
     person(given = "Sean",
            family = "Turner",
