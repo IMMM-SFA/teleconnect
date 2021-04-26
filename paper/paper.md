@@ -24,7 +24,7 @@ authors:
 affiliations:
  - name: Pacific Northwest National Laboratory
    index: 1
-date: 29 March 2020
+date: 26 April 2020
 bibliography: paper.bib
 ---
 
@@ -33,10 +33,10 @@ bibliography: paper.bib
 Most cities in the United States withdraw surface water to meet public water supply needs. The lands on which this water is generated are often developed for human activities&mdash;such as agriculture, mining, and industry&mdash;that may compete for water resources or contaminate water supplies. Cities are thereby connected to other sectors through their water supply catchments. This connection is an example of an multisectoral urban teleconnection. The Geospatial Analytics for Multisectoral Urban Teleconnections (``gamut``) package provides national-scale information on these teleconnections by combining land use data with hydrological analysis to characterize urban source watershed human interactions across the conterminous United States (Figure 1).
 
 <p align="center">
-  <img width="460" height="300" src="gamut_plot.png">
+  <img width="900" height="500" src="gamut_figure.png">
 </p>
 <div align="center">
-  Figure 1: Watersheds and cities that are analyzed within gamut. Watershed delineations and city points gathered from [@McDonald:2014]. Hillshade map made from Natural Earth.
+  Figure 1: The `gamut` package analyzes urban cities and their watersheds all across the conterminous US. As shown in the figure, it can look at characteristics like land use and facilities operations inside watershed boundaries. 
 </div>  
 <p>&nbsp;</p>                                        
   The ``gamut`` package computes dozens of city-level metrics that inform on the geographical nature of surface water supply catchments and the presence, intensity, and impact of human activities in those catchments. Each city’s watersheds are based on the Urban Water Blueprint [@McDonald:2014], which is enhanced with source contribution estimates as well as river flow and high-resolution runoff [@Nelson:2021]. Watershed delineations are used to mask several geospatial land use layers relating to electricity generation, agriculture, industry and other economic developments, and water infrastructure (dams, reservoirs, aqueducts). 
