@@ -167,7 +167,6 @@ count_watershed_data <- function(data_dir,
 
         # get area of watershed IN SQUARE KILOMETERS
         raster::area(watersheds_select) / m2_to_km2 -> polygon_area
-
         #-------------------------------------------------------
         # TELECONNECTION - NUMBER OF CITIES USING WATERSHED
         get_cities() %>%
