@@ -58,7 +58,7 @@ count_watershed_teleconnections <- function(data_dir,
     city_watershed_mapping
 
   # read shapefiles for watersheds
-  import_shapefile(paste0(data_dir, file_paths["watersheds"]),
+  import_shapefile(file.path(data_dir, file_paths["watersheds"]),
                    method = "rgdal") %>%
     # subset for desired watersheds
     subset(DVSN_ID %in% city_watershed_mapping$DVSN_ID) ->
@@ -66,17 +66,17 @@ count_watershed_teleconnections <- function(data_dir,
 
 
   # read power plant data
-  sup(get_ucs_power_plants(paste0(data_dir, file_paths["powerplants"]))) ->
+  sup(get_ucs_power_plants(file.path(data_dir, file_paths["powerplants"]))) ->
     power_plants_usa
 
   # read shapefiles for watersheds
-  import_shapefile(paste0(data_dir, file_paths["citypoint"]),
+  import_shapefile(file.path(data_dir, file_paths["citypoint"]),
                    method = "rgdal") %>% st_as_sf() %>%
     rename("city_uid" = "City_ID") %>%
     subset(city_uid %in% city_watershed_mapping$city_uid) -> city_points
 
   # read shapefiles for watersheds
-  import_shapefile(paste0(data_dir, file_paths["withdrawal"]),
+  import_shapefile(file.path(data_dir, file_paths["withdrawal"]),
                    method = "rgdal") %>% st_as_sf() -> withdrawal_points
 
   # Get watershed usage table

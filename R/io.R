@@ -502,7 +502,7 @@ get_nlud_names <- function(economic_ids){
 
 get_hydro_dataset <- function(data_dir, hydro_file_path){
   # Load id table
-  read_xlsx(paste0(data_dir, hydro_file_path),
+  read_xlsx(file.path(data_dir, hydro_file_path),
             sheet = "Operational") %>%
     select(NID_ID = NID_ID,
            lat = Lat, lon = Lon,
@@ -644,7 +644,7 @@ get_wasteflow_points <- function(){
 #' @importFrom dplyr filter
 #' @author Sean Turner (sean.turner@pnnl.gov)
 get_source_contribution <- function(data_dir,file_paths){
-  vroom(paste0(data_dir, file_paths["contributions"]),
+  vroom(file.path(data_dir, file_paths["contributions"]),
         col_types = cols(city_state = col_character(),
                          intake = col_character(),
                          DVSN_ID= col_double(),
