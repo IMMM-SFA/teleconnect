@@ -7,7 +7,7 @@
 get_watershed_ts(watersheds)
 }
 \arguments{
-\item{watershed}{select watershed}
+\item{watersheds}{select watershed}
 }
 \description{
 get_watershed_ts

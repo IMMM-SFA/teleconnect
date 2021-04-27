@@ -7,7 +7,7 @@
 sup(sup)
 }
 \arguments{
-\item{method}{shorten suppressMessages}
+\item{sup}{item you want suppressed}
 }
 \value{
 action

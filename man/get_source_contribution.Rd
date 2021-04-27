@@ -6,6 +6,11 @@
 \usage{
 get_source_contribution(data_dir, file_paths)
 }
+\arguments{
+\item{data_dir}{your data directory}
+
+\item{file_paths}{the file paths to the gamut inputs}
+}
 \description{
 get_source_contribution
 }

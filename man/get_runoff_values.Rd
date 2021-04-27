@@ -12,6 +12,17 @@ get_runoff_values(
   land_table
 )
 }
+\arguments{
+\item{cropcover_agg}{cropcover raster}
+
+\item{runoff_agg}{runoff raster}
+
+\item{lc_values}{land cover values}
+
+\item{polygon_area}{area of select watershed}
+
+\item{land_table}{land table created by functions}
+}
 \description{
 get_runoff_values
 }

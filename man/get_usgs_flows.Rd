@@ -6,6 +6,9 @@
 \usage{
 get_usgs_flows(DVSN)
 }
+\arguments{
+\item{DVSN}{DVSN ID of the selected watershed}
+}
 \description{
 get_usgs_flows
 }
