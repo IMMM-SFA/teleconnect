@@ -216,7 +216,7 @@ get_ucs_power_plants <- function(ucs_file_path,
 #' @importFrom dplyr rename n
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
 #' @export
-get_zonal_data <- function(raster_object, polygon, city) {
+get_zonal_data <- function(raster_object, polygon) {
   # extract raster projection
   raster_crs <- crs(raster_object)
   # transform projection and union all polygons into one
@@ -493,7 +493,8 @@ get_nlud_names <- function(economic_ids){
 
 
 #' get_hydro_dataset
-#' @param economic_ids dataframe of nlud sector ids
+#' @param data_dir your data directory
+#' @param hydro_file_path hydro plants data file path
 #' @details Load in nlud_id_table.csv and merge with the economic_ids to get class names
 #' @importFrom readxl read_xlsx
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
@@ -513,7 +514,6 @@ get_hydro_dataset <- function(data_dir, hydro_file_path){
 
 
 #' get_population
-#' @param city_state name of city_state
 #' @details Census populations
 #' @importFrom vroom vroom cols
 #' @author Sean Turner (sean.turner@pnnl.gov)
@@ -524,7 +524,7 @@ get_population <- function(){
 }
 
 #' get_watershed_ts
-#' @param watershed select watershed
+#' @param watersheds select watershed
 #' @details Load in runoff time series and select the watershed being analyzed and its time series
 #' @importFrom vroom vroom cols
 #' @importFrom dplyr select one_of
@@ -542,7 +542,6 @@ get_watershed_ts <- function(watersheds){
 }
 
 #' get_irrigation_bcm
-#' @param irrbcm_file_path irrigation bcm file path
 #' @details load in irrigation bcm file path
 #' @importFrom vroom vroom cols
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
@@ -567,6 +566,11 @@ get_watershed_usage <- function(city){
 }
 
 #' get_runoff_values
+#' @param cropcover_agg cropcover raster
+#' @param runoff_agg runoff raster
+#' @param lc_values land cover values
+#' @param polygon_area area of select watershed
+#' @param land_table land table created by functions
 #' @details calculate runoff volume in meters cubed per second
 #' @importFrom tidyr as_tibble
 #' @importFrom dplyr rename
@@ -633,6 +637,8 @@ get_wasteflow_points <- function(){
 }
 
 #' get_source_contribution
+#' @param data_dir your data directory
+#' @param file_paths the file paths to the gamut inputs
 #' @details get a city's water source contribution breakdown
 #' @importFrom vroom vroom cols
 #' @importFrom dplyr filter
@@ -647,6 +653,7 @@ get_source_contribution <- function(data_dir,file_paths){
 }
 
 #' get_usgs_flows
+#' @param DVSN DVSN ID of the selected watershed
 #' @details get usgs inflow associated with a DVSN
 #' @importFrom vroom vroom cols
 #' @importFrom dplyr filter one_of mutate
