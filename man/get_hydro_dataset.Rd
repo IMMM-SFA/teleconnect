@@ -7,7 +7,9 @@
 get_hydro_dataset(data_dir, hydro_file_path)
 }
 \arguments{
-\item{economic_ids}{dataframe of nlud sector ids}
+\item{data_dir}{your data directory}
+
+\item{hydro_file_path}{hydro plants data file path}
 }
 \description{
 get_hydro_dataset

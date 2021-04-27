@@ -6,9 +6,6 @@
 \usage{
 get_population()
 }
-\arguments{
-\item{city_state}{name of city_state}
-}
 \description{
 get_population
 }

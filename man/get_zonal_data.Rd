@@ -4,7 +4,7 @@
 \alias{get_zonal_data}
 \title{Get raster frequency per class from polygon input areas}
 \usage{
-get_zonal_data(raster_object, polygon, city)
+get_zonal_data(raster_object, polygon)
 }
 \arguments{
 \item{raster_object}{character. An object of class RasterLayer.}
