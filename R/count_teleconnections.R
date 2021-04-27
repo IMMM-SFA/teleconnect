@@ -1,16 +1,10 @@
 #' count_watershed_teleconnections
 #'
 #' @param data_dir root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")
-#' @param watersheds_file_path path of watersheds shapefile within data_dir
-#' @param powerplants_file_path path of power plants data file
-#' @param crop_file_path path of crop cover raster
-#' @param dams_file_path path of National Inventory of Dams "NID" point file
-#' @param irrigation_file_path path of edited demeter irrigation file.
-#' @param nuld_file_path path of land use raster file.
 #' @param cities a vector of cities to be included in the count. If omitted, all cities will be included.
-#' @param poly_slices integer for how may parts to split the watersheds polygons into to enable faster zonal stats
-#' @param n_cores integer for the number of machine cores used to run the polygon slicing function. 2 is default for users with 16GB of RAM.
-#' @details counts teleconnections assoicated with water supply catchments associated with each city
+#' @param file_path file paths to all geospatial input datasets
+#' @param run_all to be depreciated.  Runs current configuration.
+#' @details counts teleconnections associated with water supply catchments associated with each city
 #' @importFrom purrr map_dfr
 #' @importFrom dplyr filter group_indices left_join right_join
 #' @importFrom tibble tibble
