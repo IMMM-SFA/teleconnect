@@ -57,8 +57,8 @@ count_watershed_data <- function(data_dir,
   }
 
   get_cities() %>%
-    subset(.data$city_state %in% cities) %>%
-    subset(.data$key_watershed == TRUE) ->
+    subset(city_state %in% cities) %>%
+    subset(key_watershed == TRUE) ->
     city_watershed_mapping
 
   watersheds <- city_watershed_mapping[["DVSN_ID"]] %>%
