@@ -43,6 +43,7 @@ Imports:
     reservoir,
     rgdal,
     rgeos,
+    rlang,
     sf,
     sp,
     spex,

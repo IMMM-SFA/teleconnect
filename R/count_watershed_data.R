@@ -17,6 +17,7 @@
 #' @importFrom raster intersect extent
 #' @importFrom stringr str_remove
 #' @importFrom tidyr separate
+#' @importFrom rlang .data
 #' @import rgeos
 #' @import rgdal
 #' @import dams
@@ -56,8 +57,8 @@ count_watershed_data <- function(data_dir,
   }
 
   get_cities() %>%
-    subset(city_state %in% cities) %>%
-    subset(key_watershed == TRUE) ->
+    subset(.data$city_state %in% cities) %>%
+    subset(.data$key_watershed == TRUE) ->
     city_watershed_mapping
 
   watersheds <- city_watershed_mapping[["DVSN_ID"]] %>%
