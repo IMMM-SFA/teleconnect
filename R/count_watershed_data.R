@@ -52,7 +52,7 @@ count_watershed_data <- function(data_dir,
   if(any(!cities %in% all_cities)) {
     cities[!cities %in% all_cities] -> bad_cities
     stop(paste0(paste(bad_cities), ": not part of '
-                teleconnect'!"))
+                gamut'!"))
   }
 
   get_cities() %>%
