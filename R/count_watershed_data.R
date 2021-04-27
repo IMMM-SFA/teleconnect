@@ -17,7 +17,6 @@
 #' @importFrom raster intersect extent
 #' @importFrom stringr str_remove
 #' @importFrom tidyr separate
-#' @importFrom rlang .data
 #' @import rgeos
 #' @import rgdal
 #' @import dams
