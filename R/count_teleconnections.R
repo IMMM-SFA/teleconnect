@@ -2,7 +2,7 @@
 #'
 #' @param data_dir root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")
 #' @param cities a vector of cities to be included in the count. If omitted, all cities will be included.
-#' @param file_path file paths to all geospatial input datasets
+#' @param file_paths file paths to all geospatial input datasets
 #' @param run_all to be depreciated.  Runs current configuration.
 #' @details counts teleconnections associated with water supply catchments associated with each city
 #' @importFrom purrr map_dfr

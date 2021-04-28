@@ -2,7 +2,7 @@
 #'
 #' @param data_dir root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")
 #' @param cities a vector of cities to be included in the count. If omitted, all cities will be included.
-#' @param file_paths paths to data files
+#' @param file_paths file paths to all geospatial input datasets
 #' @param run_all to be depreciated.  Runs current configuration.
 #' @details counts teleconnections associated with water supply catchments associated with each city
 #' @importFrom purrr map_dfr map
@@ -17,7 +17,6 @@
 #' @importFrom raster intersect extent
 #' @importFrom stringr str_remove
 #' @importFrom tidyr separate
-#' @importFrom rlang .data
 #' @import rgeos
 #' @import rgdal
 #' @import dams
@@ -57,8 +56,8 @@ count_watershed_data <- function(data_dir,
   }
 
   get_cities() %>%
-    subset(.data$city_state %in% cities) %>%
-    subset(.data$key_watershed == TRUE) ->
+    subset(city_state %in% cities) %>%
+    subset(key_watershed == TRUE) ->
     city_watershed_mapping
 
   watersheds <- city_watershed_mapping[["DVSN_ID"]] %>%
