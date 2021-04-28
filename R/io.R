@@ -497,6 +497,7 @@ get_irrigation_bcm <- function(){
 }
 
 #' get_watershed_usage
+#' @param city city that is being analyzed
 #' @details load in watershed usage table
 #' @importFrom vroom vroom cols
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
