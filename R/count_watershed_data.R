@@ -66,24 +66,24 @@ count_watershed_data <- function(data_dir,
   message(paste0("Processing ", length(watersheds), " watershed(s). This may take several minutes..."))
 
   # read shapefiles for watersheds
-  import_shapefile(paste0(data_dir, file_paths["watersheds"]),
+  import_shapefile(file.path(data_dir, file_paths["watersheds"]),
                    method = "rgdal") %>%
     # subset for desired watersheds
     subset(DVSN_ID %in% watersheds) -> catchment_shapes
 
   # read ucs plant data
-  sup(get_ucs_power_plants(paste0(data_dir, file_paths["powerplants"]))) -> power_plants_USA
+  sup(get_ucs_power_plants(file.path(data_dir, file_paths["powerplants"]))) -> power_plants_USA
 
   # read croptype raster for US
-  sup(import_raster(paste0(data_dir, file_paths["crop"]))) -> cropcover_USA
+  sup(import_raster(file.path(data_dir, file_paths["crop"]))) -> cropcover_USA
 
-  read.dbf(paste0(data_dir, file_paths["crop_attributes"])) -> crop_cover_levels
+  read.dbf(file.path(data_dir, file_paths["crop_attributes"])) -> crop_cover_levels
 
   # read reclassified crop table
   reclassify_raster(crop_cover_levels) -> crop_reclass_table
 
   # read NLUD economic raster
-  import_raster(paste0(data_dir, file_paths["nlud"])) -> economic_USA
+  import_raster(file.path(data_dir, file_paths["nlud"])) -> economic_USA
 
   # read NID point file
   dams::nid_subset -> nid_dataset
@@ -107,27 +107,27 @@ count_watershed_data <- function(data_dir,
     hydro_points
 
   #read demeter irrigation file
-  get_demeter_file(paste0(data_dir, file_paths["irrigation"])) -> usa_irrigation
+  get_demeter_file(file.path(data_dir, file_paths["irrigation"])) -> usa_irrigation
 
-  sup(import_shapefile(paste0(data_dir, file_paths["transfers"]), method = "rgdal")) %>%
+  sup(import_shapefile(file.path(data_dir, file_paths["transfers"]), method = "rgdal")) %>%
     st_as_sf() %>% st_transform("+proj=longlat +datum=WGS84 +no_defs") -> interbasin_transfers
   # read in irrigation bcm file
   get_irrigation_bcm() -> irrigation_bcm
 
   # read in US climate raster
-  import_raster(paste0(data_dir, file_paths["climate"])) -> us_climate
+  import_raster(file.path(data_dir, file_paths["climate"])) -> us_climate
 
   # read in HUC4 shapes
-  import_shapefile(paste0(data_dir, file_paths["HUC4"]),
+  import_shapefile(file.path(data_dir, file_paths["HUC4"]),
                    method = "rgdal") %>% st_as_sf() %>% select(c("HUC4")) -> HUC4_connect
   stringr::str_sub(HUC4_connect$HUC4, 1, 2) -> HUC4_connect$HUC2
   HUC4_connect %>% as_Spatial() %>% sp::spTransform(CRS("+proj=longlat +datum=WGS84 +no_defs")) -> HUC2_sp
 
   # read in runoff raster
-  import_raster(paste0(data_dir, file_paths["runoff"])) -> runoff_raster
+  import_raster(file.path(data_dir, file_paths["runoff"])) -> runoff_raster
 
   # read in population raster
-  import_raster(paste0(data_dir, file_paths["population"])) -> population_raster
+  import_raster(file.path(data_dir, file_paths["population"])) -> population_raster
 
   # read in waste flow points
   get_wasteflow_points() -> wasteflow_points
@@ -139,7 +139,7 @@ count_watershed_data <- function(data_dir,
   get_watershed_ts(watersheds) -> runoff_totals
 
   # read in NHD flow shapefile
-  import_shapefile(paste0(data_dir, file_paths["nhd_flow"])) %>% st_as_sf() -> watershed_nhd_flows
+  import_shapefile(file.path(data_dir, file_paths["nhd_flow"])) %>% st_as_sf() -> watershed_nhd_flows
 
   # temporary fix for Jackson MS
   if(watersheds == 3743){
