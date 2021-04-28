@@ -58,7 +58,7 @@ kable(files)
 
 ## Usage
 
-Once all the necessary data is organized in the correct format, the package is ready to be used. The main function is `count_watershed_teleconnections`. Within this function, set up your data directory and select cities. The city names need to be in the format of `City | State`, and for multiple cities, place them inside `c()`.
+Once all the necessary data is organized in the correct format, the package is ready to be used. The main function is `count_watershed_teleconnections`. Within this function, set up your data directory and select cities. The city names need to be in the format of `City | State`, and for multiple cities, place them inside `c()`. __Available cities can be found on the [Available Cities wiki page](https://github.com/IMMM-SFA/gamut/wiki/Available-Cities).__
 
 Here is an example of what you would type into your console: 
 

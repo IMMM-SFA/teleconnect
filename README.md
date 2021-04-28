@@ -65,7 +65,8 @@ package is ready to be used. The main function is
 `count_watershed_teleconnections`. Within this function, set up your
 data directory and select cities. The city names need to be in the
 format of `City | State`, and for multiple cities, place them inside
-`c()`.
+`c()`. **Available cities can be found on the [Available Cities wiki
+page](https://github.com/IMMM-SFA/gamut/wiki/Available-Cities).**
 
 Here is an example of what you would type into your console:
 
