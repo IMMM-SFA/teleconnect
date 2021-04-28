@@ -129,15 +129,15 @@ get_ucs_power_plants <- function(ucs_file_path,
   # read UCS generator database
   read_xlsx(ucs_file_path,
             sheet = "MAIN DATA", skip = 4) %>%
-    select(cooling = `Requires cooling?`,
-           cooling_tech = `Cooling Technology`,
-           PLANT_CODE = `Plant Code`,
-           `Power Plant Type` = Fuel,
-           lat = Latitude, lon = Longitude,
-           MWh = `Estimated Generation (MWh)`,
-           PLANT_NAME = `Plant Name`,
-           consumption = `Calculated Consumption (million gallons/yr)`,
-           withdrawal = `Calculated Withdrawal (million gallons/yr)`) %>%
+    select(cooling = "Requires cooling?",
+           cooling_tech = "Cooling Technology",
+           PLANT_CODE = "Plant Code",
+           `Power Plant Type` = "Fuel",
+           lat = "Latitude", lon = "Longitude",
+           MWh = "Estimated Generation (MWh)",
+           PLANT_NAME = "Plant Name",
+           consumption = "Calculated Consumption (million gallons/yr)",
+           withdrawal = "Calculated Withdrawal (million gallons/yr)") %>%
     # aggregate to plant level by removing generator variables (e.g., nameplate) ...
     # and taking unique columns...
     unique() -> ucs
