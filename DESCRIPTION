@@ -43,14 +43,12 @@ Imports:
     reservoir,
     rgdal,
     rgeos,
-    rlang,
     sf,
     sp,
     spex,
     stringr,
     tibble,
     tidyr,
-    units,
     vroom
 Suggests: 
     testthat (>= 2.1.0),
