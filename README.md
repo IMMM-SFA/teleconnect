@@ -107,9 +107,6 @@ created through this function:
 | yield\_BCM                            | Combined yield capacity of all the city catchments                                      | billion cubic meters  |
 | irr\_cons\_BCM                        | Combined water consumption that is used for irrigation with the watersheds              | billion cubic meters  |
 | n\_climate\_zones                     | Number of climate zones that the source watersheds cover                                | zones                 |
-| n\_transfers\_in                      | Number of interbasin transfers that flow into the source watersheds                     | transfers             |
-| n\_transfers\_out                     | Number of interbasin transfers that flow out of the source watersheds                   | transfers             |
-| n\_transfers\_within                  | Number of water transfers that occur within the source watersheds                       | transfers             |
 | n\_hydro\_plants                      | Number of hydro electric power plants operating within the source watersheds            | plants                |
 | n\_thermal\_plants                    | Number of thermal power plants operating within the source watersheds                   | plants                |
 | n\_fac\_agcrop                        | Number of agricultural crop facilities within the source watersheds                     | facilities            |
