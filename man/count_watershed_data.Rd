@@ -30,7 +30,7 @@ count_watershed_data(
 
 \item{run_all}{to be depreciated.  Runs current configuration.}
 
-\item{file_paths}{paths to data files}
+\item{file_paths}{file paths to all geospatial input datasets}
 }
 \description{
 count_watershed_data
