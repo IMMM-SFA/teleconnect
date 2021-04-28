@@ -275,18 +275,6 @@ count_watershed_data <- function(data_dir,
           warning("land table area is consistent with cropcover_ids area!!")
         }
 
-
-        #-------------------------------------------------------
-        # TELECONNECTION - CLASSIFY WATERSHED BASED ON % OF DEVELOPED/CULTIVATED AREA.
-        # Remove NA and all categories that are not land cover/use(water/background).
-        cropcover_ids %>% filter(!Group.1 %in% non_land_cdl_classes) -> all_land
-        # New df with only crops and developement categories
-        cropcover_ids %>% filter(!Group.1 %in% non_devcrop_class) -> dev_and_crop
-        # Find percent area for development and crops.
-        percent_area <- (100*(sum(dev_and_crop$x))) / (sum(all_land$x))
-        # Assign to category based on percent area.
-        get_land_category(percent_area) -> watershed_condition
-
         if(run_all == TRUE){
 
         #--------------------------------------------------------
