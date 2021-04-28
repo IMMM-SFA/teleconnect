@@ -118,8 +118,8 @@ created through this function:
 | n\_fac\_mining                        | Number of mining facilities within the source watersheds                                | facilities            |
 | n\_fac\_oilgas                        | Number of oil and gas facilities within the source watersheds                           | facilities            |
 | n\_fac\_total                         | Total number of facilities operating within the source watersheds                       | facilities            |
-| hydro\_gen\_MWh                       | Combined hydro electric generation from all the facilities within the source watersheds | Megawatt-hours        |
-| thermal\_gen\_MWh                     | Combined thermal generation from all the facilities within the source watersheds        | Megawatt-hours        |
+| hydro\_gen\_MWh                       | Combined hydro electric generation from all the facilities within the source watersheds | megawatt-hours        |
+| thermal\_gen\_MWh                     | Combined thermal generation from all the facilities within the source watersheds        | megawatt-hours        |
 | thermal\_cons\_BCM                    | Combined water consumption that is used for thermal generation                          | billion cubic meters  |
 | thermal\_with\_BCM                    | Combined water withdrawal for thermal generation                                        | billion cubic meters  |
 | n\_utilities                          | Number of electric utilities within the source watersheds                               | utilities             |
@@ -127,16 +127,16 @@ created through this function:
 | n\_crop\_classes                      | Total number of different types of crops within the source watersheds                   | crops                 |
 | cropland\_fraction                    | Fraction of land that is used for crops within the source watersheds                    | fraction              |
 | developed\_fraction                   | Fraction of land that is developed within the source watersheds                         | fraction              |
-| ag\_runoff\_max                       | Max amount of agricultural runoff within the source watersheds                          |                       |
-| ag\_runoff\_av\_exgw                  | Average agricultural runoff (excluding ground water)                                    |                       |
-| ag\_runoff\_av                        | Average runoff from agricultural lands                                                  |                       |
-| dev\_runof\_max                       | Max amount of agricultural runoff within the source watersheds                          |                       |
-| dev\_runof\_av\_exgw                  | Average developed runoff (excluding ground water)                                       |                       |
-| dev\_runof\_av                        | Average runoff from developed lands                                                     |                       |
-| np\_runoff\_max                       | Max amount of non-point source runoff within the source watersheds                      |                       |
-| np\_runoff\_av\_exgw                  | Average non-point runoff (excluding ground water)                                       |                       |
-| np\_runoff\_av\_exgw\_unweighted      | Average non-point runoff unweighted (excluding ground water)                            |                       |
-| np\_runoff\_av                        | Average non-point source runoff.                                                        |                       |
+| ag\_runoff\_max                       | Max amount of agricultural runoff within the source watersheds                          | %                     |
+| ag\_runoff\_av\_exgw                  | Average agricultural runoff (excluding ground water)                                    | %                     |
+| ag\_runoff\_av                        | Average runoff from agricultural lands                                                  | %                     |
+| dev\_runof\_max                       | Max amount of agricultural runoff within the source watersheds                          | %                     |
+| dev\_runof\_av\_exgw                  | Average developed runoff (excluding ground water)                                       | %                     |
+| dev\_runof\_av                        | Average runoff from developed lands                                                     | %                     |
+| np\_runoff\_max                       | Max amount of non-point source runoff within the source watersheds                      | %                     |
+| np\_runoff\_av\_exgw                  | Average non-point runoff (excluding ground water)                                       | %                     |
+| np\_runoff\_av\_exgw\_unweighted      | Average non-point runoff unweighted (excluding ground water)                            | %                     |
+| np\_runoff\_av                        | Average non-point source runoff.                                                        | %                     |
 | n\_economic\_sectors                  | Total number of different economic sectors within the source watersheds                 | sectors               |
 | max\_withdr\_dis\_km                  | Maximum distance between a city’s intake points                                         | kilometers            |
 | avg\_withdr\_dis\_km                  | Average distance between a city’s intake points                                         | kilometers            |
@@ -151,7 +151,7 @@ created through this function:
 | av\_fl\_max\_conc\_pct                | Max average flow concentration                                                          | %                     |
 | av\_ro\_max\_conc\_pct                | Max average runoff concentration                                                        | %                     |
 | surface\_contribution\_pct            | Surface contribution                                                                    | %                     |
-| importance\_of\_worst\_watershed\_pct |                                                                                         | %                     |
+| importance\_of\_worst\_watershed\_pct | Measures the importance of the watershed with the worst contamination                   | %                     |
 
 ## Support
 
