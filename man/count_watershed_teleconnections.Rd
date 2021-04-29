@@ -30,7 +30,7 @@ count_watershed_teleconnections(
 
 \item{run_all}{to be depreciated.  Runs current configuration.}
 
-\item{file_path}{file paths to all geospatial input datasets}
+\item{file_paths}{file paths to all geospatial input datasets}
 }
 \description{
 count_watershed_teleconnections

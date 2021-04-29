@@ -6,6 +6,9 @@
 \usage{
 get_watershed_usage(city)
 }
+\arguments{
+\item{city}{city that is being analyzed}
+}
 \description{
 get_watershed_usage
 }

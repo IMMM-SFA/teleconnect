@@ -2,7 +2,7 @@
 #'
 #' @param data_dir root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")
 #' @param cities a vector of cities to be included in the count. If omitted, all cities will be included.
-#' @param file_paths paths to data files
+#' @param file_paths file paths to all geospatial input datasets
 #' @param run_all to be depreciated.  Runs current configuration.
 #' @details counts teleconnections associated with water supply catchments associated with each city
 #' @importFrom purrr map_dfr map
@@ -274,18 +274,6 @@ count_watershed_data <- function(data_dir,
         if (sum(land_table$cell_freq, na.rm = T) != sum(cropcover_ids$x, na.rm = T)){
           warning("land table area is consistent with cropcover_ids area!!")
         }
-
-
-        #-------------------------------------------------------
-        # TELECONNECTION - CLASSIFY WATERSHED BASED ON % OF DEVELOPED/CULTIVATED AREA.
-        # Remove NA and all categories that are not land cover/use(water/background).
-        cropcover_ids %>% filter(!Group.1 %in% non_land_cdl_classes) -> all_land
-        # New df with only crops and developement categories
-        cropcover_ids %>% filter(!Group.1 %in% non_devcrop_class) -> dev_and_crop
-        # Find percent area for development and crops.
-        percent_area <- (100*(sum(dev_and_crop$x))) / (sum(all_land$x))
-        # Assign to category based on percent area.
-        get_land_category(percent_area) -> watershed_condition
 
         if(run_all == TRUE){
 

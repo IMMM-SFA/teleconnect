@@ -49,7 +49,6 @@ Imports:
     stringr,
     tibble,
     tidyr,
-    units,
     vroom
 Suggests: 
     testthat (>= 2.1.0),

@@ -10,83 +10,14 @@ always_allow_html: yes
 
 # `gamut`
 
-#### **G**eospatial **A**nalytics for **M**ultisector **U**rban **T**eleconnections
+## **G**eospatial **A**nalytics for **M**ultisector **U**rban **T**eleconnections
 
 ## Description
 `gamut` is a tool for exploring *teleconnections* between cities of the United States and human activities that occur in their associated water supply catchments. A *teleconnection* is a causal connection or correlation between human and environmental phenomena that occur a long distance apart.
 
-
-```{r,echo=FALSE, message=FALSE, warning=FALSE,fig.width=10,fig.height=5}
-library(gamut)
-library(ggplot2)
-library(sf)
-library(st)
-
-# define data directory
-
-your_gamut_data_directory <- "C:/Geospatial_Input_Datasets/"
-
-get_cities() %>%
-     subset(key_watershed == TRUE) ->
-     city_watershed_mapping
-
-city_watershed_mapping$DVSN_ID %>% unique() -> watersheds
-city_watershed_mapping$city_uid %>% unique() -> cities
-
-import_shapefile(paste0(your_gamut_data_directory,
-                        "/misc/states_21basic/states.shp")) %>% 
-  subset(!STATE_NAME %in% c("Alaska", "Hawaii"))->
-  states
-
-import_shapefile(paste0(your_gamut_data_directory,
-                        "/water/CWM_v2_2/World_Watershed8.shp")) %>%
-                   st_as_sf() %>%
-                   subset(DVSN_ID %in% watersheds) ->
-                   watersheds
-                 
-import_shapefile(paste0(your_gamut_data_directory, 
-                 "/water/CWM_v2_2/City_Centroid.shp")) %>%
-  st_as_sf() %>% subset(City_ID %in% cities) -> intakes
-
-#raster::raster("C:/CERF/Data/MSR_50M/MSR_50M/MSR_50M.tif") -> relief
-# crop(relief, states) %>% mask(states) -> relief2
-# relief_spdf <- as(relief2, "SpatialPixelsDataFrame")
-# relief <- as.data.frame(relief_spdf)
-
-
-ggplot() +
-  # geom_raster(data = relief, aes(x = x,
-  #                                y = y,
-  #                                alpha = MSR_50M)) +
-  # scale_alpha(name = "", range = c(0.6, 0), guide = F)  +
-  geom_sf(data=states, fill = "lightgrey", size = 0.7, color = "black") +
-  geom_sf(data=watersheds, fill = "steelblue", alpha = 0.4) +
-  geom_sf(data=intakes, color = "red4", alpha = 0.9, size = 2) +
-  scale_fill_manual(values = "steelblue") +
-  coord_sf() +
-  theme_void() +
-  theme(
-    legend.position = c(0.1, 0.15),
-    legend.text.align = 0,
-    legend.background = element_rect(fill = alpha('white', 0.0)),
-    legend.text = element_text(size = 19, hjust = 0, color = "#4e4d47"),
-    plot.title = element_text(size = 15, hjust = 0.5, color = "#4e4d47"),
-    legend.title = element_blank(),
-    plot.margin = unit(c(.5,.5,.2,.5), "cm"),
-    panel.spacing = unit(c(-.1,0.2,.2,0.2), "cm"),
-    panel.border = element_blank(),
-    plot.caption = element_text(size = 6,
-                                hjust = 0.92,
-                                margin = margin(t = 0.2,
-                                                b = 0,
-                                                unit = "cm"),
-                                color = "#939184")
-  ) +
-  labs(x = NULL,
-       y = NULL,
-       title = "Watersheds and Cities")
-
-```
+<p align="center">
+  <img width="800" height="550" src="inst/extdata/gamut_plot.png">
+</p>
 
 ## Get Started with `gamut`
 `gamut` can be installed directly from this repository using the R `devtools` package. From an R prompt, run the command:
@@ -97,14 +28,14 @@ library(gamut)
 
 ##### Data Files
 
-The table below shows all the files used within the `gamut` software package.
+To download all of the `gamut` input datasets, visit the [Zenodo data repository](https://zenodo.org/record/4662993#.YHTNpehKhPY) and download the zipped data files to your preferred directory. The table below shows all the files used within the `gamut` software package.
     
 ```{r, echo=FALSE,message=FALSE}
 library(tibble)
 library(knitr)
 
 tribble(
-  ~`Teleconnect Name`,	~`Sub Folder Location`, ~`Full File Path`,~`Data Location`,
+  ~`gamut Name`,	~`Sub Folder Location`, ~`Full File Path`,~`Data Source`,
   "watersheds", "water","water/CWM_v2_2/World_Watershed8.shp","https://knb.ecoinformatics.org/view/doi%3A10.5063%2FF1J67DWR",
   "withdrawal","water","water/CWM_v2_2/Snapped_Withdrawal_Points.shp","https://knb.ecoinformatics.org/view/doi%3A10.5063%2FF1J67DWR",
   "citypoint","water","water/CWM_v2_2/City_Centroid.shp","https://knb.ecoinformatics.org/view/doi%3A10.5063%2FF1J67DWR",
@@ -113,51 +44,41 @@ tribble(
   "crop_attributes","land","land/2016_90m_cdls/cdl_lowres_usa.img.vat.dbf","https://www.nass.usda.gov/Research_and_Science/Cropland/Release/",
   "irrigation","land","land/Version2_USA_Demeter.csv","NA",
   "nlud","land","land/usa_nlud_LR.tif","https://drive.google.com/file/d/1vmNfwjcaLf0sZTYJ1wsB3liG37sN8gyC/view",
-  "hydro","energy","energy/EHA_Public_PlantFY2019_GIS_6/ORNL_EHAHydroPlant_PublicFY2019final.xlsx","https://hydrosource.ornl.gov/node/250",
-  "transfers","NA","NA","NA",
+  "hydro","energy","energy/EHA_Public_PlantFY2019_GIS_6/ORNL_EHAHydroPlant_FY2020revised.xlsx","https://hydrosource.ornl.gov/node/250",
   "climate","land","land/kop_climate_classes.tif","http://koeppen-geiger.vu-wien.ac.at/present.htm",
   "HUC4","water","water/USA_HUC4/huc4_to_huc2.shp","http://prd-tnm.s3-website-us-west-2.amazonaws.com/?prefix=StagedProducts/Hydrography/WBD/National/GDB/",
   "population","land","land/pden2010_block/pden2010_60m.tif","https://www.sciencebase.gov/catalog/item/57753ebee4b07dd077c70868",
-  "runoff","water","water/Historical_Mean_Runoff/USA_Mean_Runoff.tif","NA",
-  "nhd_flow","water","water/Watershed_Flow_Contributions/UWB_Intake_Flows.shp","NA",
-  "contributions","water","water/Watershed_Flow_Contributions/Watershed_Contributions.csv","NA"
+  "runoff","water","water/Historical_Mean_Runoff/USA_Mean_Runoff.tif","https://zenodo.org/record/4315195",
+  "nhd_flow","water","water/Watershed_Flow_Contributions/UWB_Intake_Flows.shp","https://zenodo.org/record/4315195",
+  "contributions","water","water/Watershed_Flow_Contributions/Watershed_Contributions.csv","https://zenodo.org/record/4315195"
 ) -> files
 
 kable(files)
 ```
 
-##### Data Downloading Instructions
-
-To download all of the `gamut` input datasets, visit the [Zenodo data repository](https://zenodo.org/record/4662993#.YHTNpehKhPY) and download the zipped data files to your preferred directory. 
-
-
 ## Usage
 
-Once all the necessary data is organized in the correct format, the package is ready to be used. The main function is `count_watershed_teleconnections`. Within this function, set up your data directory and select cities. The city names need to be in the format of `City | State`, and for multiple cities, place them inside `c()`.
+Once all the necessary data is organized in the correct format, the package is ready to be used. The main function is `count_watershed_teleconnections`. Within this function, set up your data directory and select cities. The city names need to be in the format of `City | State`, and for multiple cities, place them inside `c()`. __Available cities can be found on the [Available Cities wiki page](https://github.com/IMMM-SFA/gamut/wiki/Available-Cities).__
 
 Here is an example of what you would type into your console: 
 
 ```r
-count_watershed_teleconnections(data_dir = "your/gamut/data_dir", cities = c("Portland | OR", "Charlotte | NC", "Austin | TX"))
+count_watershed_teleconnections(data_dir = "your/gamut/data_dir", cities = c("Portland | OR", "Knoxville | TN", "New York | NY", "Indianapolis | IN", "Seattle | WA"))
 ```
 
 The package will cycle through each city and their respective watersheds, and produce a table with several columns of information. To learn what each of these variables mean, scroll to the bottom of this section and see the table of variables. The result of this function will look something like this:
 
-```{r,echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
-suppressMessages(count_watershed_teleconnections(your_gamut_data_directory,
-                                                 cities = c("Portland | OR", "Knoxville | TN"))) -> results
-gsub("\\|", ", ", results$city) -> results$city
-gsub("\\ ", "", results$city) -> results$city
-gsub("\\,", ", ", results$city) -> results$city
-```
-
 ```{r,echo=FALSE, message=FALSE, warning=FALSE}
+library(vroom)
+vroom("inst/extdata/example_dataset.csv") -> results
+results[3,2] <- "New York, NY"
 knitr::kable(results)
 ```
 
 This table can be used to compare different variables between multiple cities. Below is a graph comparing how much developed land are in cities' watersheds. 
 
 ```{r, echo=FALSE,message=FALSE}
+library(ggplot2)
 results %>% 
   ggplot(aes(x = reorder(city, developed_fraction), y = developed_fraction)) +
   geom_bar(stat = "identity", fill = "steelblue") +
@@ -181,9 +102,6 @@ tibble::tribble(
   "yield_BCM","Combined yield capacity of all the city catchments","billion cubic meters",
   "irr_cons_BCM","Combined water consumption that is used for irrigation with the watersheds","billion cubic meters",
   "n_climate_zones","Number of climate zones that the source watersheds cover","zones",
-  "n_transfers_in","Number of interbasin transfers that flow into the source watersheds","transfers",
-  "n_transfers_out","Number of interbasin transfers that flow out of the source watersheds","transfers",
-  "n_transfers_within","Number of water transfers that occur within the source watersheds","transfers",
   "n_hydro_plants","Number of hydro electric power plants operating within the source watersheds","plants",
   "n_thermal_plants","Number of thermal power plants operating within the source watersheds","plants",
   "n_fac_agcrop","Number of agricultural crop facilities within the source watersheds","facilities",
@@ -192,40 +110,44 @@ tibble::tribble(
   "n_fac_mining","Number of mining facilities within the source watersheds","facilities",
   "n_fac_oilgas","Number of oil and gas facilities within the source watersheds","facilities",
   "n_fac_total","Total number of facilities operating within the source watersheds","facilities",
-  "hydro_gen_MWh","Combined hydro electric generation from all the facilities within the source watersheds","Megawatthours",
-  "thermal_gen_MWh","Combined thermal generation from all the facilities within the source watersheds","Megawatthours",
+  "hydro_gen_MWh","Combined hydro electric generation from all the facilities within the source watersheds","megawatt-hours",
+  "thermal_gen_MWh","Combined thermal generation from all the facilities within the source watersheds","megawatt-hours",
   "thermal_cons_BCM","Combined water consumption that is used for thermal generation","billion cubic meters",
   "thermal_with_BCM","Combined water withdrawal for thermal generation","billion cubic meters",
   "n_utilities","Number of electric utilities within the source watersheds","utilities",
   "n_ba","Number of balancing authorities within the source watersheds","balancing authorities",
   "n_crop_classes","Total number of different types of crops within the source watersheds","crops",
-  "cropland_fraction","Fraction of land that is used for crops within the source watersheds","NA",
-  "developed_fraction","Fraction of land that is developed within the source watersheds","NA",
-  "ag_runoff_max","Max amount of agricultural runoff within the source watersheds","",
-  "ag_runoff_av_exgw","","",
-  "ag_runoff_av","Average runoff from agricultural lands","",
-  "dev_runof_max","Max amount of agricultural runoff within the source watersheds","",
-  "dev_runof_av_exgw","","",
-  "dev_runof_av","Average runoff from developed lands","",
-  "np_runoff_max","Max amount of non-point source runoff within the source watersheds","",
-  "np_runoff_av_exgw","","",
-  "np_runoff_av_exgw_unweighted","","",
-  "np_runoff_av","Average non-point source runoff.","",
+  "cropland_fraction","Fraction of land that is used for crops within the source watersheds","fraction",
+  "developed_fraction","Fraction of land that is developed within the source watersheds","fraction",
+  "ag_runoff_max","Max amount of agricultural runoff within the source watersheds","%",
+  "ag_runoff_av_exgw","Average agricultural runoff (excluding ground water)
+","%",
+  "ag_runoff_av","Average runoff from agricultural lands","%",
+  "dev_runof_max","Max amount of agricultural runoff within the source watersheds","%",
+  "dev_runof_av_exgw","Average developed runoff (excluding ground water)
+","%",
+  "dev_runof_av","Average runoff from developed lands","%",
+  "np_runoff_max","Max amount of non-point source runoff within the source watersheds","%",
+  "np_runoff_av_exgw","Average non-point runoff (excluding ground water)
+","%",
+  "np_runoff_av_exgw_unweighted","Average non-point runoff unweighted (excluding ground water)
+","%",
+  "np_runoff_av","Average non-point source runoff.","%",
   "n_economic_sectors","Total number of different economic sectors within the source watersheds","sectors",
   "max_withdr_dis_km","Maximum distance between a city's intake points","kilometers",
   "avg_withdr_dis_km","Average distance between a city's intake points","kilometers",
   "n_treatment_plants","Total number of waste water treatment plants operating within the source watersheds","plants",
   "watershed_pop","Total number of people living within the source watershed boundaries","people",
   "pop_cons_m3sec","Combined water consumption from the source watersheds that is used for people","m3/sec",
-  "av_fl_sur_conc_pct","","%",
-  "av_fl_sur_conc_pct_unweighted","","%",
-  "av_ro_sur_conc_pct","","%",
-  "av_fl_all_conc_pct","","%",
-  "av_ro_all_conc_pct","","%",
-  "av_fl_max_conc_pct","","%",
-  "av_ro_max_conc_pct","","%",
-  "surface_contribution_pct","","%",
-  "importance_of_worst_watershed_pct","","%",
+  "av_fl_sur_conc_pct","Average surface flow concentration ","%",
+  "av_fl_sur_conc_pct_unweighted","Average surface flow concentration unweighted ","%",
+  "av_ro_sur_conc_pct","Average surface runoff concentration ","%",
+  "av_fl_all_conc_pct","Average flow concentration","%",
+  "av_ro_all_conc_pct","Average runoff concentration","%",
+  "av_fl_max_conc_pct","Max average flow concentration","%",
+  "av_ro_max_conc_pct","Max average runoff concentration","%",
+  "surface_contribution_pct","Surface contribution","%",
+  "importance_of_worst_watershed_pct","Measures the importance of the watershed with the worst contamination","%",
 ) -> variables
 kable(variables)
 ```
@@ -234,11 +156,11 @@ kable(variables)
 
 For any questions about the package, please contact any of the contributors below:
 
-Sean Turner:
-sean.turner@pnnl.gov
-
 Kristian Nelson:
 kristian.nelson@pnnl.gov
+
+Sean Turner:
+sean.turner@pnnl.gov
 
 Chris Vernon
 chris.vernon@pnnl.gov
@@ -246,7 +168,7 @@ chris.vernon@pnnl.gov
 
 ## Authors and Acknowledgement 
 
-Authors: Sean Turner, Kristian Nelson, Chris Vernon, Jennie Rice, Casey Burleyson, Ryan McManamay, Kerim Dickson
+Authors: Kristian Nelson, Sean Turner, Chris Vernon, Jennie Rice, Casey Burleyson, Ryan McManamay, Kerim Dickson
 
 This research was supported by the US Department of Energy, Office of Science, as 
 part of research in the MultiSector Dynamics, Earth and Environmental System Modeling Program.
