@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">gamut</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
       </span>
     </div>
 
@@ -155,42 +155,18 @@
       <td><p>a vector of cities to be included in the count. If omitted, all cities will be included.</p></td>
     </tr>
     <tr>
-      <th>watersheds_file_path</th>
-      <td><p>path of watersheds shapefile within data_dir</p></td>
+      <th>run_all</th>
+      <td><p>to be depreciated.  Runs current configuration.</p></td>
     </tr>
     <tr>
-      <th>powerplants_file_path</th>
-      <td><p>path of power plants data file</p></td>
-    </tr>
-    <tr>
-      <th>crop_file_path</th>
-      <td><p>path of crop cover raster</p></td>
-    </tr>
-    <tr>
-      <th>dams_file_path</th>
-      <td><p>path of National Inventory of Dams "NID" point file</p></td>
-    </tr>
-    <tr>
-      <th>irrigation_file_path</th>
-      <td><p>path of edited demeter irrigation file.</p></td>
-    </tr>
-    <tr>
-      <th>nuld_file_path</th>
-      <td><p>path of land use raster file.</p></td>
-    </tr>
-    <tr>
-      <th>poly_slices</th>
-      <td><p>integer for how may parts to split the watersheds polygons into to enable faster zonal stats</p></td>
-    </tr>
-    <tr>
-      <th>n_cores</th>
-      <td><p>integer for the number of machine cores used to run the polygon slicing function. 2 is default for users with 16GB of RAM.</p></td>
+      <th>file_paths</th>
+      <td><p>file paths to all geospatial input datasets</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>counts teleconnections assoicated with water supply catchments associated with each city</p>
+    <p>counts teleconnections associated with water supply catchments associated with each city</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
