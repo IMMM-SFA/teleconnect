@@ -16,7 +16,7 @@ supply catchments. A *teleconnection* is a causal connection or
 correlation between human and environmental phenomena that occur a long
 distance apart.
 
-![](https://github.com/IMMM-SFA/gamut/blob/main/inst/extdata/gamut_plot.png){ width=75% }
+![](https://github.com/IMMM-SFA/gamut/blob/main/inst/extdata/gamut_plot.png)
 
 
 ## Get Started with `gamut`
