@@ -1,8 +1,9 @@
 #' count_watershed_data
 #'
 #' @param data_dir root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")
-#' @param file_paths paths to data files
 #' @param cities a vector of cities to be included in the count. If omitted, all cities will be included.
+#' @param file_paths file paths to all geospatial input datasets
+#' @param run_all to be depreciated.  Runs current configuration.
 #' @details counts teleconnections associated with water supply catchments associated with each city
 #' @importFrom purrr map_dfr map
 #' @importFrom dplyr filter group_indices left_join if_else tribble group_by summarise arrange right_join
@@ -51,7 +52,7 @@ count_watershed_data <- function(data_dir,
   if(any(!cities %in% all_cities)) {
     cities[!cities %in% all_cities] -> bad_cities
     stop(paste0(paste(bad_cities), ": not part of '
-                teleconnect'!"))
+                gamut'!"))
   }
 
   get_cities() %>%
@@ -65,24 +66,24 @@ count_watershed_data <- function(data_dir,
   message(paste0("Processing ", length(watersheds), " watershed(s). This may take several minutes..."))
 
   # read shapefiles for watersheds
-  import_shapefile(paste0(data_dir, file_paths["watersheds"]),
+  import_shapefile(file.path(data_dir, file_paths["watersheds"]),
                    method = "rgdal") %>%
     # subset for desired watersheds
     subset(DVSN_ID %in% watersheds) -> catchment_shapes
 
   # read ucs plant data
-  sup(get_ucs_power_plants(paste0(data_dir, file_paths["powerplants"]))) -> power_plants_USA
+  sup(get_ucs_power_plants(file.path(data_dir, file_paths["powerplants"]))) -> power_plants_USA
 
   # read croptype raster for US
-  sup(import_raster(paste0(data_dir, file_paths["crop"]))) -> cropcover_USA
+  sup(import_raster(file.path(data_dir, file_paths["crop"]))) -> cropcover_USA
 
-  read.dbf(paste0(data_dir, file_paths["crop_attributes"])) -> crop_cover_levels
+  read.dbf(file.path(data_dir, file_paths["crop_attributes"])) -> crop_cover_levels
 
   # read reclassified crop table
   reclassify_raster(crop_cover_levels) -> crop_reclass_table
 
   # read NLUD economic raster
-  import_raster(paste0(data_dir, file_paths["nlud"])) -> economic_USA
+  import_raster(file.path(data_dir, file_paths["nlud"])) -> economic_USA
 
   # read NID point file
   dams::nid_subset -> nid_dataset
@@ -106,27 +107,27 @@ count_watershed_data <- function(data_dir,
     hydro_points
 
   #read demeter irrigation file
-  get_demeter_file(paste0(data_dir, file_paths["irrigation"])) -> usa_irrigation
+  get_demeter_file(file.path(data_dir, file_paths["irrigation"])) -> usa_irrigation
 
-  sup(import_shapefile(paste0(data_dir, file_paths["transfers"]), method = "rgdal")) %>%
+  sup(import_shapefile(file.path(data_dir, file_paths["transfers"]), method = "rgdal")) %>%
     st_as_sf() %>% st_transform("+proj=longlat +datum=WGS84 +no_defs") -> interbasin_transfers
   # read in irrigation bcm file
   get_irrigation_bcm() -> irrigation_bcm
 
   # read in US climate raster
-  import_raster(paste0(data_dir, file_paths["climate"])) -> us_climate
+  import_raster(file.path(data_dir, file_paths["climate"])) -> us_climate
 
   # read in HUC4 shapes
-  import_shapefile(paste0(data_dir, file_paths["HUC4"]),
+  import_shapefile(file.path(data_dir, file_paths["HUC4"]),
                    method = "rgdal") %>% st_as_sf() %>% select(c("HUC4")) -> HUC4_connect
   stringr::str_sub(HUC4_connect$HUC4, 1, 2) -> HUC4_connect$HUC2
   HUC4_connect %>% as_Spatial() %>% sp::spTransform(CRS("+proj=longlat +datum=WGS84 +no_defs")) -> HUC2_sp
 
   # read in runoff raster
-  import_raster(paste0(data_dir, file_paths["runoff"])) -> runoff_raster
+  import_raster(file.path(data_dir, file_paths["runoff"])) -> runoff_raster
 
   # read in population raster
-  import_raster(paste0(data_dir, file_paths["population"])) -> population_raster
+  import_raster(file.path(data_dir, file_paths["population"])) -> population_raster
 
   # read in waste flow points
   get_wasteflow_points() -> wasteflow_points
@@ -138,7 +139,7 @@ count_watershed_data <- function(data_dir,
   get_watershed_ts(watersheds) -> runoff_totals
 
   # read in NHD flow shapefile
-  import_shapefile(paste0(data_dir, file_paths["nhd_flow"])) %>% st_as_sf() -> watershed_nhd_flows
+  import_shapefile(file.path(data_dir, file_paths["nhd_flow"])) %>% st_as_sf() -> watershed_nhd_flows
 
   # temporary fix for Jackson MS
   if(watersheds == 3743){
@@ -166,7 +167,6 @@ count_watershed_data <- function(data_dir,
 
         # get area of watershed IN SQUARE KILOMETERS
         raster::area(watersheds_select) / m2_to_km2 -> polygon_area
-
         #-------------------------------------------------------
         # TELECONNECTION - NUMBER OF CITIES USING WATERSHED
         get_cities() %>%
@@ -275,18 +275,6 @@ count_watershed_data <- function(data_dir,
           warning("land table area is consistent with cropcover_ids area!!")
         }
 
-
-        #-------------------------------------------------------
-        # TELECONNECTION - CLASSIFY WATERSHED BASED ON % OF DEVELOPED/CULTIVATED AREA.
-        # Remove NA and all categories that are not land cover/use(water/background).
-        cropcover_ids %>% filter(!Group.1 %in% non_land_cdl_classes) -> all_land
-        # New df with only crops and developement categories
-        cropcover_ids %>% filter(!Group.1 %in% non_devcrop_class) -> dev_and_crop
-        # Find percent area for development and crops.
-        percent_area <- (100*(sum(dev_and_crop$x))) / (sum(all_land$x))
-        # Assign to category based on percent area.
-        get_land_category(percent_area) -> watershed_condition
-
         if(run_all == TRUE){
 
         #--------------------------------------------------------
@@ -388,43 +376,11 @@ count_watershed_data <- function(data_dir,
           get_nlud_names() -> nlud_table
 
 
-        # if(run_all == TRUE){
-        # # -------------------------------------------------------
-        # # TELECONNECTION - Interbasin Transfers in Watershed
-        # TEMPORARILY REMOVED DUE TO RUN PROBLEMS LIKELY DUE TO RGDAL UPDATE - ST
-        # # subset interbasin transfers for the select watershed
-        # st_as_sf(watersheds_select) -> sf_watershed
-        # sup(interbasin_transfers[sf_watershed, ]) -> watershed_transfers
-        #
-        # # add a row.id and +1 so that it equals the the row number starting from 1
-        # watershed_transfers$row.id <- as.numeric(rownames(watershed_transfers))
-        # watershed_transfers$row.id <- watershed_transfers$row.id + 1
-        #
-        # # find all the transfers that are fully within the watershed shape, then join by row.id
-        # sup(st_within(interbasin_transfers, sf_watershed)) %>% as_tibble() %>%
-        #   left_join(watershed_transfers, by = "row.id") -> transfers_within
-        #
-        # # subset the interbasin transfers by those that are with in and those that are outward
-        # subset(interbasin_transfers, OBJECTID %in% transfers_within$OBJECTID) -> inner_transfers
-        #
-        # subset(watershed_transfers, !(OBJECTID %in% inner_transfers$OBJECTID)) -> outer_transfers
-        #
-        # # get start and endpoints of the outer transfers to determine inflow/outflow
-        # get_startpoints(outer_transfers) -> transfer_start
-        # get_endpoints(outer_transfers) -> transfer_end
-        #
-        # # find transfers that start within the watershed and transfers that start outside of the watershed
-        # sup(transfer_start[sf_watershed, ]) %>%
-        #   nrow() -> n_transfers_out
-        # sup(transfer_end[sf_watershed, ]) %>%
-        #   nrow() -> n_transfers_into
-        # nrow(inner_transfers) -> n_transfers_within
-
-        #}else{
+        # TODO:  Potentally add in interbasin transfer from commit 1989d3877304370d034091e7e0a6598c947c6c4a
           n_transfers_into <- NA_integer_
           n_transfers_out <- NA_integer_
           n_transfers_within <- NA_integer_
-        #}
+
         #---------------------------------------------------------
         # TELECONNTECTION - Number of climate zones watershed crosses
         get_zonal_data(us_climate, watersheds_select) %>%

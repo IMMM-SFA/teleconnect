@@ -1,7 +1,7 @@
 Package: gamut
 Type: Package
 Title: Geospatial Analytics for Multisector Urban Teleconnections
-Version: 0.1.0
+Version: 1.0.0
 Authors@R: 
     person(given = "Sean",
            family = "Turner",
@@ -24,6 +24,7 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
+Depends: R (>= 3.5.0)
 Imports: 
     clisymbols,
     crayon,
@@ -44,10 +45,10 @@ Imports:
     rgeos,
     sf,
     sp,
+    spex,
     stringr,
     tibble,
     tidyr,
-    units,
     vroom
 Suggests: 
     testthat (>= 2.1.0),

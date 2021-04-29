@@ -28,25 +28,13 @@ count_watershed_teleconnections(
 
 \item{cities}{a vector of cities to be included in the count. If omitted, all cities will be included.}
 
-\item{watersheds_file_path}{path of watersheds shapefile within data_dir}
+\item{run_all}{to be depreciated.  Runs current configuration.}
 
-\item{powerplants_file_path}{path of power plants data file}
-
-\item{crop_file_path}{path of crop cover raster}
-
-\item{dams_file_path}{path of National Inventory of Dams "NID" point file}
-
-\item{irrigation_file_path}{path of edited demeter irrigation file.}
-
-\item{nuld_file_path}{path of land use raster file.}
-
-\item{poly_slices}{integer for how may parts to split the watersheds polygons into to enable faster zonal stats}
-
-\item{n_cores}{integer for the number of machine cores used to run the polygon slicing function. 2 is default for users with 16GB of RAM.}
+\item{file_paths}{file paths to all geospatial input datasets}
 }
 \description{
 count_watershed_teleconnections
 }
 \details{
-counts teleconnections assoicated with water supply catchments associated with each city
+counts teleconnections associated with water supply catchments associated with each city
 }

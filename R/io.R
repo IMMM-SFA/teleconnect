@@ -1,6 +1,5 @@
 # Input/Output IO tools for teleconnect
 
-
 #' Create an sf object from a shapefile
 #'
 #' Create an sf object from a full path to shapefile with file name and extension
@@ -32,39 +31,6 @@ import_shapefile <- function(shp_path, quiet = TRUE, method = "sf") {
 import_raster <- function(raster_path) {
 
   return(raster(raster_path, RAT = TRUE))
-}
-
-#' Import point data from a CSV file
-#'
-#' Import point data that contains a value to be spatially joined to the fishnet containing
-#' fractional area.  May either be a shapefile or a CSV file containing a latitude and longitude
-#' for each record.
-#'
-#' @param f character. The full path with filename and extension to the points dataset.
-#' @param pts_lat_field character. The field name for latitude
-#' @param pts_lon_field character. The field name for longitude
-#' @param pts_crs int. The native EPSG number for the coordinate reference system used in the
-#' creation of the input points data. The default is 4326 (WGS 1984).
-#' @param my_crs int. The EPSG number of the desired coordinate reference system. The
-#' default is EPSG:3857 the WGS 84 / Pseudo-Mercator -- Used by all modern web
-#' mapping applications.
-#' @importFrom sf st_as_sf st_transform
-#' @return A simple features (sf) spatial data frame object.
-#' @author Chris R. Vernon (chris.vernon@pnnl.gov)
-#' @export
-import_points_from_csv <- function(f, pts_lat_field, pts_lon_field, pts_crs = 4326, my_crs = 3857) {
-
-  pts <- read.csv(file = f, header = TRUE, sep = ',')
-
-  # change latitude, longitude columns to numeric
-  cols.num <- c(pts_lat_field, pts_lon_field)
-  pts[cols.num] <- sapply(pts[cols.num], as.numeric)
-
-  # convert to sf spatial data frame object and transform to target CRS
-  pts.SP <- st_as_sf(pts, coords = c(pts_lat_field, pts_lon_field), crs = pts_crs) %>%
-    st_transform(crs = my_crs)
-
-  return(pts)
 }
 
 #' get_cities
@@ -163,15 +129,15 @@ get_ucs_power_plants <- function(ucs_file_path,
   # read UCS generator database
   read_xlsx(ucs_file_path,
             sheet = "MAIN DATA", skip = 4) %>%
-    select(cooling = `Requires cooling?`,
-           cooling_tech = `Cooling Technology`,
-           PLANT_CODE = `Plant Code`,
-           `Power Plant Type` = Fuel,
-           lat = Latitude, lon = Longitude,
-           MWh = `Estimated Generation (MWh)`,
-           PLANT_NAME = `Plant Name`,
-           consumption = `Calculated Consumption (million gallons/yr)`,
-           withdrawal = `Calculated Withdrawal (million gallons/yr)`) %>%
+    select(cooling = "Requires cooling?",
+           cooling_tech = "Cooling Technology",
+           PLANT_CODE = "Plant Code",
+           `Power Plant Type` = "Fuel",
+           lat = "Latitude", lon = "Longitude",
+           MWh = "Estimated Generation (MWh)",
+           PLANT_NAME = "Plant Name",
+           consumption = "Calculated Consumption (million gallons/yr)",
+           withdrawal = "Calculated Withdrawal (million gallons/yr)") %>%
     # aggregate to plant level by removing generator variables (e.g., nameplate) ...
     # and taking unique columns...
     unique() -> ucs
@@ -215,7 +181,7 @@ get_ucs_power_plants <- function(ucs_file_path,
 #' @importFrom dplyr rename n
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
 #' @export
-get_zonal_data <- function(raster_object, polygon, city) {
+get_zonal_data <- function(raster_object, polygon) {
   # extract raster projection
   raster_crs <- crs(raster_object)
   # transform projection and union all polygons into one
@@ -356,27 +322,6 @@ reclassify_raster <- function(crop_cover_levels){
 
 }
 
-#' get_land_category
-#' @param percent_area percent area of developed and cultivated areas
-#' @details Classify watershed condition based on percent development and cultivation.
-#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
-#' @export
-get_land_category <- function(percent_area){
-
-  if(percent_area <= 1){
-    watershed_condtion <- "Very Low"
-  }else if(percent_area > 1 & percent_area <= 5){
-    watershed_condtion <-"Low"
-  }else if(percent_area > 5 & percent_area <= 15){
-    watershed_condtion <-"Average"
-  }else if(percent_area > 15 & percent_area <= 30){
-    watershed_condtion <-"High"
-  }else if(percent_area > 30){
-    watershed_condtion <-"Very High"
-  }
-
-}
-
 #' get_demeter_file
 #' @param irrigation_file_path FUll path to the demeter data file
 #' @details Load demeter file for irrigation and rainfed crop data
@@ -492,7 +437,8 @@ get_nlud_names <- function(economic_ids){
 
 
 #' get_hydro_dataset
-#' @param economic_ids dataframe of nlud sector ids
+#' @param data_dir your data directory
+#' @param hydro_file_path hydro plants data file path
 #' @details Load in nlud_id_table.csv and merge with the economic_ids to get class names
 #' @importFrom readxl read_xlsx
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
@@ -500,7 +446,7 @@ get_nlud_names <- function(economic_ids){
 
 get_hydro_dataset <- function(data_dir, hydro_file_path){
   # Load id table
-  read_xlsx(paste0(data_dir, hydro_file_path),
+  read_xlsx(file.path(data_dir, hydro_file_path),
             sheet = "Operational") %>%
     select(NID_ID = NID_ID,
            lat = Lat, lon = Lon,
@@ -512,7 +458,6 @@ get_hydro_dataset <- function(data_dir, hydro_file_path){
 
 
 #' get_population
-#' @param city_state name of city_state
 #' @details Census populations
 #' @importFrom vroom vroom cols
 #' @author Sean Turner (sean.turner@pnnl.gov)
@@ -523,7 +468,7 @@ get_population <- function(){
 }
 
 #' get_watershed_ts
-#' @param watershed select watershed
+#' @param watersheds select watershed
 #' @details Load in runoff time series and select the watershed being analyzed and its time series
 #' @importFrom vroom vroom cols
 #' @importFrom dplyr select one_of
@@ -533,7 +478,7 @@ get_population <- function(){
 get_watershed_ts <- function(watersheds){
 
   vroom(paste0(system.file("extdata", package = "gamut"),
-                                "/teleconnect_runoff_bcm.csv"),
+                                "/gamut_runoff_bcm.csv"),
                          delim = ",", skip = 2, col_types = cols()) %>%
     select(Monthly_Date, one_of(as.character(watersheds))) %>%
     separate(Monthly_Date, into = c("year", "month")) %>%
@@ -541,7 +486,6 @@ get_watershed_ts <- function(watersheds){
 }
 
 #' get_irrigation_bcm
-#' @param irrbcm_file_path irrigation bcm file path
 #' @details load in irrigation bcm file path
 #' @importFrom vroom vroom cols
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
@@ -553,6 +497,7 @@ get_irrigation_bcm <- function(){
 }
 
 #' get_watershed_usage
+#' @param city city that is being analyzed
 #' @details load in watershed usage table
 #' @importFrom vroom vroom cols
 #' @author Kristian Nelson (kristian.nelson@pnnl.gov)
@@ -566,6 +511,11 @@ get_watershed_usage <- function(city){
 }
 
 #' get_runoff_values
+#' @param cropcover_agg cropcover raster
+#' @param runoff_agg runoff raster
+#' @param lc_values land cover values
+#' @param polygon_area area of select watershed
+#' @param land_table land table created by functions
 #' @details calculate runoff volume in meters cubed per second
 #' @importFrom tidyr as_tibble
 #' @importFrom dplyr rename
@@ -632,43 +582,19 @@ get_wasteflow_points <- function(){
 }
 
 #' get_source_contribution
+#' @param data_dir your data directory
+#' @param file_paths the file paths to the gamut inputs
 #' @details get a city's water source contribution breakdown
 #' @importFrom vroom vroom cols
 #' @importFrom dplyr filter
 #' @author Sean Turner (sean.turner@pnnl.gov)
 get_source_contribution <- function(data_dir,file_paths){
-  vroom(paste0(data_dir, file_paths["contributions"]),
+  vroom(file.path(data_dir, file_paths["contributions"]),
         col_types = cols(city_state = col_character(),
                          intake = col_character(),
                          DVSN_ID= col_double(),
                          type = col_character(),
                          contribution_to_supply = col_double()))
-}
-
-#' get_usgs_flows
-#' @details get usgs inflow associated with a DVSN
-#' @importFrom vroom vroom cols
-#' @importFrom dplyr filter one_of mutate
-#' @author Sean Turner (sean.turner@pnnl.gov)
-get_usgs_flows <- function(DVSN){
-
-    vroom(paste0(system.file("extdata", package = "gamut"),
-               "/teleconnect_flows_USGS_cfs.csv"), col_types = cols()) ->
-    all_flows
-
-  if(as.character(DVSN) %in% names(all_flows)){
-    return(
-      all_flows %>%
-        select(year, month, flow_cfs = one_of(as.character(DVSN))) %>%
-        mutate(flow_m3sec = cfs_to_m3sec * flow_cfs) %>%
-        select(year, month, flow_m3sec)
-    )
-  }
-
-  all_flows %>%
-    select(year, month) %>%
-    mutate(flow_m3sec = NA_real_)
-
 }
 
 #' get_epa_facilities

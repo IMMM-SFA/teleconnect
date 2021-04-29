@@ -6,9 +6,6 @@
 \usage{
 get_irrigation_bcm()
 }
-\arguments{
-\item{irrbcm_file_path}{irrigation bcm file path}
-}
 \description{
 get_irrigation_bcm
 }

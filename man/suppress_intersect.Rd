@@ -7,13 +7,18 @@
 suppress_intersect(object1, object2)
 }
 \arguments{
-\item{method}{tool used to intersect 2 objects and remove unnecessary warnings}
+\item{object1}{first interesection object}
+
+\item{object2}{second interesection object}
 }
 \value{
 intersection of 2 objects
 }
 \description{
 suppress_intersect
+}
+\details{
+tool used to intersect 2 objects and remove unnecessary warnings
 }
 \author{
 Kristian Nelson (kristian.nelson@pnnl.gov)
