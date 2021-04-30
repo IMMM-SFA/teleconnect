@@ -107,6 +107,7 @@ The `gamut` package is open source and may be downloaded using the [devtools](ht
     clisymbols [@Csardi:2017],
     crayon [@Csardi:2017],
     dplyr [@Henry:2020],
+    dams [@Goteti:2020],
     exactextractr [@Baston:2020],
     foreign [@R-Core-Team:2020],
     geosphere [@Hijmans:2019],
