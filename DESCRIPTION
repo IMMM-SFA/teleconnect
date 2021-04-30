@@ -29,6 +29,7 @@ Imports:
     clisymbols,
     crayon,
     dplyr,
+    dams,
     exactextractr,
     foreign,
     geosphere,
