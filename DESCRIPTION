@@ -28,8 +28,6 @@ Depends: R (>= 3.5.0)
 Imports: 
     clisymbols,
     crayon,
-    dams,
-    dataRetrieval,
     dplyr,
     exactextractr,
     foreign,
