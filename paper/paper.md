@@ -34,7 +34,7 @@ Most cities in the United States withdraw surface water to meet public water sup
 
 ![The `gamut` package analyzes urban cities and their watersheds all across the conterminous U.S. As shown in the figure, it can look at characteristics like land use and facility operations inside watershed boundaries.](gamut_figure.png){ width=95% }
 
-The `gamut` package computes dozens of city-level metrics that inform on the geographical nature of surface water supply catchments and the presence, intensity, and impact of human activities in those catchments. Each city’s watersheds are based on the Urban Water Blueprint [@McDonald:2014], which is enhanced with source contribution estimates as well as river flow and high-resolution runoff [@Nelson:2021]. Watershed delineations are used to mask several geospatial land use layers relating to electricity generation, agriculture, industry and other economic developments, and water infrastructure (dams, reservoirs, aqueducts).
+The `gamut` package computes dozens of city-level metrics that inform on the geographical nature of surface water supply catchments and the presence, intensity, and impact of human activities in those catchments. Each city’s watersheds are based on the Urban Water Blueprint [@McDonald:2014], which is enhanced with source contribution estimates as well as river flow and high-resolution runoff [@Nelson:2021]. Watershed delineations are used to mask several geospatial land use layers relating to electricity generation, agriculture, industry and other economic developments, and water infrastructure (dams, reservoirs, aqueducts). These geospatial input layers have been combined into an open-source dataset and can accessed [here](https://zenodo.org/record/4662993#.YJB9ZLVKhPY).
 
 Metrics reported by `gamut` fall into four main categories: geographical characteristics of watersheds (e.g., climate zones, land area, distance from city, hydrology), potential water contamination concentrations (nonpoint and point), withdrawal/consumption of water from other sectors, and presence/intensity of multisectoral land uses. Table 1 shows all of the metrics that are created by this package, descriptions, and units. An R vignette is provided to help users to get started with `gamut` and may be accessed [here](https://github.com/IMMM-SFA/gamut#readme).
 
@@ -66,16 +66,18 @@ Table 1: Metrics reported in gamut
 | n\_utilities                          | Number of electric utilities within the source watersheds                               | utilities             |
 | n\_ba                                 | Number of balancing authorities within the source watersheds                            | balancing authorities |
 | n\_crop\_classes                      | Total number of different types of crops within the source watersheds                   | crops                 |
-| ag\_runoff\_max                       | Agricultural runoff as proportion of total runoff (worst-case watershed)                | %                     |
-| ag\_runoff\_av\_exgw                  | Agricultural runoff as proportion of total runoff in supply (exc. groundwater)          | %                     |                                
-| ag\_runoff\_av                        | Agricultural runoff as proportion of total runoff in supply (inc. groundwater)          | %                     |
-| dev\_runof\_max                       | Urban runoff as proportion of total runoff (worst-case watershed)                       | %                     |
-| dev\_runof\_av\_exgw                  | Urban runoff as proportion of total runoff in supply (exc. groundwater)                 | %                     |   
-| dev\_runof\_av                        | Urban runoff as proportion of total runoff in supply (inc. groundwater)                 | %                     |
-| np\_runoff\_max                       | Max amount of non-point source runoff within the source watersheds                      | %                     |
-| np\_runoff\_av\_exgw                  | Nonpoint Proportion of Potentially Contaminated Supply (PPCS) (exc. groundwater)        | %                     |
-| np\_runoff\_av\_ exgw\_unweighted      | Nonpoint supply contamination averaged across watersheds                                | %                     |
-| np\_runoff\_av                        | Nonpoint Proportion of Potentially Contaminated Supply (PPCS)                           | %                     |
+| cropland\_fraction                      | Fraction of land that is used for crops                | fraction                     |
+| developed\_fraction                       | Fraction of land that is developed                | fraction                     |
+| ag\_runoff\_max                       | Agricultural runoff as proportion of total runoff (worst-case watershed)                | fraction                     |
+| ag\_runoff\_av\_exgw                  | Agricultural runoff as proportion of total runoff in supply (exc. groundwater)          | fraction                     |                                
+| ag\_runoff\_av                        | Agricultural runoff as proportion of total runoff in supply (inc. groundwater)          | fraction                     |
+| dev\_runof\_max                       | Urban runoff as proportion of total runoff (worst-case watershed)                       | fraction                     |
+| dev\_runof\_av\_exgw                  | Urban runoff as proportion of total runoff in supply (exc. groundwater)                 | fraction                     |   
+| dev\_runof\_av                        | Urban runoff as proportion of total runoff in supply (inc. groundwater)                 | fraction                     |
+| np\_runoff\_max                       | Max amount of non-point source runoff within the source watersheds                      | fraction                     |
+| np\_runoff\_av\_exgw                  | Nonpoint Proportion of Potentially Contaminated Supply (PPCS) (exc. groundwater)        | fraction                     |
+| np\_runoff\_av\_ exgw\_unweighted      | Nonpoint supply contamination averaged across watersheds                                | fraction                     |
+| np\_runoff\_av                        | Nonpoint Proportion of Potentially Contaminated Supply (PPCS)                           | fraction                     |
 | n\_economic\_sectors                  | Total number of different economic sectors within the source watersheds                 | sectors               |
 | max\_withdr\_dis\_km                  | Maximum distance between a city’s intake points                                         | kilometers            |
 | avg\_withdr\_dis\_km                  | Average distance between a city’s intake points                                         | kilometers            |
