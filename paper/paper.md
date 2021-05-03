@@ -1,5 +1,5 @@
 ---
-title: 'GAMUT: A Geospatial Analysis of Multisector Urban Teleconnections'
+title: 'gamut: A Geospatial Analysis of Multisector Urban Teleconnections'
 tags:
   - R
   - Multisector Dynamics
