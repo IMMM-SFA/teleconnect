@@ -40,7 +40,7 @@ Metrics reported by `gamut` fall into four main categories: geographical charact
 
 Table 1: Metrics reported in gamut
 
-| Metic Name                            | Description                                                                             | Units                 |
+| Metric Name                            | Description                                                                             | Units                 |
 | :------------------------------------ | :-------------------------------------------------------------------------------------- | :-------------------- |
 | city\_population                      | The population of the city being analyzed                                               | people                |
 | n\_watersheds                         | Number of watersheds that city uses to source drinking water                            | watersheds            |
