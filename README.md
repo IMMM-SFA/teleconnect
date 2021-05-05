@@ -2,6 +2,7 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ![build](https://github.com/IMMM-SFA/gamut/workflows/build/badge.svg)
+[![codecov](https://codecov.io/gh/IMMM-SFA/gamut/branch/master/graph/badge.svg?token=uF3EvxwvCO)](https://codecov.io/gh/IMMM-SFA/gamut)
 [![DOI](https://zenodo.org/badge/203447802.svg)](https://zenodo.org/badge/latestdoi/203447802)
 
 # `gamut`
@@ -16,8 +17,11 @@ supply catchments. A *teleconnection* is a causal connection or
 correlation between human and environmental phenomena that occur a long
 distance apart.
 
-![](https://github.com/IMMM-SFA/gamut/blob/main/inst/extdata/gamut_plot.png)
+<p align="center">
 
+<img width="800" height="550" src="inst/extdata/gamut_plot.png">
+
+</p>
 
 ## Get Started with `gamut`
 
@@ -44,7 +48,7 @@ all the files used within the `gamut` software package.
 | powerplants      | water               | water/UCS-EW3-Energy-Water-Database.xlsx                                        | <https://www.ucsusa.org/resources/ucs-ew3-energy-water-database>                                         |
 | crop             | land                | land/2016\_90m\_cdls/cdl\_lowres\_usa.img                                       | <https://www.nass.usda.gov/Research_and_Science/Cropland/Release/>                                       |
 | crop\_attributes | land                | land/2016\_90m\_cdls/cdl\_lowres\_usa.img.vat.dbf                               | <https://www.nass.usda.gov/Research_and_Science/Cropland/Release/>                                       |
-| irrigation       | land                | land/Version2\_USA\_Demeter.csv                                                 | NA                                                                                                       |
+| irrigation       | land                | land/Version2\_USA\_Demeter.csv                                                 | GCAM Demeter Data                                                                                        |
 | nlud             | land                | land/usa\_nlud\_LR.tif                                                          | <https://drive.google.com/file/d/1vmNfwjcaLf0sZTYJ1wsB3liG37sN8gyC/view>                                 |
 | hydro            | energy              | energy/EHA\_Public\_PlantFY2019\_GIS\_6/ORNL\_EHAHydroPlant\_FY2020revised.xlsx | <https://hydrosource.ornl.gov/node/250>                                                                  |
 | climate          | land                | land/kop\_climate\_classes.tif                                                  | <http://koeppen-geiger.vu-wien.ac.at/present.htm>                                                        |
@@ -121,16 +125,16 @@ created through this function:
 | n\_crop\_classes                      | Total number of different types of crops within the source watersheds                   | crops                 |
 | cropland\_fraction                    | Fraction of land that is used for crops within the source watersheds                    | fraction              |
 | developed\_fraction                   | Fraction of land that is developed within the source watersheds                         | fraction              |
-| ag\_runoff\_max                       | Max amount of agricultural runoff within the source watersheds                          | %                     |
-| ag\_runoff\_av\_exgw                  | Average agricultural runoff (excluding ground water)                                    | %                     |
-| ag\_runoff\_av                        | Average runoff from agricultural lands                                                  | %                     |
-| dev\_runof\_max                       | Max amount of agricultural runoff within the source watersheds                          | %                     |
-| dev\_runof\_av\_exgw                  | Average developed runoff (excluding ground water)                                       | %                     |
-| dev\_runof\_av                        | Average runoff from developed lands                                                     | %                     |
-| np\_runoff\_max                       | Max amount of non-point source runoff within the source watersheds                      | %                     |
-| np\_runoff\_av\_exgw                  | Average non-point runoff (excluding ground water)                                       | %                     |
-| np\_runoff\_av\_exgw\_unweighted      | Average non-point runoff unweighted (excluding ground water)                            | %                     |
-| np\_runoff\_av                        | Average non-point source runoff.                                                        | %                     |
+| ag\_runoff\_max                       | Max amount of agricultural runoff within the source watersheds                          | fraction              |
+| ag\_runoff\_av\_exgw                  | Average agricultural runoff (excluding ground water)                                    | fraction              |
+| ag\_runoff\_av                        | Average runoff from agricultural lands                                                  | fraction              |
+| dev\_runof\_max                       | Max amount of agricultural runoff within the source watersheds                          | fraction              |
+| dev\_runof\_av\_exgw                  | Average developed runoff (excluding ground water)                                       | fraction              |
+| dev\_runof\_av                        | Average runoff from developed lands                                                     | fraction              |
+| np\_runoff\_max                       | Max amount of non-point source runoff within the source watersheds                      | fraction              |
+| np\_runoff\_av\_exgw                  | Average non-point runoff (excluding ground water)                                       | fraction              |
+| np\_runoff\_av\_exgw\_unweighted      | Average non-point runoff unweighted (excluding ground water)                            | fraction              |
+| np\_runoff\_av                        | Average non-point source runoff.                                                        | fraction              |
 | n\_economic\_sectors                  | Total number of different economic sectors within the source watersheds                 | sectors               |
 | max\_withdr\_dis\_km                  | Maximum distance between a city’s intake points                                         | kilometers            |
 | avg\_withdr\_dis\_km                  | Average distance between a city’s intake points                                         | kilometers            |
