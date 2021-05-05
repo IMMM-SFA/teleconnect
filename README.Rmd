@@ -42,7 +42,7 @@ tribble(
   "powerplants","water","water/UCS-EW3-Energy-Water-Database.xlsx","https://www.ucsusa.org/resources/ucs-ew3-energy-water-database",
   "crop","land","land/2016_90m_cdls/cdl_lowres_usa.img","https://www.nass.usda.gov/Research_and_Science/Cropland/Release/",
   "crop_attributes","land","land/2016_90m_cdls/cdl_lowres_usa.img.vat.dbf","https://www.nass.usda.gov/Research_and_Science/Cropland/Release/",
-  "irrigation","land","land/Version2_USA_Demeter.csv","NA",
+  "irrigation","land","land/Version2_USA_Demeter.csv","GCAM Demeter Data",
   "nlud","land","land/usa_nlud_LR.tif","https://drive.google.com/file/d/1vmNfwjcaLf0sZTYJ1wsB3liG37sN8gyC/view",
   "hydro","energy","energy/EHA_Public_PlantFY2019_GIS_6/ORNL_EHAHydroPlant_FY2020revised.xlsx","https://hydrosource.ornl.gov/node/250",
   "climate","land","land/kop_climate_classes.tif","http://koeppen-geiger.vu-wien.ac.at/present.htm",
