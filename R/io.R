@@ -505,7 +505,7 @@ get_watershed_usage <- function(city){
   vroom(paste0(system.file("extdata", package = "gamut"),
                "/city_usage_table.csv"),
         skip = 2, col_types = cols()) -> connect_table
-  connect_table <- connect_table[!(connect_table$city_state == city),]
+  connect_table <- sup(connect_table[!(connect_table$city_state == city),])
 
   return(connect_table)
 }
@@ -654,3 +654,24 @@ get_epa_facilities <- function(){
 
 }
 
+#' get_dvsn_to_huc8
+#' @details load dvsn to huc8 table
+#' @importFrom vroom vroom cols
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
+get_dvsn_to_huc8 <- function(){
+  vroom(paste0(system.file("extdata", package = "gamut"),
+               "/DVSN_to_HUC8.csv"), col_types = cols()) -> dvsn_to_huc8
+
+  return(dvsn_to_huc8)
+}
+
+#' get_huc8_flows
+#' @details load huc8 flow table
+#' @importFrom vroom vroom cols
+#' @author Kristian Nelson (kristian.nelson@pnnl.gov)
+get_huc8_flows <- function(){
+  vroom(paste0(system.file("extdata", package = "gamut"),
+               "/usgs_huc8_flows.csv"), col_types = cols()) -> huc8_flows
+
+  return(huc8_flows)
+}
