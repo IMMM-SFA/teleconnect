@@ -38,7 +38,7 @@ count_watershed_data <- function(data_dir,
                                    climate = "land/kop_climate_classes.tif",
                                    HUC4 = "water/USA_HUC4/huc4_to_huc2.shp",
                                    population = "land/pden2010_60m.tif",
-                                   runoff = "water/UWSCatch/USA_Mean_Runoff.tif",
+                                   runoff = "water/UWSCatCH/USA_Mean_Runoff.tif",
                                    nhd_flow = "water/UWSCatCH/UWSCatCH_Intake_Flows.shp",
                                    contributions = "water/UWSCatCH/Watershed_Contributions.csv"
                                  )){
