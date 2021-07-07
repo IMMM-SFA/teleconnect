@@ -3,7 +3,7 @@
 #' @param data_dir root directory for the spatial data ("/pic/projects/im3/teleconnections/data/")
 #' @param cities a vector of cities to be included in the count. If omitted, all cities will be included.
 #' @param file_paths file paths to all geospatial input datasets
-#' @param run_all to be depreciated.  Runs current configuration.
+#' @param run_all to be deprecated.  Runs current configuration.
 #' @details counts teleconnections associated with water supply catchments associated with each city
 #' @importFrom purrr map_dfr
 #' @importFrom dplyr filter group_indices left_join right_join
@@ -29,7 +29,7 @@ count_watershed_teleconnections <- function(data_dir,
                                               climate = "land/kop_climate_classes.tif",
                                               HUC4 = "water/USA_HUC4/huc4_to_huc2.shp",
                                               population = "land/pden2010_60m.tif",
-                                              runoff = "water/UWSCatch/USA_Mean_Runoff.tif",
+                                              runoff = "water/UWSCatCH/USA_Mean_Runoff.tif",
                                               nhd_flow = "water/UWSCatCH/UWSCatCH_Intake_Flows.shp",
                                               contributions = "water/UWSCatCH/Watershed_Contributions.csv"
                                             )){

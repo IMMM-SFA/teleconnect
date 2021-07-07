@@ -18,7 +18,7 @@ count_watershed_teleconnections(
     "energy/ORNL_EHAHydroPlant_FY2020revised.xlsx", transfers =
     "water/transfers/USIBTsHUC6_Dickson.shp",      climate =
     "land/kop_climate_classes.tif", HUC4 = "water/USA_HUC4/huc4_to_huc2.shp", population
-    = "land/pden2010_60m.tif", runoff = "water/UWSCatch/USA_Mean_Runoff.tif", nhd_flow =
+    = "land/pden2010_60m.tif", runoff = "water/UWSCatCH/USA_Mean_Runoff.tif", nhd_flow =
     "water/UWSCatCH/UWSCatCH_Intake_Flows.shp", contributions =
     "water/UWSCatCH/Watershed_Contributions.csv")
 )
@@ -28,7 +28,7 @@ count_watershed_teleconnections(
 
 \item{cities}{a vector of cities to be included in the count. If omitted, all cities will be included.}
 
-\item{run_all}{to be depreciated.  Runs current configuration.}
+\item{run_all}{to be deprecated.  Runs current configuration.}
 
 \item{file_paths}{file paths to all geospatial input datasets}
 }
