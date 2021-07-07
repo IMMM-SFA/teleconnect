@@ -28,7 +28,7 @@ count_watershed_data(
 
 \item{cities}{a vector of cities to be included in the count. If omitted, all cities will be included.}
 
-\item{run_all}{to be depreciated.  Runs current configuration.}
+\item{run_all}{to be deprecated.  Runs current configuration.}
 
 \item{file_paths}{file paths to all geospatial input datasets}
 }
