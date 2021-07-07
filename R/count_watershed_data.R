@@ -24,6 +24,7 @@
 count_watershed_data <- function(data_dir,
                                  cities = NULL,
                                  run_all = TRUE,
+                                 drought_calc = FALSE,
                                  file_paths = c(
                                    watersheds = "water/CWM_v2_2/World_Watershed8.shp",
                                    withdrawal = "water/CWM_v2_2/Snapped_Withdrawal_Points.shp",
@@ -223,23 +224,6 @@ count_watershed_data <- function(data_dir,
           thermal_withdr_BCM
 
         #-------------------------------------------------------
-        # get huc8 flows
-        get_dvsn_to_huc8() -> dvsn_to_huc8
-        get_huc8_flows() -> huc8_flows
-
-        dvsn_to_huc8 %>% filter(DVSN_ID == watershed) %>% .[["huc8"]] -> huc8
-
-        huc8_flows %>% filter(huc_cd %in% huc8) %>% dplyr::select(-c(1))-> select_huc8
-        select_huc8[1,] %>% as.numeric() -> flows
-
-        mean(flows) -> flow_mean
-        quantile(flows, prob = .05, na.rm = TRUE) -> flow_95_exceedance
-
-        abs((flow_95_exceedance - flow_mean)/flow_mean) -> percent_change
-
-        1 - percent_change -> flow_multiplier
-
-        #-------------------------------------------------------
         # TELECONNECTION - WATERSHED RUNOFF AND FLOW VALUES
         runoff_totals %>%
           filter(watershed == !!watershed) ->
@@ -255,28 +239,69 @@ count_watershed_data <- function(data_dir,
 
         # Calculate flow from NHD flowline
 
-        if(watershed %in% watershed_nhd_flows$DVSN_ID){
+        if(drought_calc == TRUE){
 
-          watershed_nhd_flows %>%
-            filter(DVSN_ID %in% watershed) %>%
-            .[[nhdplus_flow_metric]] -> nhd_flow_value
+          get_dvsn_to_huc8() -> dvsn_to_huc8
+          get_huc8_flows() -> huc8_flows
 
-          flow_multiplier * nhd_flow_value -> nhd_flow_m3sec
+          dvsn_to_huc8 %>% filter(DVSN_ID == watershed) %>% .[["huc8"]] -> huc8
 
-          if_else(is.na(nhd_flow_m3sec),
-                  historical_runoff_mean_m3sec,
-                  nhd_flow_m3sec) ->
-            historical_flow_mean_m3sec
+          huc8_flows %>% filter(huc_cd %in% huc8) %>% dplyr::select(-c(1))-> select_huc8
+          select_huc8[1,] %>% as.numeric() -> flows
+
+          mean(flows) -> flow_mean
+          quantile(flows, prob = .05, na.rm = TRUE) -> flow_95_exceedance
+
+          abs((flow_95_exceedance - flow_mean)/flow_mean) -> percent_change
+
+          1 - percent_change -> flow_multiplier
+
+        #------------------------------------
+
+          if(watershed %in% watershed_nhd_flows$DVSN_ID){
+
+            watershed_nhd_flows %>%
+              filter(DVSN_ID %in% watershed) %>%
+              .[[nhdplus_flow_metric]] -> nhd_flow_m3sec
+
+            if_else(is.na(nhd_flow_m3sec),
+                    historical_runoff_mean_m3sec,
+                    nhd_flow_m3sec) -> flow_value
+
+            as.numeric(flow_multiplier * flow_value) -> historical_flow_mean_m3sec
+
+          }else{
+
+            as.numeric(flow_multiplier*historical_runoff_mean_m3sec) -> historical_flow_mean_m3sec
+
+          }
+
+          historical_flow_dry_m3sec <- NA_real_
+
 
         }else{
 
-          flow_multiplier * historical_runoff_mean_m3sec -> historical_flow_mean_m3sec
+
+          if(watershed %in% watershed_nhd_flows$DVSN_ID){
+
+            watershed_nhd_flows %>%
+              filter(DVSN_ID %in% watershed) %>%
+              .[[nhdplus_flow_metric]] -> nhd_flow_m3sec
+
+            if_else(is.na(nhd_flow_m3sec),
+                    historical_runoff_mean_m3sec,
+                    nhd_flow_m3sec) -> historical_flow_mean_m3sec
+
+          }else{
+
+            historical_runoff_mean_m3sec -> historical_flow_mean_m3sec
+
+          }
+
+          # not yet accounting for within year flow variation
+          historical_flow_dry_m3sec <- NA_real_
 
         }
-
-        # not yet accounting for within year flow variation
-        historical_flow_dry_m3sec <- NA_real_
-
         #-------------------------------------------------------
         # TELECONNECTION - NUMBER OF CROP TYPES BASED ON GCAM CLASSES. NUMBER OF LAND COVERS.
 
